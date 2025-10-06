@@ -1,0 +1,316 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import ResponsiveLayout from '../../components/ResponsiveLayout'
+
+interface Customer {
+  _id: string
+  name: string
+  mobile: string
+  totalSpend: number
+  totalOrders: number
+  lastOrderDate?: string
+  isActive: boolean
+  createdAt: string
+}
+
+export default function CustomersPage() {
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalCustomers: 0,
+    activeCustomers: 0,
+    highValueCustomers: 0
+  })
+
+  useEffect(() => {
+    fetchCustomers()
+  }, [])
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await fetch('/api/customers')
+      const data = await response.json()
+      if (data.success) {
+        setCustomers(data.data)
+        calculateStats(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch customers:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const calculateStats = (customerData: Customer[]) => {
+    const total = customerData.length
+    const active = customerData.filter(c => c.isActive).length
+    const highValue = customerData.filter(c => c.totalSpend > 10000).length
+    setStats({ totalCustomers: total, activeCustomers: active, highValueCustomers: highValue })
+  }
+
+  return (
+    <ResponsiveLayout activePage="Customers" title="Customers" searchPlaceholder="Search by Name / Mobile">
+        {/* Customers Content */}
+        <div style={{ padding: '1.5rem' }}>
+          {/* Filter Section */}
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+            <select
+              style={{
+                padding: '0.75rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '25px',
+                outline: 'none',
+                backgroundColor: 'white',
+                minWidth: '200px'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            >
+              <option>Sort by Most Orders</option>
+            </select>
+            <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>From:</span>
+            <input
+              type="text"
+              placeholder="YYYY-MM-DD"
+              style={{
+                padding: '0.75rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                outline: 'none'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            />
+            <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>To:</span>
+            <input
+              type="text"
+              placeholder="YYYY-MM-DD"
+              style={{
+                padding: '0.75rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                outline: 'none'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            />
+          </div>
+
+          {/* Stats Cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '1.5rem',
+            marginBottom: '2rem'
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              padding: '1.5rem',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Total Customers</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#2563eb', fontSize: '1.2rem' }}>👥</span>
+                <span style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{stats.totalCustomers}</span>
+              </div>
+            </div>
+            <div style={{
+              backgroundColor: 'white',
+              padding: '1.5rem',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Customers</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#2563eb', fontSize: '1.2rem' }}>👥</span>
+                <span style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{stats.activeCustomers}</span>
+              </div>
+            </div>
+            <div style={{
+              backgroundColor: 'white',
+              padding: '1.5rem',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>High Value Customers</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#f59e0b', fontSize: '1.2rem' }}>⭐</span>
+                <span style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{stats.highValueCustomers}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Customers Table */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
+          }}>
+            {/* Table Header */}
+            <div style={{
+              backgroundColor: '#f8fafc',
+              padding: '1rem',
+              display: 'grid',
+              gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr 2fr',
+              gap: '1rem',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              color: '#6b7280',
+              borderBottom: '1px solid #e5e7eb'
+            }}>
+              <div>Customer ID</div>
+              <div>Name</div>
+              <div>Mobile</div>
+              <div>Last Order</div>
+              <div>Total Spend</div>
+              <div>Actions</div>
+            </div>
+
+            {/* Table Rows */}
+            {loading ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                Loading customers...
+              </div>
+            ) : customers.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                No customers found
+              </div>
+            ) : (
+              customers.map((customer, index) => (
+                <div
+                  key={customer._id}
+                  style={{
+                    padding: '1rem',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr 2fr',
+                    gap: '1rem',
+                    borderBottom: index < customers.length - 1 ? '1px solid #f3f4f6' : 'none',
+                    fontSize: '0.9rem',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div style={{ fontWeight: '500' }}>#{customer._id.slice(-6)}</div>
+                  <div>{customer.name || 'User'}</div>
+                  <div>{customer.mobile}</div>
+                  <div>{customer.lastOrderDate ? new Date(customer.lastOrderDate).toLocaleDateString() : 'No orders'}</div>
+                  <div>₹{customer.totalSpend}</div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button 
+                    onClick={() => window.location.href = `/admin/customers/${customer._id}`}
+                    style={{
+                      backgroundColor: '#2563eb',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}>
+                    View Profile
+                  </button>
+                  <button style={{
+                    backgroundColor: '#6b7280',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    Block
+                  </button>
+                  <button style={{
+                    backgroundColor: '#2563eb',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    Adjust Points
+                  </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* No Customers Found Section */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            marginTop: '2rem',
+            padding: '1rem 0'
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              backgroundColor: '#2563eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '1.2rem',
+              flexShrink: 0
+            }}>
+              ●
+            </div>
+            <div>
+              <div style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem' }}>
+                No customers found.
+              </div>
+              <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                Try adjusting your search or filter criteria.
+              </div>
+            </div>
+          </div>
+
+          {/* Pagination */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '1.5rem'
+          }}>
+            <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+              Showing 1-20 of 540 orders
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer'
+              }}>
+                Prev
+              </button>
+              <button style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer'
+              }}>
+                Next
+              </button>
+            </div>
+          </div>
+      </div>
+    </ResponsiveLayout>
+  )
+}
