@@ -20,6 +20,8 @@ export default function AddOnPage() {
   const [timeSlots, setTimeSlots] = useState([])
   const [slotTime, setSlotTime] = useState('')
   const [slotType, setSlotType] = useState('pickup')
+  const [editingSlot, setEditingSlot] = useState(null)
+  const [draggedItem, setDraggedItem] = useState(null)
 
   useEffect(() => {
     fetchStates()
@@ -252,6 +254,79 @@ export default function AddOnPage() {
       }
     } catch (error) {
       console.error('Error removing time slot:', error)
+    }
+  }
+
+  const editTimeSlot = (slot: any) => {
+    setEditingSlot(slot._id)
+    setSlotTime(slot.time)
+    setSlotType(slot.type)
+  }
+
+  const updateTimeSlot = async () => {
+    if (!slotTime || !slotType || !editingSlot) return
+    
+    try {
+      const response = await fetch(`/api/time-slots?id=${editingSlot}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ time: slotTime, type: slotType })
+      })
+      
+      if (response.ok) {
+        setSlotTime('')
+        setSlotType('pickup')
+        setEditingSlot(null)
+        fetchTimeSlots()
+      }
+    } catch (error) {
+      console.error('Error updating time slot:', error)
+    }
+  }
+
+  const cancelEdit = () => {
+    setEditingSlot(null)
+    setSlotTime('')
+    setSlotType('pickup')
+  }
+
+  const handleDragStart = (e: any, slot: any) => {
+    setDraggedItem(slot)
+  }
+
+  const handleDragOver = (e: any) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = async (e: any, targetSlot: any) => {
+    e.preventDefault()
+    if (!draggedItem || draggedItem._id === targetSlot._id) return
+
+    const newTimeSlots = [...timeSlots]
+    const draggedIndex = newTimeSlots.findIndex(slot => slot._id === draggedItem._id)
+    const targetIndex = newTimeSlots.findIndex(slot => slot._id === targetSlot._id)
+
+    newTimeSlots.splice(draggedIndex, 1)
+    newTimeSlots.splice(targetIndex, 0, draggedItem)
+
+    setTimeSlots(newTimeSlots)
+    setDraggedItem(null)
+
+    // Update order in database
+    try {
+      const slotsWithOrder = newTimeSlots.map((slot, index) => ({
+        id: slot._id,
+        order: index
+      }))
+      
+      await fetch('/api/time-slots/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slots: slotsWithOrder })
+      })
+    } catch (error) {
+      console.error('Error updating slot order:', error)
+      fetchTimeSlots() // Revert on error
     }
   }
 
@@ -529,22 +604,59 @@ export default function AddOnPage() {
               <option value="delivery">Delivery Slot</option>
               <option value="both">Both</option>
             </select>
-            <button 
-              onClick={addTimeSlot}
-              disabled={!slotTime || !slotType}
-              style={{ 
-                padding: '0.75rem', 
-                backgroundColor: slotTime && slotType ? '#2563eb' : '#9ca3af', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '12px', 
-                fontSize: '0.9rem', 
-                fontWeight: '500',
-                cursor: slotTime && slotType ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Add Time Slot
-            </button>
+            {editingSlot ? (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  onClick={updateTimeSlot}
+                  disabled={!slotTime || !slotType}
+                  style={{ 
+                    padding: '0.75rem', 
+                    backgroundColor: slotTime && slotType ? '#10b981' : '#9ca3af', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontSize: '0.9rem', 
+                    fontWeight: '500',
+                    cursor: slotTime && slotType ? 'pointer' : 'not-allowed',
+                    flex: 1
+                  }}
+                >
+                  Update
+                </button>
+                <button 
+                  onClick={cancelEdit}
+                  style={{ 
+                    padding: '0.75rem', 
+                    backgroundColor: '#6b7280', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontSize: '0.9rem', 
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={addTimeSlot}
+                disabled={!slotTime || !slotType}
+                style={{ 
+                  padding: '0.75rem', 
+                  backgroundColor: slotTime && slotType ? '#2563eb' : '#9ca3af', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '500',
+                  cursor: slotTime && slotType ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Add Time Slot
+              </button>
+            )}
           </div>
           
           <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '0.5rem' }}>
@@ -552,32 +664,60 @@ export default function AddOnPage() {
               <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No time slots created yet</p>
             ) : (
               timeSlots.map((slot: any) => (
-                <div key={slot._id} style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center', 
-                  padding: '0.75rem', 
-                  backgroundColor: '#f8fafc', 
-                  borderRadius: '6px', 
-                  marginBottom: '0.5rem' 
-                }}>
-                  <span style={{ fontSize: '0.9rem' }}>
-                    {slot.time} - {slot.type.charAt(0).toUpperCase() + slot.type.slice(1)}
-                  </span>
-                  <button 
-                    onClick={() => removeTimeSlot(slot._id)}
-                    style={{ 
-                      padding: '0.25rem 0.5rem', 
-                      backgroundColor: '#ef4444', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px', 
-                      fontSize: '0.8rem',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Remove
-                  </button>
+                <div 
+                  key={slot._id} 
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, slot)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, slot)}
+                  style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    padding: '0.75rem', 
+                    backgroundColor: editingSlot === slot._id ? '#dbeafe' : '#f8fafc', 
+                    borderRadius: '6px', 
+                    marginBottom: '0.5rem',
+                    cursor: 'move',
+                    border: editingSlot === slot._id ? '2px solid #2563eb' : '1px solid #e5e7eb'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.2rem', color: '#6b7280' }}>⋮⋮</span>
+                    <span style={{ fontSize: '0.9rem' }}>
+                      {slot.time} - {slot.type.charAt(0).toUpperCase() + slot.type.slice(1)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      onClick={() => editTimeSlot(slot)}
+                      style={{ 
+                        padding: '0.25rem 0.5rem', 
+                        backgroundColor: '#3b82f6', 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '4px', 
+                        fontSize: '0.8rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => removeTimeSlot(slot._id)}
+                      style={{ 
+                        padding: '0.25rem 0.5rem', 
+                        backgroundColor: '#ef4444', 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '4px', 
+                        fontSize: '0.8rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))
             )}
