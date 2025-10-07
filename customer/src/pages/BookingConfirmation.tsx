@@ -1,10 +1,18 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, MapPin, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 const BookingConfirmation = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const orderData = location.state || {};
+  
+  const orderId = orderData.orderId || 12345;
+  const items = orderData.items || '3 Shirts, 1 Bedsheet';
+  const service = orderData.service || 'Steam Iron';
+  const total = orderData.total || 150;
+  const status = orderData.status || 'Scheduled';
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,35 +33,41 @@ const BookingConfirmation = () => {
         </h1>
         
         <p className="text-center text-muted-foreground mb-1 text-sm sm:text-base">
-          Order #12345 has been placed successfully.
+          Order #{orderId} has been placed successfully.
         </p>
         <p className="text-center text-muted-foreground mb-6 sm:mb-8 text-sm sm:text-base">
-          Pickup scheduled for Tomorrow, 9-11 AM.
+          Pickup scheduled for {orderData.pickupType === 'now' ? 'Today' : 'Tomorrow'}, {orderData.selectedSlot || '9-11 AM'}.
         </p>
 
         <Card className="w-full p-4 sm:p-6 rounded-2xl border-2 mb-4 sm:mb-6">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Items:</span>
-              <span className="font-semibold text-sm sm:text-base text-right">3 Shirts, 1 Bedsheet</span>
+              <span className="font-semibold text-sm sm:text-base text-right">{items}</span>
             </div>
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Service:</span>
-              <span className="font-semibold text-sm sm:text-base">Steam Iron</span>
+              <span className="font-semibold text-sm sm:text-base">{service}</span>
             </div>
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Price:</span>
-              <span className="font-bold text-primary text-base sm:text-lg">₹150</span>
+              <span className="font-bold text-primary text-base sm:text-lg">₹{total}</span>
             </div>
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Status:</span>
-              <span className="font-semibold text-primary text-sm sm:text-base">Scheduled</span>
+              <span className="font-semibold text-primary text-sm sm:text-base">{status}</span>
             </div>
+            {orderData.discount > 0 && (
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-muted-foreground text-sm sm:text-base">Discount:</span>
+                <span className="font-semibold text-green-600 text-sm sm:text-base">-₹{orderData.discount}</span>
+              </div>
+            )}
           </div>
         </Card>
 
         <Button
-          onClick={() => navigate("/order-details")}
+          onClick={() => navigate("/order-details", { state: orderData })}
           className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-3"
         >
           <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />

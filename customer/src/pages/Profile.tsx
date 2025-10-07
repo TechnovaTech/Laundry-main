@@ -122,8 +122,47 @@ const Profile = () => {
     { id: 2, title: "Terms & Conditions" }
   ];
 
-  const handleDeleteAddress = (addressId) => {
-    setAddresses(addresses.filter(addr => addr.id !== addressId));
+  const handleDeleteAddress = async (addressId) => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      // Remove address from local state first
+      const updatedAddresses = addresses.filter(addr => addr.id !== addressId);
+      setAddresses(updatedAddresses);
+      
+      // Convert back to database format
+      const dbAddresses = updatedAddresses.map(addr => {
+        const [street, ...rest] = addr.title.split(',');
+        const [city, statePin] = addr.subtitle.split(', ');
+        const [state, pincode] = statePin ? statePin.split(' - ') : ['', ''];
+        
+        return {
+          street: street || addr.title,
+          city: city || '',
+          state: state || '',
+          pincode: pincode || '',
+          isDefault: addr.isDefault || false
+        };
+      });
+      
+      // Update database
+      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: dbAddresses })
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to delete address from database');
+        // Revert local state if database update failed
+        fetchCustomerProfile();
+      }
+    } catch (error) {
+      console.error('Failed to delete address:', error);
+      // Revert local state if error occurred
+      fetchCustomerProfile();
+    }
   };
 
   const handleEditAddress = (addressId) => {

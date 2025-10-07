@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Phone, Shirt, CheckCircle2, MapPin, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import LeafletMap from "@/components/LeafletMap";
 
 const ContinueBooking = () => {
   const navigate = useNavigate();
@@ -119,12 +120,22 @@ const ContinueBooking = () => {
         </div>
 
         <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg relative overflow-hidden">
-          <div className="mb-3 sm:mb-4 h-32 sm:h-48 bg-green-100 rounded-xl flex items-center justify-center relative">
-            <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
-            <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-lg">
+          <div className="mb-3 sm:mb-4 h-32 sm:h-48 rounded-xl overflow-hidden relative">
+            {customerInfo?.address?.[0] ? (
+              <LeafletMap address={customerInfo.address[0]} />
+            ) : (
+              <div className="h-full bg-blue-50 rounded-xl flex items-center justify-center">
+                <div className="text-center p-4">
+                  <MapPin className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-blue-600">No address</p>
+                  <p className="text-xs text-blue-500">Add address to see map</p>
+                </div>
+              </div>
+            )}
+            <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-lg z-10">
               <p className="text-xs sm:text-sm font-semibold text-blue-500">Arriving in 25 min</p>
             </div>
-            <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 w-12 h-16 sm:w-16 sm:h-20 bg-white rounded-lg shadow-lg p-1.5 sm:p-2">
+            <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 w-12 h-16 sm:w-16 sm:h-20 bg-white rounded-lg shadow-lg p-1.5 sm:p-2 z-10">
               <div className="w-full h-6 sm:h-8 bg-blue-100 rounded flex items-center justify-center mb-1">
                 <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
               </div>
@@ -218,7 +229,22 @@ const ContinueBooking = () => {
         </div>
 
         <Button
-          onClick={() => navigate("/booking-confirmation")}
+          onClick={() => navigate("/booking-confirmation", { 
+            state: {
+              orderId: Math.floor(Math.random() * 90000) + 10000,
+              items: itemsText,
+              service: 'Steam Iron',
+              total: finalAmount,
+              originalTotal: totalAmount,
+              discount: discount,
+              appliedVoucher: appliedVoucher,
+              customerInfo: customerInfo,
+              status: 'Scheduled',
+              pickupType: orderData.pickupType,
+              selectedSlot: orderData.selectedSlot,
+              address: orderData.address
+            }
+          })}
           className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-blue-500 hover:bg-blue-600 text-white"
         >
           Continue

@@ -277,7 +277,7 @@ const Booking = () => {
                         setShowAddressModal(false);
                       }}
                       className={`p-4 rounded-2xl border-2 cursor-pointer ${
-                        customerAddress === addr ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        customerAddress?.street === addr.street && customerAddress?.city === addr.city ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -333,6 +333,10 @@ const Booking = () => {
         
         <Button
           onClick={() => {
+            if (!customerAddress) {
+              alert('Please select a delivery address');
+              return;
+            }
             const orderData = {
               items: pricingItems.map(item => ({
                 name: item.name,
