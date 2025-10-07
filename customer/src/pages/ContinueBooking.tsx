@@ -1,12 +1,47 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Phone, Shirt, CheckCircle2, MapPin, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const ContinueBooking = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const orderData = location.state || {};
   const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
+  const [couponError, setCouponError] = useState("");
+  
+  const itemsText = orderData.items ? orderData.items.map((item: any) => `${item.quantity} ${item.name}`).join(', ') : '3 Shirts, 1 Bedsheet';
+  const totalAmount = orderData.total || 120;
+  const finalAmount = totalAmount - discount;
+  
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/vouchers');
+      const data = await response.json();
+      
+      if (data.success) {
+        const voucher = data.data.find((v: any) => v.code === couponCode.trim());
+        
+        if (voucher) {
+          const discountAmount = Math.floor((totalAmount * voucher.discount) / 100);
+          setDiscount(discountAmount);
+          setAppliedVoucher(voucher);
+          setCouponError("");
+        } else {
+          setCouponError("Invalid coupon code");
+          setDiscount(0);
+          setAppliedVoucher(null);
+        }
+      }
+    } catch (error) {
+      setCouponError("Failed to apply coupon");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -28,9 +63,9 @@ const ContinueBooking = () => {
                 <Shirt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="min-w-0">
-                <p className="font-bold text-black text-sm sm:text-base">Order #12345</p>
-                <p className="text-xs sm:text-sm text-gray-500 truncate">3 Shirts, 1 Bedsheet</p>
-                <p className="text-base sm:text-lg font-bold text-blue-500">₹120</p>
+                <p className="font-bold text-black text-sm sm:text-base">Order #{Math.floor(Math.random() * 90000) + 10000}</p>
+                <p className="text-xs sm:text-sm text-gray-500 truncate">{itemsText}</p>
+                <p className="text-base sm:text-lg font-bold text-blue-500">₹{totalAmount}</p>
               </div>
             </div>
             <span className="px-2 sm:px-4 py-1 sm:py-1.5 bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0">
@@ -121,20 +156,35 @@ const ContinueBooking = () => {
                 onChange={(e) => setCouponCode(e.target.value)}
                 className="flex-1 h-10 sm:h-12 rounded-2xl border-2 bg-white text-sm sm:text-base"
               />
-              <Button className="h-10 sm:h-12 rounded-2xl px-4 sm:px-8 font-semibold bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm">Apply</Button>
+              <Button 
+                onClick={applyCoupon}
+                className="h-10 sm:h-12 rounded-2xl px-4 sm:px-8 font-semibold bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm"
+              >
+                Apply
+              </Button>
             </div>
+            {couponError && (
+              <p className="text-red-500 text-xs sm:text-sm">{couponError}</p>
+            )}
+            {appliedVoucher && (
+              <p className="text-green-600 text-xs sm:text-sm font-semibold">
+                🎉 {appliedVoucher.slogan} - {appliedVoucher.discount}% discount applied!
+              </p>
+            )}
             <div className="space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Sub Total (Included GST):</span>
-                <span className="text-black">₹120</span>
+                <span className="text-black">₹{totalAmount}</span>
               </div>
-              <div className="flex justify-between text-green-600">
-                <span>Discount Added:</span>
-                <span>₹20</span>
-              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount Added:</span>
+                  <span>-₹{discount}</span>
+                </div>
+              )}
               <div className="flex justify-between text-base sm:text-lg font-bold text-black">
                 <span>Grand Total:</span>
-                <span>₹100</span>
+                <span>₹{finalAmount}</span>
               </div>
             </div>
           </div>

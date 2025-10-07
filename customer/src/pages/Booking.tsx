@@ -280,7 +280,20 @@ const Booking = () => {
         )}
         
         <Button
-          onClick={() => navigate("/continue-booking")}
+          onClick={() => {
+            const orderData = {
+              items: pricingItems.map(item => ({
+                name: item.name,
+                quantity: quantities[item._id] || 1,
+                price: item.price
+              })),
+              total: calculateTotal(),
+              pickupType,
+              selectedSlot,
+              address: customerAddress
+            };
+            navigate("/continue-booking", { state: orderData });
+          }}
           className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors"
         >
           <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />

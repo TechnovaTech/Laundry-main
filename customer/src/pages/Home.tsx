@@ -13,6 +13,10 @@ const Home = () => {
   const [vouchers, setVouchers] = useState([]);
   const [customerAddress, setCustomerAddress] = useState('No address added yet');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
+  const [claimedVouchers, setClaimedVouchers] = useState<string[]>([]);
 
   useEffect(() => {
     const savedName = localStorage.getItem('userName');
@@ -120,6 +124,23 @@ const Home = () => {
     }
   }, [isAutoScrolling]);
 
+  const handleApplyVoucher = (voucherCode: string) => {
+    setSelectedVoucherCode(voucherCode);
+    setShowVoucherModal(true);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(selectedVoucherCode);
+    setIsCopied(true);
+    setClaimedVouchers(prev => [...prev, selectedVoucherCode]);
+  };
+
+  const closeModal = () => {
+    setShowVoucherModal(false);
+    setSelectedVoucherCode('');
+    setIsCopied(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
       {/* Blue Header Section */}
@@ -207,8 +228,15 @@ const Home = () => {
                 <div className="flex flex-col">
                   <h3 className="font-bold text-base mb-1 text-blue-800">{voucher.slogan}</h3>
                   <p className="text-blue-600 text-sm mb-2">Limited time offer</p>
-                  <Button className="w-20 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold">
-                    Apply
+                  <Button 
+                    onClick={() => !claimedVouchers.includes(voucher.code) && handleApplyVoucher(voucher.code)}
+                    className={`w-20 h-8 rounded-lg text-sm font-semibold ${
+                      claimedVouchers.includes(voucher.code)
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                    }`}
+                  >
+                    {claimedVouchers.includes(voucher.code) ? 'Claimed' : 'Apply'}
                   </Button>
                 </div>
               </div>
@@ -285,6 +313,43 @@ const Home = () => {
           <User className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
       </nav>
+
+      {/* Voucher Code Modal */}
+      {showVoucherModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-black mb-4">Your Voucher Code</h3>
+              
+              <div className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-2xl p-4 mb-4">
+                <p className="text-2xl font-bold text-blue-600 tracking-wider mb-2">{selectedVoucherCode}</p>
+                <button 
+                  onClick={copyToClipboard}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                    isCopied 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
+                >
+                  {isCopied ? 'Copied!' : 'Copy Code'}
+                </button>
+              </div>
+              
+              <div className="text-left space-y-2 mb-6">
+                <p className="text-sm text-gray-700">• It is one time use, so please copy it</p>
+                <p className="text-sm text-gray-700">• Use it while you order</p>
+              </div>
+              
+              <button 
+                onClick={closeModal}
+                className="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-2xl font-semibold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -7,7 +7,7 @@ export async function OPTIONS() {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   })
@@ -45,6 +45,24 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Voucher creation error:', error);
     return NextResponse.json({ success: false, error: error.message || 'Failed to create voucher' }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    await dbConnect();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const { code, discount, slogan } = await request.json();
+    
+    if (!slogan) {
+      return NextResponse.json({ success: false, error: 'Slogan is required' }, { status: 400 });
+    }
+    
+    const voucher = await Voucher.findByIdAndUpdate(id, { code, discount, slogan }, { new: true });
+    return NextResponse.json({ success: true, data: voucher });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: 'Failed to update voucher' }, { status: 500 });
   }
 }
 

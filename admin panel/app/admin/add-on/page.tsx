@@ -22,6 +22,7 @@ export default function AddOnPage() {
   const [slotType, setSlotType] = useState('pickup')
   const [editingSlot, setEditingSlot] = useState(null)
   const [draggedItem, setDraggedItem] = useState(null)
+  const [editingVoucher, setEditingVoucher] = useState(null)
 
   useEffect(() => {
     fetchStates()
@@ -164,14 +165,22 @@ export default function AddOnPage() {
     }
   }
 
+  const generateUniqueCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    let result = ''
+    for (let i = 0; i < 5; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return result
+  }
+
   const addVoucher = async () => {
     if (!discount || !slogan) {
       console.log('Missing fields:', { discount, slogan })
       return
     }
     
-    // Generate auto code based on timestamp
-    const autoCode = `VOUCHER${Date.now()}`
+    const autoCode = generateUniqueCode()
     
     console.log('Sending voucher data:', { code: autoCode, discount: Number(discount), slogan })
     
@@ -209,6 +218,41 @@ export default function AddOnPage() {
     } catch (error) {
       console.error('Error removing voucher:', error)
     }
+  }
+
+  const editVoucher = (voucher: any) => {
+    setEditingVoucher(voucher._id)
+    setDiscount(voucher.discount.toString())
+    setSlogan(voucher.slogan)
+  }
+
+  const updateVoucher = async () => {
+    if (!discount || !slogan || !editingVoucher) return
+    
+    const newCode = generateUniqueCode()
+    
+    try {
+      const response = await fetch(`/api/vouchers?id=${editingVoucher}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: newCode, discount: Number(discount), slogan })
+      })
+      
+      if (response.ok) {
+        setDiscount('')
+        setSlogan('')
+        setEditingVoucher(null)
+        fetchVouchers()
+      }
+    } catch (error) {
+      console.error('Error updating voucher:', error)
+    }
+  }
+
+  const cancelVoucherEdit = () => {
+    setEditingVoucher(null)
+    setDiscount('')
+    setSlogan('')
   }
 
   const fetchTimeSlots = async () => {
@@ -503,22 +547,59 @@ export default function AddOnPage() {
             />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1rem' }}>
-            <button 
-              onClick={addVoucher}
-              disabled={!discount || !slogan}
-              style={{ 
-                padding: '0.75rem', 
-                backgroundColor: discount && slogan ? '#2563eb' : '#9ca3af', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '12px', 
-                fontSize: '0.9rem', 
-                fontWeight: '500',
-                cursor: discount && slogan ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Add Voucher
-            </button>
+            {editingVoucher ? (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  onClick={updateVoucher}
+                  disabled={!discount || !slogan}
+                  style={{ 
+                    padding: '0.75rem', 
+                    backgroundColor: discount && slogan ? '#10b981' : '#9ca3af', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontSize: '0.9rem', 
+                    fontWeight: '500',
+                    cursor: discount && slogan ? 'pointer' : 'not-allowed',
+                    flex: 1
+                  }}
+                >
+                  Update Voucher
+                </button>
+                <button 
+                  onClick={cancelVoucherEdit}
+                  style={{ 
+                    padding: '0.75rem', 
+                    backgroundColor: '#6b7280', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontSize: '0.9rem', 
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={addVoucher}
+                disabled={!discount || !slogan}
+                style={{ 
+                  padding: '0.75rem', 
+                  backgroundColor: discount && slogan ? '#2563eb' : '#9ca3af', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '500',
+                  cursor: discount && slogan ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Add Voucher
+              </button>
+            )}
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', padding: '0.5rem' }}>
@@ -542,22 +623,28 @@ export default function AddOnPage() {
                     <p style={{ color: '#3b82f6', fontSize: '0.875rem', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
                       Limited time offer
                     </p>
-                    <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
+                    <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.25rem', margin: '0 0 0.25rem 0' }}>
                       Admin: {voucher.discount}% discount
                     </p>
+                    <p style={{ color: '#059669', fontSize: '0.75rem', marginBottom: '0.5rem', margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>
+                      Code: {voucher.code}
+                    </p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <button style={{
-                        width: '80px',
-                        height: '32px',
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '0.875rem',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                      }}>
-                        Apply
+                      <button 
+                        onClick={() => editVoucher(voucher)}
+                        style={{
+                          width: '80px',
+                          height: '32px',
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Edit
                       </button>
                       <button 
                         onClick={() => removeVoucher(voucher._id)}
