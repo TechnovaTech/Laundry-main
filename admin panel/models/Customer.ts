@@ -11,6 +11,20 @@ const CustomerSchema = new mongoose.Schema({
     pincode: String,
     isDefault: { type: Boolean, default: false }
   }],
+  paymentMethods: [{
+    type: { type: String },
+    upiId: { type: String },
+    cardNumber: { type: String },
+    cardHolder: { type: String },
+    expiryDate: { type: String },
+    cvv: { type: String },
+    accountNumber: { type: String },
+    ifscCode: { type: String },
+    bankName: { type: String },
+    details: { type: String },
+    isPrimary: { type: Boolean, default: false },
+    addedAt: { type: Date, default: Date.now }
+  }],
   totalSpend: { type: Number, default: 0 },
   totalOrders: { type: Number, default: 0 },
   walletBalance: { type: Number, default: 0 },

@@ -92,6 +92,12 @@ const BookingHistory = () => {
               </div>
               <div className="flex gap-3 sm:gap-4">
                 <button
+                  onClick={() => navigate("/order-details", { state: { order } })}
+                  className="text-primary font-semibold text-xs sm:text-sm"
+                >
+                  View Order
+                </button>
+                <button
                   onClick={() => navigate("/booking")}
                   className="text-primary font-semibold text-xs sm:text-sm"
                 >

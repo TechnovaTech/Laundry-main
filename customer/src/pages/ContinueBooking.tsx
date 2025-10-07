@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Phone, Shirt, CheckCircle2, MapPin, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,31 @@ const ContinueBooking = () => {
   const [discount, setDiscount] = useState(0);
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
   const [couponError, setCouponError] = useState("");
+  const [customerInfo, setCustomerInfo] = useState<any>(null);
   
   const itemsText = orderData.items ? orderData.items.map((item: any) => `${item.quantity} ${item.name}`).join(', ') : '3 Shirts, 1 Bedsheet';
   const totalAmount = orderData.total || 120;
   const finalAmount = totalAmount - discount;
+  
+  useEffect(() => {
+    fetchCustomerInfo();
+  }, []);
+  
+  const fetchCustomerInfo = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setCustomerInfo(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch customer info:', error);
+    }
+  };
   
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -133,16 +154,22 @@ const ContinueBooking = () => {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-500 mb-2">2 Shirts, 1 Saree</p>
-            <button className="text-blue-500 font-semibold text-xs sm:text-sm">View Details</button>
+            <button 
+              onClick={() => navigate("/order-details")}
+              className="text-blue-500 font-semibold text-xs sm:text-sm"
+            >
+              View Details
+            </button>
           </div>
         </div>
 
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Additional Information</h2>
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg space-y-2 text-xs sm:text-sm text-gray-600">
-            <p>Delivery Address: 123 Main Street, Cityville</p>
-            <p>Contact Number: +123 456 7890</p>
-            <p>Payment Method: Credit Card</p>
+            <p>Delivery Address: {customerInfo?.address?.[0] ? `${customerInfo.address[0].street}, ${customerInfo.address[0].city}, ${customerInfo.address[0].state} - ${customerInfo.address[0].pincode}` : 'No address found'}</p>
+            <p>Contact Number: {customerInfo?.mobile || 'Not provided'}</p>
+            <p>Email: {customerInfo?.email || 'Not provided'}</p>
+            <p>Payment Method: {customerInfo?.paymentMethods?.[0]?.type || 'Cash on Delivery'}</p>
           </div>
         </div>
 

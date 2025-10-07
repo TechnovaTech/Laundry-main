@@ -19,6 +19,8 @@ const Booking = () => {
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [showSlotError, setShowSlotError] = useState(false);
   const [customerAddress, setCustomerAddress] = useState<any>(null);
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [showAddressModal, setShowAddressModal] = useState(false);
   
   useEffect(() => {
     fetchPricingItems();
@@ -118,9 +120,10 @@ const Booking = () => {
       const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
-      if (data.success && data.data?.address?.[0]) {
-        const address = data.data.address[0];
-        setCustomerAddress(address);
+      if (data.success && data.data?.address) {
+        setSavedAddresses(data.data.address);
+        const primaryAddress = data.data.address.find((addr: any) => addr.isDefault) || data.data.address[0];
+        setCustomerAddress(primaryAddress);
       }
     } catch (error) {
       console.error('Failed to fetch customer address:', error);
@@ -250,12 +253,57 @@ const Booking = () => {
                   )}
                 </div>
               </div>
-              <button className="text-blue-500 font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
-                Change / Add Address
+              <button 
+                onClick={() => savedAddresses.length > 0 ? setShowAddressModal(true) : navigate("/add-address")}
+                className="text-blue-500 font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
+              >
+                {savedAddresses.length > 0 ? 'Change' : 'Add'}
               </button>
             </div>
           </div>
         </div>
+
+        {showAddressModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50" onClick={() => setShowAddressModal(false)}>
+            <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 sm:p-6">
+                <h3 className="text-lg font-bold text-black mb-4">Select Address</h3>
+                <div className="space-y-3">
+                  {savedAddresses.map((addr, index) => (
+                    <div 
+                      key={index}
+                      onClick={() => {
+                        setCustomerAddress(addr);
+                        setShowAddressModal(false);
+                      }}
+                      className={`p-4 rounded-2xl border-2 cursor-pointer ${
+                        customerAddress === addr ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="font-semibold text-black text-sm">{addr.street}</p>
+                          <p className="text-gray-600 text-xs">{addr.city}, {addr.state} - {addr.pincode}</p>
+                          {addr.isDefault && <span className="text-blue-500 text-xs font-medium">Primary</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setShowAddressModal(false);
+                      navigate("/add-address");
+                    }}
+                    className="w-full py-3 border-2 border-dashed border-blue-300 rounded-2xl text-blue-500 font-semibold"
+                  >
+                    + Add New Address
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Order Summary</h2>
@@ -264,8 +312,12 @@ const Booking = () => {
               Items: {pricingItems.map(item => `${quantities[item._id] || 1} ${item.name}`).join(', ')}
             </p>
             <p className="text-xs sm:text-sm text-black">Service: Steam Iron</p>
+            <p className="text-xs sm:text-sm text-black font-semibold">Minimum Order Value: ₹500</p>
             <div className="border-t pt-2 sm:pt-3">
               <p className="text-base sm:text-lg font-bold text-blue-500">Estimated Total: ₹{calculateTotal()}</p>
+              {calculateTotal() < 500 && (
+                <p className="text-xs text-red-500 mt-1 sm:mt-2 font-semibold">⚠ Minimum order value of ₹500 required</p>
+              )}
               <p className="text-xs text-gray-500 mt-1 sm:mt-2">Payment will be collected upon delivery</p>
             </div>
           </div>
@@ -294,7 +346,12 @@ const Booking = () => {
             };
             navigate("/continue-booking", { state: orderData });
           }}
-          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+          disabled={calculateTotal() < 500}
+          className={`w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold transition-colors ${
+            calculateTotal() < 500 
+              ? 'bg-gray-300 cursor-not-allowed text-gray-500' 
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
         >
           <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           Confirm Order

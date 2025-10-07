@@ -17,10 +17,12 @@ const AddAddress = () => {
     isPrimary: false
   });
   const [showServiceMessage, setShowServiceMessage] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
+    fetchAddresses();
     if (editAddress) {
-      // Parse the existing address data for editing
       const [city, statePin] = editAddress.subtitle.split(", ");
       const [state, pincode] = statePin.split(" - ");
       
@@ -32,8 +34,44 @@ const AddAddress = () => {
         pincode: pincode,
         isPrimary: editAddress.isDefault || false
       });
+      setShowAddForm(true);
     }
   }, [editAddress]);
+  
+  const fetchAddresses = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (customerId) {
+        const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+        const data = await response.json();
+        if (data.success && data.data?.address) {
+          setSavedAddresses(data.data.address);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch addresses:', error);
+    }
+  };
+  
+  const deleteAddress = async (index) => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (customerId) {
+        const updatedAddresses = savedAddresses.filter((_, i) => i !== index);
+        const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: updatedAddresses })
+        });
+        
+        if (response.ok) {
+          setSavedAddresses(updatedAddresses);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete address:', error);
+    }
+  };
 
   const indianStates = [
     "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
@@ -107,18 +145,20 @@ const AddAddress = () => {
         // Save address to customer database
         const customerId = localStorage.getItem('customerId');
         if (customerId) {
+          const newAddress = {
+            street: address.addressLine1 + (address.addressLine2 ? ', ' + address.addressLine2 : ''),
+            city: address.city,
+            state: address.state,
+            pincode: address.pincode,
+            isDefault: address.isPrimary
+          };
+          
+          const updatedAddresses = [...savedAddresses, newAddress];
+          
           const saveResponse = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              address: [{
-                street: address.addressLine1 + (address.addressLine2 ? ', ' + address.addressLine2 : ''),
-                city: address.city,
-                state: address.state,
-                pincode: address.pincode,
-                isDefault: address.isPrimary
-              }]
-            })
+            body: JSON.stringify({ address: updatedAddresses })
           });
           
           const saveResult = await saveResponse.json();
@@ -127,6 +167,18 @@ const AddAddress = () => {
             alert('Failed to save address');
             return;
           }
+          
+          // Reset form and refresh addresses
+          setAddress({
+            addressLine1: "",
+            addressLine2: "",
+            city: "",
+            state: "",
+            pincode: "",
+            isPrimary: false
+          });
+          setShowAddForm(false);
+          fetchAddresses();
         }
         
         const addressData = {
@@ -160,6 +212,43 @@ const AddAddress = () => {
       </header>
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-3 sm:space-y-4 pb-24">
+        {/* Saved Addresses */}
+        {savedAddresses.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-lg font-bold text-black">Saved Addresses ({savedAddresses.length}/3)</h2>
+            {savedAddresses.map((addr, index) => (
+              <div key={index} className="bg-white rounded-2xl p-4 shadow-lg">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <p className="font-semibold text-black">{addr.street}</p>
+                    <p className="text-gray-600 text-sm">{addr.city}, {addr.state} - {addr.pincode}</p>
+                    {addr.isDefault && <span className="text-blue-500 text-xs font-medium">Primary</span>}
+                  </div>
+                  <button 
+                    onClick={() => deleteAddress(index)}
+                    className="text-red-500 text-sm font-semibold ml-3"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Add New Address Button */}
+        {!showAddForm && savedAddresses.length < 3 && (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="w-full py-4 border-2 border-dashed border-blue-300 rounded-2xl text-blue-500 font-semibold"
+          >
+            + Add New Address
+          </button>
+        )}
+        
+        {/* Add Address Form */}
+        {showAddForm && (
+        <>
         <div className="relative">
           <input
             type="text"
@@ -246,19 +335,41 @@ const AddAddress = () => {
           </button>
           <span className="text-black font-medium text-sm sm:text-base">Set as Primary Address</span>
         </div>
+        </>
+        )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 sm:p-6 shadow-lg">
-        <button
-          onClick={handleSubmit}
-          disabled={!isFormValid}
-          className={`w-full py-3 sm:py-4 rounded-full font-semibold text-white text-sm sm:text-base ${
-            isFormValid ? 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'
-          } transition-colors duration-200`}
-        >
-          {isEditMode ? 'Update Address' : 'Save & Continue'}
-        </button>
-      </div>
+      {showAddForm && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 sm:p-6 shadow-lg">
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowAddForm(false);
+                setAddress({
+                  addressLine1: "",
+                  addressLine2: "",
+                  city: "",
+                  state: "",
+                  pincode: "",
+                  isPrimary: false
+                });
+              }}
+              className="flex-1 py-3 sm:py-4 rounded-full font-semibold text-gray-600 border border-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!isFormValid}
+              className={`flex-1 py-3 sm:py-4 rounded-full font-semibold text-white text-sm sm:text-base ${
+                isFormValid ? 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'
+              } transition-colors duration-200`}
+            >
+              Save Address
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
