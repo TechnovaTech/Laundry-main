@@ -1,8 +1,96 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function ReportsPage() {
+  const [data, setData] = useState({
+    stats: { totalOrders: 0, totalRevenue: 0, activePartners: 0, avgDeliveryTime: '0 mins' },
+    ordersTrend: [],
+    revenueByDay: [],
+    partnerPerformance: [],
+    loyaltyData: { redemptionRate: 0 }
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchReportsData()
+  }, [])
+
+  const fetchReportsData = async () => {
+    try {
+      const response = await fetch('/api/reports')
+      const result = await response.json()
+      setData(result)
+    } catch (error) {
+      console.error('Error fetching reports data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const renderOrdersTrend = () => {
+    if (loading || !data.ordersTrend.length) {
+      return <div style={{ padding: '80px', textAlign: 'center', color: '#6b7280' }}>Loading...</div>
+    }
+    
+    const maxOrders = Math.max(...data.ordersTrend.map(d => d.count))
+    const points = data.ordersTrend.map((d, i) => {
+      const x = 30 + (i * 50)
+      const y = 180 - (d.count / maxOrders) * 140
+      return `${x},${y}`
+    }).join(' ')
+    
+    return (
+      <svg width="100%" height="200" viewBox="0 0 400 200">
+        <line x1="30" y1="180" x2="370" y2="180" stroke="#000" strokeWidth="2"/>
+        <line x1="30" y1="20" x2="30" y2="180" stroke="#000" strokeWidth="2"/>
+        <polyline points={points} fill="none" stroke="#2563eb" strokeWidth="3"/>
+      </svg>
+    )
+  }
+
+  const renderRevenueByDay = () => {
+    if (loading || !data.revenueByDay.length) {
+      return <div style={{ padding: '80px', textAlign: 'center', color: '#6b7280' }}>Loading...</div>
+    }
+    
+    const maxRevenue = Math.max(...data.revenueByDay.map(d => d.revenue))
+    
+    return (
+      <svg width="100%" height="200" viewBox="0 0 400 200">
+        <line x1="30" y1="180" x2="370" y2="180" stroke="#000" strokeWidth="1"/>
+        {data.revenueByDay.map((d, i) => {
+          const height = (d.revenue / maxRevenue) * 140
+          const x = 40 + (i * 45)
+          return (
+            <rect key={i} x={x} y={180 - height} width="25" height={height} fill="#2563eb"/>
+          )
+        })}
+      </svg>
+    )
+  }
+
+  const renderPartnerPerformance = () => {
+    if (loading || !data.partnerPerformance.length) {
+      return <div style={{ padding: '80px', textAlign: 'center', color: '#6b7280' }}>No partner data</div>
+    }
+    
+    const maxDeliveries = Math.max(...data.partnerPerformance.map(p => p.deliveries))
+    
+    return (
+      <svg width="100%" height="200" viewBox="0 0 400 200">
+        <line x1="30" y1="20" x2="30" y2="180" stroke="#000" strokeWidth="1"/>
+        {data.partnerPerformance.map((partner, i) => {
+          const width = (partner.deliveries / maxDeliveries) * 300
+          const y = 20 + (i * 25)
+          return (
+            <rect key={i} x="30" y={y} width={width} height="15" fill="#2563eb"/>
+          )
+        })}
+      </svg>
+    )
+  }
   return (
     <ResponsiveLayout activePage="Reports" title="Reports & Analytics">
       <div style={{ backgroundColor: 'white', padding: '1rem 2rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
@@ -19,19 +107,19 @@ export default function ReportsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Total Orders</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>12,540</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{loading ? '...' : data.stats.totalOrders.toLocaleString()}</div>
             </div>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Total Revenue</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>₹18,50,000</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{loading ? '...' : `₹${data.stats.totalRevenue.toLocaleString()}`}</div>
             </div>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Partners</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>1,240</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{loading ? '...' : data.stats.activePartners.toLocaleString()}</div>
             </div>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Average Delivery Time</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>38 mins</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{loading ? '...' : data.stats.avgDeliveryTime}</div>
             </div>
           </div>
 
@@ -39,32 +127,11 @@ export default function ReportsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Orders Trend</h3>
-              <svg width="100%" height="200" viewBox="0 0 400 200">
-                <line x1="30" y1="180" x2="370" y2="180" stroke="#000" strokeWidth="2"/>
-                <line x1="30" y1="20" x2="30" y2="180" stroke="#000" strokeWidth="2"/>
-                <polyline points="30,160 70,140 110,120 150,100 190,110 230,90 270,80 310,60 350,50 390,40" fill="none" stroke="#2563eb" strokeWidth="3"/>
-                <polyline points="30,170 70,150 110,135 150,115 190,125 230,105 270,95 310,75 350,65 390,55" fill="none" stroke="#9ca3af" strokeWidth="2"/>
-              </svg>
+              {renderOrdersTrend()}
             </div>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Revenue by Day</h3>
-              <svg width="100%" height="200" viewBox="0 0 400 200">
-                <line x1="30" y1="180" x2="370" y2="180" stroke="#000" strokeWidth="1"/>
-                <rect x="40" y="120" width="25" height="60" fill="#2563eb"/>
-                <rect x="40" y="110" width="25" height="10" fill="#9ca3af"/>
-                <rect x="80" y="100" width="25" height="80" fill="#2563eb"/>
-                <rect x="80" y="90" width="25" height="10" fill="#9ca3af"/>
-                <rect x="120" y="40" width="25" height="140" fill="#2563eb"/>
-                <rect x="120" y="35" width="25" height="5" fill="#9ca3af"/>
-                <rect x="160" y="80" width="25" height="100" fill="#2563eb"/>
-                <rect x="160" y="70" width="25" height="10" fill="#9ca3af"/>
-                <rect x="200" y="30" width="25" height="150" fill="#2563eb"/>
-                <rect x="200" y="25" width="25" height="5" fill="#9ca3af"/>
-                <rect x="240" y="90" width="25" height="90" fill="#2563eb"/>
-                <rect x="240" y="80" width="25" height="10" fill="#9ca3af"/>
-                <rect x="280" y="50" width="25" height="130" fill="#2563eb"/>
-                <rect x="280" y="45" width="25" height="5" fill="#9ca3af"/>
-              </svg>
+              {renderRevenueByDay()}
             </div>
           </div>
 
@@ -72,20 +139,14 @@ export default function ReportsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Partner Performance</h3>
-              <svg width="100%" height="200" viewBox="0 0 400 200">
-                <line x1="30" y1="20" x2="30" y2="180" stroke="#000" strokeWidth="1"/>
-                <rect x="30" y="20" width="250" height="15" fill="#9ca3af"/>
-                <rect x="30" y="20" width="320" height="15" fill="#2563eb"/>
-                <rect x="30" y="45" width="200" height="15" fill="#9ca3af"/>
-                <rect x="30" y="45" width="250" height="15" fill="#2563eb"/>
-                <rect x="30" y="70" width="220" height="15" fill="#9ca3af"/>
-                <rect x="30" y="70" width="300" height="15" fill="#2563eb"/>
-                <rect x="30" y="95" width="100" height="15" fill="#9ca3af"/>
-                <rect x="30" y="95" width="80" height="15" fill="#2563eb"/>
-                <rect x="30" y="120" width="150" height="15" fill="#9ca3af"/>
-                <rect x="30" y="120" width="200" height="15" fill="#2563eb"/>
-              </svg>
-              <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Top Performing Partner → Partner #P204 (320 deliveries)</div>
+              {renderPartnerPerformance()}
+              <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                {loading ? 'Loading...' : 
+                  data.partnerPerformance.length > 0 
+                    ? `Top Performing Partner → ${data.partnerPerformance[0].partner?.[0]?.name || 'Partner'} (${data.partnerPerformance[0].deliveries} deliveries)`
+                    : 'No partner data available'
+                }
+              </div>
             </div>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Top Order Locations</h3>
@@ -138,7 +199,7 @@ export default function ReportsPage() {
                 <rect x="280" y="30" width="25" height="150" fill="#2563eb"/>
                 <rect x="280" y="10" width="25" height="20" fill="#9ca3af"/>
               </svg>
-              <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>65% of points redeemed</div>
+              <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>{loading ? 'Loading...' : `${data.loyaltyData.redemptionRate}% of points redeemed`}</div>
             </div>
           </div>
 
