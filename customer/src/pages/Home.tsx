@@ -17,6 +17,7 @@ const Home = () => {
   const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [claimedVouchers, setClaimedVouchers] = useState<string[]>([]);
+  const [recentOrders, setRecentOrders] = useState([]);
 
   useEffect(() => {
     const savedName = localStorage.getItem('userName');
@@ -36,6 +37,7 @@ const Home = () => {
 
     fetchVouchers();
     fetchCustomerAddress();
+    fetchRecentOrders();
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -70,6 +72,23 @@ const Home = () => {
       }
     } catch (error) {
       console.error('Error fetching customer address:', error);
+    }
+  };
+  
+  const fetchRecentOrders = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/orders?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Get only the 3 most recent orders
+        setRecentOrders(data.data.slice(0, 3));
+      }
+    } catch (error) {
+      console.error('Error fetching recent orders:', error);
     }
   };
   
@@ -256,39 +275,27 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Order History */}
+        {/* Recent Orders */}
         <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
           <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <span className="font-semibold text-blue-500 text-sm sm:text-base">Order #12345</span>
-              <Button
-                onClick={() => navigate("/order-details")}
-                className="h-8 sm:h-9 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-semibold flex-shrink-0"
-              >
-                <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                Reorder
-              </Button>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="font-semibold text-blue-500 text-sm sm:text-base">Order #12346</span>
-              <Button
-                onClick={() => navigate("/order-details")}
-                className="h-8 sm:h-9 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-semibold flex-shrink-0"
-              >
-                <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                Reorder
-              </Button>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="font-semibold text-blue-500 text-sm sm:text-base">Order #12347</span>
-              <Button
-                onClick={() => navigate("/order-details")}
-                className="h-8 sm:h-9 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-semibold flex-shrink-0"
-              >
-                <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                Reorder
-              </Button>
-            </div>
+            {recentOrders.length > 0 ? (
+              recentOrders.map((order: any) => (
+                <div key={order._id} className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-blue-500 text-sm sm:text-base">Order #{order.orderId}</span>
+                  <Button
+                    onClick={() => navigate("/order-details", { state: { orderId: order.orderId } })}
+                    className="h-8 sm:h-9 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-semibold flex-shrink-0"
+                  >
+                    <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                    Reorder
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-gray-500 text-sm">
+                No recent orders found
+              </div>
+            )}
           </div>
         </div>
       </div>

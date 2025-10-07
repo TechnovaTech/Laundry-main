@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Shirt, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,27 +8,51 @@ import group12Image from "@/assets/Group (12).png";
 const BookingHistory = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("scheduled");
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const orders = [
-    {
-      id: "12345",
-      items: "3 Shirts, 2 Trousers",
-      date: "12 Sep, 2025 - 10:20 AM",
-      price: "₹200",
-      status: "Delivered",
-    },
-    {
-      id: "12346",
-      items: "2 Towels, 1 Jacket",
-      date: "Pickup Today, 5-7 PM",
-      price: "₹150",
-      status: "In Progress",
-    },
-  ];
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) {
+        setLoading(false);
+        return;
+      }
+      
+      const response = await fetch(`http://localhost:3000/api/orders?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const formattedOrders = data.data.map((order: any) => ({
+          id: order.orderId,
+          items: order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
+          date: new Date(order.createdAt).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          price: `₹${order.totalAmount}`,
+          status: order.status.charAt(0).toUpperCase() + order.status.slice(1),
+          rawOrder: order
+        }));
+        setOrders(formattedOrders);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredOrders = orders.filter(order => {
     if (activeTab === "scheduled") return true;
-    if (activeTab === "in progress") return order.status === "In Progress";
+    if (activeTab === "in progress") return ['Pending', 'Confirmed', 'Picked_up', 'Processing', 'Ready', 'Out_for_delivery'].includes(order.status);
     if (activeTab === "delivered") return order.status === "Delivered";
     if (activeTab === "cancelled") return order.status === "Cancelled";
     return true;
@@ -62,7 +86,11 @@ const BookingHistory = () => {
           </div>
         </div>
 
-        {filteredOrders.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">
+            Loading orders...
+          </div>
+        ) : filteredOrders.length > 0 ? (
           <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
             {filteredOrders.map((order) => (
             <Card key={order.id} className="p-3 sm:p-4 rounded-2xl border-2">
@@ -92,7 +120,7 @@ const BookingHistory = () => {
               </div>
               <div className="flex gap-3 sm:gap-4">
                 <button
-                  onClick={() => navigate("/order-details", { state: { order } })}
+                  onClick={() => navigate("/order-details", { state: { orderId: order.id, order: order.rawOrder } })}
                   className="text-primary font-semibold text-xs sm:text-sm"
                 >
                   View Order
@@ -103,7 +131,12 @@ const BookingHistory = () => {
                 >
                   Reorder
                 </button>
-                <button className="text-primary font-semibold text-xs sm:text-sm">Rate Service</button>
+                <button
+                  onClick={() => navigate(`/rate-order/${order.id}`)}
+                  className="text-primary font-semibold text-xs sm:text-sm"
+                >
+                  Rate Service
+                </button>
               </div>
             </Card>
             ))}

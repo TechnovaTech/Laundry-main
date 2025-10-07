@@ -229,22 +229,57 @@ const ContinueBooking = () => {
         </div>
 
         <Button
-          onClick={() => navigate("/booking-confirmation", { 
-            state: {
-              orderId: Math.floor(Math.random() * 90000) + 10000,
-              items: itemsText,
-              service: 'Steam Iron',
-              total: finalAmount,
-              originalTotal: totalAmount,
-              discount: discount,
-              appliedVoucher: appliedVoucher,
-              customerInfo: customerInfo,
-              status: 'Scheduled',
-              pickupType: orderData.pickupType,
-              selectedSlot: orderData.selectedSlot,
-              address: orderData.address
+          onClick={async () => {
+            try {
+              const customerId = localStorage.getItem('customerId');
+              if (!customerId) {
+                alert('Please login to place order');
+                return;
+              }
+              
+              const orderPayload = {
+                customerId,
+                items: orderData.items || [],
+                totalAmount: finalAmount,
+                pickupAddress: orderData.address,
+                pickupSlot: orderData.selectedSlot,
+                pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
+                paymentMethod: 'Cash on Delivery'
+              };
+              
+              const response = await fetch('http://localhost:3000/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderPayload)
+              });
+              
+              const result = await response.json();
+              
+              if (result.success) {
+                navigate("/booking-confirmation", { 
+                  state: {
+                    orderId: result.data.orderId,
+                    items: itemsText,
+                    service: 'Steam Iron',
+                    total: finalAmount,
+                    originalTotal: totalAmount,
+                    discount: discount,
+                    appliedVoucher: appliedVoucher,
+                    customerInfo: customerInfo,
+                    status: 'Pending',
+                    pickupType: orderData.pickupType,
+                    selectedSlot: orderData.selectedSlot,
+                    address: orderData.address
+                  }
+                });
+              } else {
+                alert('Failed to place order. Please try again.');
+              }
+            } catch (error) {
+              console.error('Error placing order:', error);
+              alert('Failed to place order. Please try again.');
             }
-          })}
+          }}
           className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-blue-500 hover:bg-blue-600 text-white"
         >
           Continue

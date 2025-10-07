@@ -42,6 +42,7 @@ const OrderSchema = new mongoose.Schema({
   },
   paymentMethod: String,
   specialInstructions: String,
+  reviewId: { type: mongoose.Schema.Types.ObjectId, ref: 'Review' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 })

@@ -1,10 +1,13 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function OrdersPage() {
   const router = useRouter()
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const statusFilters = [
     { label: 'All', active: true },
@@ -16,35 +19,36 @@ export default function OrdersPage() {
     { label: 'Cancelled', active: false }
   ]
 
-  const orders = [
-    {
-      id: '#12345',
-      customer: 'Sagnik Sen',
-      items: '3 Shirts, 1 Bedsheet',
-      price: '₹150',
-      status: 'Delivered',
-      partner: 'Partner #P10',
-      time: '9-11 AM'
-    },
-    {
-      id: '#12346',
-      customer: 'Anika Sharma',
-      items: '2 Jackets',
-      price: '₹200',
-      status: 'Pending',
-      partner: 'Partner #P20',
-      time: '1-3 PM'
-    },
-    {
-      id: '#12347',
-      customer: 'Rohit Verma',
-      items: '5 Towels',
-      price: '₹100',
-      status: 'Cancelled',
-      partner: 'Partner #P15',
-      time: '5-7 PM'
+  useEffect(() => {
+    fetchOrders()
+  }, [])
+
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch('/api/orders')
+      const data = await response.json()
+      
+      if (data.success) {
+        setOrders(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const formatOrderForDisplay = (order: any) => {
+    return {
+      id: order.orderId,
+      customer: order.customerId?.name || 'Unknown Customer',
+      items: order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
+      price: `₹${order.totalAmount}`,
+      status: order.status.charAt(0).toUpperCase() + order.status.slice(1),
+      partner: order.partnerId?.name || 'Not Assigned',
+      time: order.pickupSlot?.timeSlot || 'Not Scheduled'
+    }
+  }
 
   return (
     <ResponsiveLayout activePage="Orders" title="Orders Management" searchPlaceholder="Search by Order ID / Customer">
@@ -122,7 +126,17 @@ export default function OrdersPage() {
             </div>
 
             {/* Table Rows */}
-            {orders.map((order, index) => (
+            {loading ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                Loading orders...
+              </div>
+            ) : orders.length === 0 ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                No orders found
+              </div>
+            ) : orders.map((dbOrder, index) => {
+              const order = formatOrderForDisplay(dbOrder)
+              return (
               <div
                 key={index}
                 onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}
@@ -176,7 +190,7 @@ export default function OrdersPage() {
                   </button>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
 
           {/* Pagination */}

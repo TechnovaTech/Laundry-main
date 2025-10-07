@@ -1,20 +1,48 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import Sidebar from '../../../components/Sidebar'
-import Header from '../../../components/Header'
+import { useEffect, useState } from 'react'
+import ResponsiveLayout from '../../../components/ResponsiveLayout'
 
 export default function OrderDetails() {
   const params = useParams()
   const orderId = params.id
+  const [order, setOrder] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchOrderDetails()
+  }, [orderId])
+
+  const fetchOrderDetails = async () => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setOrder(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch order details:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-      <Sidebar activePage="Orders" />
-      <div style={{ flex: 1, backgroundColor: '#f8fafc' }}>
-        <Header title={`Order #${orderId}`} searchPlaceholder="Search..." />
+    <ResponsiveLayout activePage="Orders" title={`Order #${orderId}`} searchPlaceholder="Search...">
 
         <div style={{ padding: '1.5rem' }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+              Loading order details...
+            </div>
+          ) : !order ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+              Order not found
+            </div>
+          ) : (
+          <div>
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
             <button style={{
@@ -55,9 +83,9 @@ export default function OrderDetails() {
               <div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Customer Info</h3>
                 <div style={{ color: '#374151', lineHeight: '1.6' }}>
-                  <div><strong>Name:</strong> John Doe</div>
-                  <div><strong>Mobile:</strong> 9876543210</div>
-                  <div><strong>Address:</strong> 123, Elm Street, NY</div>
+                  <div><strong>Name:</strong> {order?.customerId?.name || 'N/A'}</div>
+                  <div><strong>Mobile:</strong> {order?.customerId?.mobile || 'N/A'}</div>
+                  <div><strong>Address:</strong> {order?.pickupAddress ? `${order.pickupAddress.street}, ${order.pickupAddress.city}, ${order.pickupAddress.state} - ${order.pickupAddress.pincode}` : 'N/A'}</div>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -76,17 +104,15 @@ export default function OrderDetails() {
             marginBottom: '1.5rem'
           }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Items in Order</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span>3 Shirts</span>
-              <span>₹90</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <span>1 Bedsheet</span>
-              <span>₹60</span>
-            </div>
+            {order?.items?.map((item: any, index: number) => (
+              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span>{item.quantity} {item.name}</span>
+                <span>₹{item.price * item.quantity}</span>
+              </div>
+            )) || <div>No items found</div>}
             <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '1rem 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600', color: '#2563eb' }}>
-              <span>Total: ₹150</span>
+              <span>Total: ₹{order?.totalAmount || 0}</span>
             </div>
           </div>
 
@@ -102,10 +128,12 @@ export default function OrderDetails() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>Partner Name:</strong> Rajesh Kumar (#P10)
+                  <strong>Partner Name:</strong> {order?.partnerId?.name || 'Not Assigned'} {order?.partnerId?._id ? `(#${order.partnerId._id.slice(-4)})` : ''}
                 </div>
               </div>
-              <span style={{ color: '#10b981', fontSize: '0.9rem', fontWeight: '500' }}>Online</span>
+              <span style={{ color: order?.partnerId ? '#10b981' : '#6b7280', fontSize: '0.9rem', fontWeight: '500' }}>
+                {order?.partnerId ? 'Assigned' : 'Not Assigned'}
+              </span>
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
               <button style={{
@@ -222,8 +250,9 @@ export default function OrderDetails() {
               Print Slip
             </button>
           </div>
+          </div>
+          )}
         </div>
-      </div>
-    </div>
+    </ResponsiveLayout>
   )
 }

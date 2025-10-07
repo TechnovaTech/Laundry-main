@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Shirt, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,14 +8,42 @@ const RateOrder = () => {
   const { orderId } = useParams();
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
+  const [orderData, setOrderData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Mock order data - in real app, fetch based on orderId
-  const orderData = {
-    id: orderId || "12345",
-    items: "3 Shirts, 1 Bedsheet",
-    status: "Delivered",
-    deliveryDate: "16 Sep, 6:20 PM",
-    amount: "₹150"
+  useEffect(() => {
+    if (orderId) {
+      fetchOrderData();
+    }
+  }, [orderId]);
+
+  const fetchOrderData = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/orders/${orderId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const order = data.data;
+        setOrderData({
+          id: order.orderId,
+          rawOrderId: order._id, // Store the actual MongoDB _id
+          items: order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
+          status: order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' '),
+          deliveryDate: new Date(order.createdAt).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          amount: `₹${order.totalAmount}`
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching order:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const ratingLabels = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
@@ -24,14 +52,54 @@ const RateOrder = () => {
     setRating(starRating);
   };
 
-  const handleSubmitRating = () => {
-    // In real app, submit rating to backend
-    console.log("Rating submitted:", { orderId, rating, feedback });
-    navigate(-1);
+  const handleSubmitRating = async () => {
+    if (rating === 0) return;
+    
+    try {
+      const customerId = localStorage.getItem('customerId') || '507f1f77bcf86cd799439011';
+      
+      // Get the actual order _id from the orderData
+      const actualOrderId = orderData?.rawOrderId || orderId;
+      
+      console.log('Submitting review:', { actualOrderId, customerId, rating, feedback });
+      
+      const response = await fetch(`http://localhost:3000/api/orders/${actualOrderId}/review`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerId,
+          rating,
+          comment: feedback || 'No comment provided'
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        console.log('Review submitted successfully:', result);
+        showSuccessPopup();
+      } else {
+        console.error('Failed to submit review:', result);
+        alert(result.error || 'Failed to submit review');
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to submit review. Please try again.');
+    }
   };
 
   const handleSkip = () => {
     navigate(-1);
+  };
+
+  const showSuccessPopup = () => {
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+      navigate(-1);
+    }, 2000);
   };
 
   return (
@@ -44,6 +112,16 @@ const RateOrder = () => {
       </header>
 
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-2xl mx-auto">
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">
+            Loading order details...
+          </div>
+        ) : !orderData ? (
+          <div className="text-center py-8 text-gray-500">
+            Order not found
+          </div>
+        ) : (
+          <>
         {/* Order Details */}
         <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
           <div className="flex items-start gap-4">
@@ -120,7 +198,24 @@ const RateOrder = () => {
             </Button>
           </div>
         </div>
+          </>
+        )}
       </div>
+
+      {/* Success Popup */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 mx-4 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Thank you!</h3>
+            <p className="text-gray-600">Your feedback has been submitted successfully.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
