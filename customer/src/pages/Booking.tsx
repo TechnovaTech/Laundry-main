@@ -18,10 +18,12 @@ const Booking = () => {
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [showSlotError, setShowSlotError] = useState(false);
+  const [customerAddress, setCustomerAddress] = useState<any>(null);
   
   useEffect(() => {
     fetchPricingItems();
     fetchTimeSlots();
+    fetchCustomerAddress();
   }, []);
   
   const fetchPricingItems = async () => {
@@ -106,6 +108,23 @@ const Booking = () => {
     return pricingItems.reduce((total, item) => {
       return total + (item.price * (quantities[item._id] || 1));
     }, 0);
+  };
+  
+  const fetchCustomerAddress = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data?.address?.[0]) {
+        const address = data.data.address[0];
+        setCustomerAddress(address);
+      }
+    } catch (error) {
+      console.error('Failed to fetch customer address:', error);
+    }
   };
 
   return (
@@ -218,8 +237,17 @@ const Booking = () => {
               <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
                 <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
                 <div className="min-w-0">
-                  <p className="font-semibold text-black text-sm sm:text-base">123 Main Street,</p>
-                  <p className="font-semibold text-black text-sm sm:text-base">Springfield</p>
+                  {customerAddress ? (
+                    <>
+                      <p className="font-semibold text-black text-sm sm:text-base">{customerAddress.street},</p>
+                      <p className="font-semibold text-black text-sm sm:text-base">{customerAddress.city}, {customerAddress.state} - {customerAddress.pincode}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-black text-sm sm:text-base">No address found</p>
+                      <p className="text-gray-500 text-xs sm:text-sm">Please add an address</p>
+                    </>
+                  )}
                 </div>
               </div>
               <button className="text-blue-500 font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
@@ -261,7 +289,7 @@ const Booking = () => {
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl">
-        <button onClick={() => navigate("/")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
           <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
         <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">

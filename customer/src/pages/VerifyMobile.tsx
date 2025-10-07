@@ -47,6 +47,7 @@ const VerifyMobile = () => {
         
         localStorage.setItem('customerId', customerId)
         localStorage.setItem('userName', customer.name)
+        localStorage.setItem('customerMobile', mobileNumber)
         window.dispatchEvent(new Event('userNameChanged'))
         
         if (isExistingUser) {
