@@ -16,6 +16,7 @@ const AddAddress = () => {
     pincode: "",
     isPrimary: false
   });
+  const [showServiceMessage, setShowServiceMessage] = useState(false);
 
   useEffect(() => {
     if (editAddress) {
@@ -34,18 +35,11 @@ const AddAddress = () => {
     }
   }, [editAddress]);
 
-  const stateData = {
-    "Gujarat": { cities: ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar"], pincodes: ["380001", "395001", "390001", "360001", "364001"] },
-    "Maharashtra": { cities: ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad"], pincodes: ["400001", "411001", "440001", "422001", "431001"] },
-    "Karnataka": { cities: ["Bangalore", "Mysore", "Hubli", "Mangalore", "Belgaum"], pincodes: ["560001", "570001", "580001", "575001", "590001"] },
-    "Tamil Nadu": { cities: ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli"], pincodes: ["600001", "641001", "625001", "636001", "620001"] },
-    "West Bengal": { cities: ["Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri"], pincodes: ["700001", "711101", "713201", "713301", "734001"] },
-    "Rajasthan": { cities: ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Bikaner"], pincodes: ["302001", "342001", "313001", "324001", "334001"] },
-    "Uttar Pradesh": { cities: ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi"], pincodes: ["226001", "208001", "201001", "282001", "221001"] },
-    "Delhi": { cities: ["New Delhi", "Central Delhi", "South Delhi", "North Delhi", "East Delhi"], pincodes: ["110001", "110008", "110016", "110007", "110092"] }
-  };
+  const indianStates = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+  ];
 
-  const states = Object.keys(stateData);
+  const states = indianStates;
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
 
@@ -58,47 +52,81 @@ const AddAddress = () => {
 
   const handleStateChange = (selectedState) => {
     setAddress({...address, state: selectedState, city: "", pincode: ""});
-    if (selectedState && stateData[selectedState]) {
-      setCitySuggestions(stateData[selectedState].cities);
-    } else {
-      setCitySuggestions([]);
-    }
+    setCitySuggestions([]);
   };
 
   const handleCityChange = (value) => {
     setAddress({...address, city: value});
-    if (value && address.state && stateData[address.state]) {
-      const cityIndex = stateData[address.state].cities.findIndex(city => 
-        city.toLowerCase().includes(value.toLowerCase())
-      );
-      if (cityIndex !== -1) {
-        setAddress(prev => ({...prev, pincode: stateData[address.state].pincodes[cityIndex]}));
-      }
-    }
-    setShowCitySuggestions(value.length > 0 && citySuggestions.some(city => 
-      city.toLowerCase().includes(value.toLowerCase())
-    ));
+    setShowCitySuggestions(false);
   };
 
-  const selectCity = (city) => {
-    setAddress({...address, city});
-    const cityIndex = stateData[address.state].cities.indexOf(city);
-    if (cityIndex !== -1) {
-      setAddress(prev => ({...prev, city, pincode: stateData[address.state].pincodes[cityIndex]}));
+  const handlePincodeChange = async (value) => {
+    setAddress({...address, pincode: value});
+    setShowServiceMessage(false);
+    
+    if (value.length === 6) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/locations/pincodes?pincode=${value}`);
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setAddress(prev => ({
+            ...prev,
+            city: data[0].city || '',
+            state: data[0].state || ''
+          }));
+        }
+        
+        // Check serviceability for display only
+        const serviceableResponse = await fetch(`http://localhost:3000/api/check-serviceable?pincode=${value}`);
+        const serviceableData = await serviceableResponse.json();
+        
+        if (!serviceableData.serviceable) {
+          setShowServiceMessage(true);
+        }
+      } catch (error) {
+        console.error('Error fetching location:', error);
+      }
     }
-    setShowCitySuggestions(false);
   };
 
   const handleSubmit = async () => {
     if (address.addressLine1.trim() && address.city.trim() && address.state && address.pincode.trim()) {
       try {
-        // Check if pincode is serviceable
-        const serviceableResponse = await fetch(`http://localhost:3000/api/check-serviceable?pincode=${address.pincode}`)
-        const serviceableData = await serviceableResponse.json()
+        // Check serviceability but don't block saving
+        try {
+          const serviceableResponse = await fetch(`http://localhost:3000/api/check-serviceable?pincode=${address.pincode}`)
+          const serviceableData = await serviceableResponse.json()
+          
+          if (!serviceableData.serviceable) {
+            setShowServiceMessage(true)
+          }
+        } catch (error) {
+          console.log('Service check failed, continuing with save')
+        }
         
-        if (!serviceableData.serviceable) {
-          navigate('/not-available')
-          return
+        // Save address to customer database
+        const customerId = localStorage.getItem('customerId');
+        if (customerId) {
+          const saveResponse = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              address: [{
+                street: address.addressLine1 + (address.addressLine2 ? ', ' + address.addressLine2 : ''),
+                city: address.city,
+                state: address.state,
+                pincode: address.pincode,
+                isDefault: address.isPrimary
+              }]
+            })
+          });
+          
+          const saveResult = await saveResponse.json();
+          if (!saveResult.success) {
+            console.error('Failed to save address:', saveResult.error);
+            alert('Failed to save address');
+            return;
+          }
         }
         
         const addressData = {
@@ -158,35 +186,28 @@ const AddAddress = () => {
             placeholder="City"
             value={address.city}
             onChange={(e) => handleCityChange(e.target.value)}
-            onFocus={() => address.city && setShowCitySuggestions(true)}
             className="w-full p-3 sm:p-4 border-2 border-blue-500 rounded-full focus:outline-none focus:border-blue-600 text-black placeholder-gray-400 text-sm sm:text-base"
           />
-          {showCitySuggestions && citySuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 mt-1 max-h-32 sm:max-h-40 overflow-y-auto">
-              {citySuggestions
-                .filter(city => city.toLowerCase().includes(address.city.toLowerCase()))
-                .map((city) => (
-                <button
-                  key={city}
-                  onClick={() => selectCity(city)}
-                  className="w-full text-left px-3 sm:px-4 py-2 hover:bg-blue-50 text-black text-sm sm:text-base"
-                >
-                  {city}
-                </button>
-              ))}
-            </div>
-          )}
+
         </div>
 
         <div className="relative">
           <select
             value={address.state}
             onChange={(e) => handleStateChange(e.target.value)}
-            className="w-full p-3 sm:p-4 border-2 border-blue-500 rounded-full focus:outline-none focus:border-blue-600 text-black appearance-none bg-white text-sm sm:text-base"
+            className="w-full p-3 sm:p-4 border-2 border-blue-500 rounded-full focus:outline-none focus:border-blue-600 text-black appearance-none bg-white text-sm sm:text-base min-h-[48px] sm:min-h-[56px]"
+            style={{
+              WebkitAppearance: 'none',
+              MozAppearance: 'none',
+              backgroundImage: 'none',
+              fontSize: window.innerWidth < 640 ? '16px' : '14px',
+              lineHeight: '1.5',
+              paddingRight: '40px'
+            }}
           >
-            <option value="" className="text-gray-400">State</option>
+            <option value="" className="text-gray-400">Select State</option>
             {states.map((state) => (
-              <option key={state} value={state}>{state}</option>
+              <option key={state} value={state} style={{ fontSize: '16px', padding: '8px' }}>{state}</option>
             ))}
           </select>
           <ChevronDown className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 pointer-events-none" />
@@ -197,11 +218,22 @@ const AddAddress = () => {
             type="text"
             placeholder="Pincode"
             value={address.pincode}
-            onChange={(e) => setAddress({...address, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})}
+            onChange={(e) => handlePincodeChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
             className="w-full p-3 sm:p-4 border-2 border-blue-500 rounded-full focus:outline-none focus:border-blue-600 text-black placeholder-gray-400 text-sm sm:text-base"
             maxLength={6}
           />
         </div>
+        
+        {showServiceMessage && (
+          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-3 sm:p-4 text-center">
+            <p className="text-orange-700 text-sm sm:text-base font-medium mb-1">
+              🚀 Coming Soon to Your Area!
+            </p>
+            <p className="text-orange-600 text-xs sm:text-sm">
+              We're not here yet to provide service, but we'll save your address for future updates.
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center gap-3 py-3 sm:py-4">
           <button

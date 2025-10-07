@@ -17,11 +17,15 @@ export default function AddOnPage() {
   const [voucherCode, setVoucherCode] = useState('')
   const [discount, setDiscount] = useState('')
   const [slogan, setSlogan] = useState('')
+  const [timeSlots, setTimeSlots] = useState([])
+  const [slotTime, setSlotTime] = useState('')
+  const [slotType, setSlotType] = useState('pickup')
 
   useEffect(() => {
     fetchStates()
     fetchServiceableAreas()
     fetchVouchers()
+    fetchTimeSlots()
   }, [])
 
   const fetchStates = async () => {
@@ -159,25 +163,27 @@ export default function AddOnPage() {
   }
 
   const addVoucher = async () => {
-    if (!voucherCode || !discount || !slogan) {
-      console.log('Missing fields:', { voucherCode, discount, slogan })
+    if (!discount || !slogan) {
+      console.log('Missing fields:', { discount, slogan })
       return
     }
     
-    console.log('Sending voucher data:', { code: voucherCode, discount: Number(discount), slogan })
+    // Generate auto code based on timestamp
+    const autoCode = `VOUCHER${Date.now()}`
+    
+    console.log('Sending voucher data:', { code: autoCode, discount: Number(discount), slogan })
     
     try {
       const response = await fetch('/api/vouchers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: voucherCode, discount: Number(discount), slogan })
+        body: JSON.stringify({ code: autoCode, discount: Number(discount), slogan })
       })
       
       const result = await response.json()
       console.log('API response:', result)
       
       if (response.ok) {
-        setVoucherCode('')
         setDiscount('')
         setSlogan('')
         fetchVouchers()
@@ -200,6 +206,52 @@ export default function AddOnPage() {
       }
     } catch (error) {
       console.error('Error removing voucher:', error)
+    }
+  }
+
+  const fetchTimeSlots = async () => {
+    try {
+      const response = await fetch('/api/time-slots')
+      const data = await response.json()
+      if (data.success) {
+        setTimeSlots(data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching time slots:', error)
+    }
+  }
+
+  const addTimeSlot = async () => {
+    if (!slotTime || !slotType) return
+    
+    try {
+      const response = await fetch('/api/time-slots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ time: slotTime, type: slotType })
+      })
+      
+      if (response.ok) {
+        setSlotTime('')
+        setSlotType('pickup')
+        fetchTimeSlots()
+      }
+    } catch (error) {
+      console.error('Error adding time slot:', error)
+    }
+  }
+
+  const removeTimeSlot = async (id: string) => {
+    try {
+      const response = await fetch(`/api/time-slots?id=${id}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        fetchTimeSlots()
+      }
+    } catch (error) {
+      console.error('Error removing time slot:', error)
     }
   }
 
@@ -237,6 +289,21 @@ export default function AddOnPage() {
             }}
           >
             Voucher
+          </button>
+          <button 
+            onClick={() => setActiveSection('TimeSlot')}
+            style={{ 
+              padding: '0.75rem 1.5rem', 
+              backgroundColor: activeSection === 'TimeSlot' ? '#2563eb' : 'white', 
+              color: activeSection === 'TimeSlot' ? 'white' : '#2563eb', 
+              border: activeSection === 'TimeSlot' ? 'none' : '1px solid #2563eb', 
+              borderRadius: '8px', 
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
+          >
+            Time Slot
           </button>
         </div>
 
@@ -346,65 +413,159 @@ export default function AddOnPage() {
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
             <input 
-              type="text" 
-              placeholder="Voucher Code"
-              value={voucherCode}
-              onChange={(e) => setVoucherCode(e.target.value)}
-              style={{ padding: '0.75rem', backgroundColor: '#dbeafe', border: '1px solid #93c5fd', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
-            />
-            <input 
               type="number" 
-              placeholder="Discount %"
+              placeholder="Discount % (Backend Only)"
               value={discount}
               onChange={(e) => setDiscount(e.target.value)}
-              style={{ padding: '0.75rem', backgroundColor: '#dbeafe', border: '1px solid #93c5fd', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
+              style={{ padding: '0.75rem', backgroundColor: '#fef3c7', border: '1px solid #fbbf24', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
             />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
             <input 
               type="text" 
-              placeholder="Slogan"
+              placeholder="Customer Display Text (e.g., Save 20% — New users)"
               value={slogan}
               onChange={(e) => setSlogan(e.target.value)}
-              style={{ padding: '0.75rem', backgroundColor: '#dbeafe', border: '1px solid #93c5fd', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
+              style={{ padding: '0.75rem', backgroundColor: '#dcfce7', border: '1px solid #4ade80', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
             />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1rem' }}>
             <button 
               onClick={addVoucher}
-              disabled={!voucherCode || !discount || !slogan}
+              disabled={!discount || !slogan}
               style={{ 
                 padding: '0.75rem', 
-                backgroundColor: voucherCode && discount && slogan ? '#2563eb' : '#9ca3af', 
+                backgroundColor: discount && slogan ? '#2563eb' : '#9ca3af', 
                 color: 'white', 
                 border: 'none', 
                 borderRadius: '12px', 
                 fontSize: '0.9rem', 
                 fontWeight: '500',
-                cursor: voucherCode && discount && slogan ? 'pointer' : 'not-allowed'
+                cursor: discount && slogan ? 'pointer' : 'not-allowed'
               }}
             >
               Add Voucher
             </button>
           </div>
           
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', padding: '0.5rem' }}>
             {vouchers.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No vouchers created yet</p>
+              <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem', width: '100%' }}>No vouchers created yet</p>
             ) : (
               vouchers.map((voucher: any) => (
                 <div key={voucher._id} style={{ 
+                  backgroundColor: '#dbeafe',
+                  borderRadius: '16px',
+                  padding: '1rem',
+                  minWidth: '280px',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  position: 'relative'
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <h3 style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.25rem', color: '#1e40af', margin: '0 0 0.25rem 0' }}>
+                      {voucher.slogan}
+                    </h3>
+                    <p style={{ color: '#3b82f6', fontSize: '0.875rem', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
+                      Limited time offer
+                    </p>
+                    <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
+                      Admin: {voucher.discount}% discount
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <button style={{
+                        width: '80px',
+                        height: '32px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}>
+                        Apply
+                      </button>
+                      <button 
+                        onClick={() => removeVoucher(voucher._id)}
+                        style={{ 
+                          padding: '0.25rem 0.5rem', 
+                          backgroundColor: '#ef4444', 
+                          color: 'white', 
+                          border: 'none', 
+                          borderRadius: '6px', 
+                          fontSize: '0.75rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        )}
+
+        {/* Time Slot Management Section */}
+        {activeSection === 'TimeSlot' && (
+        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Time Slot Management</h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+            <input 
+              type="text" 
+              placeholder="Time Slot (e.g., 9-11 AM)"
+              value={slotTime}
+              onChange={(e) => setSlotTime(e.target.value)}
+              style={{ padding: '0.75rem', backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
+            />
+            <select 
+              value={slotType}
+              onChange={(e) => setSlotType(e.target.value)}
+              style={{ padding: '0.75rem', backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
+            >
+              <option value="pickup">Pickup Slot</option>
+              <option value="delivery">Delivery Slot</option>
+              <option value="both">Both</option>
+            </select>
+            <button 
+              onClick={addTimeSlot}
+              disabled={!slotTime || !slotType}
+              style={{ 
+                padding: '0.75rem', 
+                backgroundColor: slotTime && slotType ? '#2563eb' : '#9ca3af', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '12px', 
+                fontSize: '0.9rem', 
+                fontWeight: '500',
+                cursor: slotTime && slotType ? 'pointer' : 'not-allowed'
+              }}
+            >
+              Add Time Slot
+            </button>
+          </div>
+          
+          <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '0.5rem' }}>
+            {timeSlots.length === 0 ? (
+              <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No time slots created yet</p>
+            ) : (
+              timeSlots.map((slot: any) => (
+                <div key={slot._id} style={{ 
                   display: 'flex', 
                   justifyContent: 'space-between', 
                   alignItems: 'center', 
-                  padding: '0.5rem', 
+                  padding: '0.75rem', 
                   backgroundColor: '#f8fafc', 
                   borderRadius: '6px', 
                   marginBottom: '0.5rem' 
                 }}>
                   <span style={{ fontSize: '0.9rem' }}>
-                    {voucher.code} - {voucher.discount}% off - {voucher.slogan}
+                    {slot.time} - {slot.type.charAt(0).toUpperCase() + slot.type.slice(1)}
                   </span>
                   <button 
-                    onClick={() => removeVoucher(voucher._id)}
+                    onClick={() => removeTimeSlot(slot._id)}
                     style={{ 
                       padding: '0.25rem 0.5rem', 
                       backgroundColor: '#ef4444', 

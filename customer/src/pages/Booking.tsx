@@ -15,9 +15,13 @@ const Booking = () => {
   const [pickupType, setPickupType] = useState<"now" | "later">("now");
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
   const [quantities, setQuantities] = useState<{[key: string]: number}>({});
+  const [timeSlots, setTimeSlots] = useState<any[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<string>('');
+  const [showSlotError, setShowSlotError] = useState(false);
   
   useEffect(() => {
     fetchPricingItems();
+    fetchTimeSlots();
   }, []);
   
   const fetchPricingItems = async () => {
@@ -36,6 +40,59 @@ const Booking = () => {
     } catch (error) {
       console.error('Failed to fetch pricing items:', error);
     }
+  };
+  
+  const fetchTimeSlots = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/time-slots');
+      const data = await response.json();
+      if (data.success) {
+        setTimeSlots(data.data);
+        // Set first available slot as default
+        const availableSlots = getAvailableSlots(data.data);
+        if (availableSlots.length > 0) {
+          setSelectedSlot(availableSlots[0].time);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch time slots:', error);
+    }
+  };
+  
+  const isSlotPassed = (slotTime: string) => {
+    if (pickupType === 'later') return false; // Tomorrow slots are always available
+    
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    // Extract end time from slot (e.g., "7-8 AM" -> 8, "2-4 PM" -> 16)
+    const timeMatch = slotTime.match(/(\d+)-(\d+)\s*(AM|PM)/i);
+    if (!timeMatch) return false;
+    
+    const endHour = parseInt(timeMatch[2]);
+    const period = timeMatch[3].toUpperCase();
+    
+    let slotEndHour = endHour;
+    if (period === 'PM' && endHour !== 12) {
+      slotEndHour = endHour + 12;
+    } else if (period === 'AM' && endHour === 12) {
+      slotEndHour = 0;
+    }
+    
+    return currentHour >= slotEndHour;
+  };
+  
+  const getAvailableSlots = (slots: any[]) => {
+    return slots.filter(slot => !isSlotPassed(slot.time));
+  };
+  
+  const handleSlotSelection = (slotTime: string) => {
+    if (isSlotPassed(slotTime)) {
+      setShowSlotError(true);
+      setTimeout(() => setShowSlotError(false), 3000);
+      return;
+    }
+    setSelectedSlot(slotTime);
   };
 
   const updateQuantity = (itemId: string, increment: boolean) => {
@@ -133,11 +190,25 @@ const Booking = () => {
             <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base px-3 sm:px-4 flex-shrink-0">
               {pickupType === "now" ? "Today" : "Tomorrow"}
             </Button>
-            <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap bg-white border border-gray-300 text-black hover:bg-gray-50 text-sm sm:text-base px-3 sm:px-4 flex-shrink-0">9-11 AM</Button>
-            <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap bg-white border border-gray-300 text-blue-500 hover:bg-gray-50 text-sm sm:text-base px-3 sm:px-4 flex-shrink-0">11-1 PM</Button>
-            <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap bg-white border border-gray-300 text-black hover:bg-gray-50 text-sm sm:text-base px-3 sm:px-4 flex-shrink-0">5-7 PM</Button>
+            {timeSlots.map((slot) => (
+              <Button 
+                key={slot._id}
+                onClick={() => handleSlotSelection(slot.time)}
+                className={`h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap text-sm sm:text-base px-3 sm:px-4 flex-shrink-0 ${
+                  isSlotPassed(slot.time) && pickupType === 'now'
+                    ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
+                    : selectedSlot === slot.time 
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                      : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
+                }`}
+              >
+                {slot.time}
+              </Button>
+            ))}
           </div>
-          <p className="text-xs sm:text-sm text-blue-500 mt-2 sm:mt-3">Next available slot: Tomorrow, 9-11 AM</p>
+          <p className="text-xs sm:text-sm text-blue-500 mt-2 sm:mt-3">
+            Next available slot: {pickupType === "now" ? "Today" : "Tomorrow"}, {selectedSlot || 'No slots available'}
+          </p>
         </div>
 
         <div>
@@ -172,6 +243,14 @@ const Booking = () => {
           </div>
         </div>
 
+        {showSlotError && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 animate-pulse">
+            <p className="text-red-700 text-sm sm:text-base font-medium text-center">
+              ⏰ This time slot has passed. Please select another slot.
+            </p>
+          </div>
+        )}
+        
         <Button
           onClick={() => navigate("/continue-booking")}
           className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors"

@@ -11,6 +11,7 @@ const Home = () => {
   const [currentVoucher, setCurrentVoucher] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [vouchers, setVouchers] = useState([]);
+  const [customerAddress, setCustomerAddress] = useState('No address added yet');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ const Home = () => {
     window.addEventListener('userNameChanged', handleStorageChange);
 
     fetchVouchers();
+    fetchCustomerAddress();
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -46,6 +48,24 @@ const Home = () => {
       }
     } catch (error) {
       console.error('Error fetching vouchers:', error);
+    }
+  };
+  
+  const fetchCustomerAddress = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data?.address?.[0]) {
+        const address = data.data.address[0];
+        const addressText = `${address.street || ''}, ${address.city || ''}, ${address.state || ''} - ${address.pincode || ''}`;
+        setCustomerAddress(addressText.replace(/^, |, $/, ''));
+      }
+    } catch (error) {
+      console.error('Error fetching customer address:', error);
     }
   };
   
@@ -152,7 +172,7 @@ const Home = () => {
         <div className="bg-white rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 shadow-lg">
           <p className="text-gray-600 text-xs sm:text-sm mb-1">Next available slot:</p>
           <p className="text-black font-semibold mb-2 text-sm sm:text-base">Tomorrow, 9-11 AM</p>
-          <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 break-words">Address preview: 123 Main Street, Newtown , Kolkata, India</p>
+          <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 break-words">Address preview: {customerAddress}</p>
           
           {/* Quantity Selector */}
           <div className="flex items-center justify-center gap-3 sm:gap-4">
