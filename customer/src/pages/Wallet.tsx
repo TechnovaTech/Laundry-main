@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 const Wallet = () => {
   const navigate = useNavigate();
-  const [redeemPoints, setRedeemPoints] = useState(100);
+  const [redeemPoints, setRedeemPoints] = useState(0);
 
   const [walletData, setWalletData] = useState({
     availableBalance: "₹250",
@@ -114,20 +114,66 @@ const Wallet = () => {
         <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg">
           <h2 className="text-lg sm:text-xl font-bold mb-4 text-black">Redeem Points</h2>
           <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-full bg-gray-200 rounded-full h-2 relative">
-                <div className="bg-blue-500 h-2 rounded-full" style={{width: '60%'}}></div>
-                <div className="absolute right-1/3 top-0 w-4 h-4 bg-blue-500 rounded-full transform -translate-y-1"></div>
-              </div>
+            <div className="relative mb-4">
+              <input
+                type="range"
+                min="0"
+                max={walletData.points}
+                value={redeemPoints}
+                onChange={(e) => setRedeemPoints(parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(redeemPoints / walletData.points) * 100}%, #e5e7eb ${(redeemPoints / walletData.points) * 100}%, #e5e7eb 100%)`
+                }}
+              />
+              <style jsx>{`
+                input[type="range"]::-webkit-slider-thumb {
+                  appearance: none;
+                  width: 16px;
+                  height: 16px;
+                  border-radius: 50%;
+                  background: #3b82f6;
+                  cursor: pointer;
+                }
+                input[type="range"]::-moz-range-thumb {
+                  width: 16px;
+                  height: 16px;
+                  border-radius: 50%;
+                  background: #3b82f6;
+                  cursor: pointer;
+                  border: none;
+                }
+              `}</style>
             </div>
-            <p className="text-center text-gray-600 mb-4 text-sm sm:text-base">{redeemPoints} Points = {walletData.redeemRate}</p>
+            <p className="text-center text-gray-600 mb-4 text-sm sm:text-base">{redeemPoints} Points = ₹{Math.floor(redeemPoints / 2)}</p>
           </div>
           <Button 
-            onClick={handleRedeemNow}
-            disabled={walletData.points < redeemPoints}
+            onClick={() => {
+              if (walletData.points >= redeemPoints && redeemPoints > 0) {
+                const cashValue = Math.floor(redeemPoints / 2);
+                setWalletData(prev => ({
+                  ...prev,
+                  points: prev.points - redeemPoints,
+                  availableBalance: `₹${parseInt(prev.availableBalance.slice(1)) + cashValue}`
+                }));
+                
+                const newTransaction = {
+                  id: Date.now(),
+                  title: `Points Redeemed #${Math.floor(Math.random() * 10000)}`,
+                  subtitle: `Redeemed ${redeemPoints} points`,
+                  amount: `+₹${cashValue}`,
+                  type: "credit",
+                  date: new Date().toISOString().split('T')[0]
+                };
+                
+                setWalletHistory(prev => [newTransaction, ...prev]);
+                setRedeemPoints(0);
+              }
+            }}
+            disabled={redeemPoints === 0 || walletData.points < redeemPoints}
             className="w-full h-12 sm:h-14 rounded-2xl font-semibold bg-blue-500 hover:bg-blue-600 text-white text-base disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            Redeem Now {walletData.points < redeemPoints ? '(Insufficient Points)' : ''}
+            Redeem Now {redeemPoints === 0 || walletData.points < redeemPoints ? '(Select Points)' : ''}
           </Button>
         </div>
 
