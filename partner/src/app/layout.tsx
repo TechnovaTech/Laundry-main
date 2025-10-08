@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
       </head>
@@ -33,7 +33,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white`}
         suppressHydrationWarning={true}
       >
-        <div className="mx-auto w-full max-w-sm min-h-screen flex flex-col bg-white safe-area">
+        <div className="mx-auto w-full max-w-sm min-h-screen flex flex-col bg-white safe-area" suppressHydrationWarning>
           <CapacitorInit />
           <main className="flex-1">{children}</main>
           <ClientBottomNav />
