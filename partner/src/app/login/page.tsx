@@ -1,7 +1,46 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Login() {
+  const [mobile, setMobile] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleLogin = async () => {
+    if (!mobile || mobile.length !== 10) {
+      alert("Please enter a valid 10-digit mobile number");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch("http://localhost:3000/api/mobile/partners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, name: "Partner" })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        localStorage.setItem("partnerId", data.data.partnerId || data.data._id);
+        localStorage.setItem("partnerMobile", mobile);
+        localStorage.setItem("partnerOTP", data.data.otp);
+        console.log("OTP generated:", data.data.otp);
+        router.push("/verify");
+      } else {
+        alert(data.error || "Login failed");
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="pb-6">
       <header className="sticky top-0 bg-white shadow-sm">
@@ -23,12 +62,20 @@ export default function Login() {
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600">👤</span>
           <input
             className="w-full rounded-xl border border-blue-300 pl-9 pr-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter your  phone no -"
+            placeholder="Enter your phone no"
             type="tel"
-            defaultValue=""
+            value={mobile}
+            onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
+            maxLength={10}
           />
         </div>
-        <Link href="/verify" className="mt-5 w-full inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-3 text-base font-semibold">Login</Link>
+        <button 
+          onClick={handleLogin}
+          disabled={loading}
+          className="mt-5 w-full bg-blue-600 text-white rounded-xl py-3 text-base font-semibold disabled:bg-gray-400"
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
       </div>
     </div>
   );

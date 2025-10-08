@@ -31,6 +31,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white`}
+        suppressHydrationWarning={true}
       >
         <div className="mx-auto w-full max-w-sm min-h-screen flex flex-col bg-white safe-area">
           <CapacitorInit />

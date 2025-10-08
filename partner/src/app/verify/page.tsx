@@ -1,10 +1,29 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Verify() {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const [mobile, setMobile] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(30);
+  const router = useRouter();
   const nextEmptyIndex = otp.findIndex((d) => d === "");
+
+  useEffect(() => {
+    const partnerMobile = localStorage.getItem("partnerMobile");
+    if (partnerMobile) {
+      setMobile(partnerMobile);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   const addDigit = (d: string) => {
     setOtp((prev) => {
@@ -26,6 +45,28 @@ export default function Verify() {
     });
   };
 
+  const handleVerify = async () => {
+    const otpString = otp.join("");
+    if (otpString.length !== 6) {
+      alert("Please enter complete OTP");
+      return;
+    }
+
+    setLoading(true);
+    const correctOTP = localStorage.getItem("partnerOTP");
+    
+    if (otpString === correctOTP) {
+      setTimeout(() => {
+        setLoading(false);
+        router.push("/profile/create");
+      }, 1000);
+    } else {
+      setLoading(false);
+      alert("Invalid OTP. Please try again.");
+      setOtp(Array(6).fill(""));
+    }
+  };
+
   return (
     <div className="pb-6">
       <header className="sticky top-0 bg-white shadow-sm">
@@ -38,14 +79,14 @@ export default function Verify() {
 
       <div className="px-4 pt-6">
         <p className="text-center text-gray-500">We’ve sent an OTP to</p>
-        <p className="mt-1 text-center text-black font-semibold">+91 XXXXXXXX</p>
+        <p className="mt-1 text-center text-black font-semibold">+91 {mobile.replace(/(\d{5})(\d{5})/, '$1XXXXX')}</p>
         <p className="mt-1 text-center text-blue-600">Change number</p>
 
         <div className="mt-4 flex items-center justify-center gap-3">
           {otp.map((val, i) => (
             <div
               key={i}
-              className={`h-14 w-14 rounded-2xl border-2 flex items-center justify-center text-lg font-medium ${
+              className={`h-14 w-14 rounded-2xl border-2 flex items-center justify-center text-lg font-bold text-black ${
                 i === nextEmptyIndex ? "border-blue-600" : "border-gray-300"
               }`}
             >
@@ -55,9 +96,17 @@ export default function Verify() {
         </div>
 
         <p className="mt-4 text-center text-gray-500">Didn’t get OTP?</p>
-        <p className="text-center text-blue-600">Resend in 30s</p>
+        <p className="text-center text-blue-600">
+          {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
+        </p>
 
-        <Link href="/profile/create" className="mt-4 w-full inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-3 text-base font-semibold">Verify & Continue</Link>
+        <button 
+          onClick={handleVerify}
+          disabled={loading || otp.join("").length !== 6}
+          className="mt-4 w-full bg-blue-600 text-white rounded-xl py-3 text-base font-semibold disabled:bg-gray-400"
+        >
+          {loading ? "Verifying..." : "Verify & Continue"}
+        </button>
       </div>
 
       {/* Keypad */}
