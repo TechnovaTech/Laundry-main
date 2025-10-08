@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, Phone as PhoneIcon, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2 } from "lucide-react";
+import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, Phone as PhoneIcon, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 const Profile = () => {
@@ -387,10 +387,22 @@ const Profile = () => {
 
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Payment Options</h2>
-          {paymentOptions.map((option, index) => (
+          {paymentOptions.map((option, index) => {
+            const getPaymentIcon = (type) => {
+              switch (type) {
+                case 'Cash': return Banknote;
+                case 'UPI': return Smartphone;
+                case 'Card': return CreditCard;
+                case 'Bank Transfer': return Building2;
+                default: return CreditCard;
+              }
+            };
+            const PaymentIcon = getPaymentIcon(option.type);
+            
+            return (
             <div key={index} className={`bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center justify-between gap-2 sm:gap-3 ${option.isPrimary ? 'border-2 border-blue-500' : ''}`}>
               <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
+                <PaymentIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-black text-sm sm:text-base">{option.type}</p>
@@ -428,7 +440,8 @@ const Profile = () => {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
           {!hasAllPaymentTypes() && (
             <button 
               onClick={() => setShowPaymentModal(true)}
