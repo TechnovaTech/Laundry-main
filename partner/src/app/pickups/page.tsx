@@ -21,18 +21,20 @@ export default function Pickups() {
       </header>
 
       {/* Map Banner */}
-      <div className="mt-3 mx-4 relative rounded-xl overflow-hidden">
-        <Image src="/map-temp.svg" alt="Temp Location Map" width={800} height={260} className="w-full h-40 object-cover" />
+      <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-40">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1!2d-73.98!3d40.75!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ1JzAwLjAiTiA3M8KwNTgnNDguMCJX!5e0!3m2!1sen!2sus!4v1234567890"
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
         {/* Floating card */}
         <div className="absolute left-4 top-4 bg-white shadow-sm rounded-xl px-4 py-2 text-sm font-medium">
           3 pickups assigned today
         </div>
-        {/* Pins */}
-        <span className="absolute left-6 bottom-6 text-blue-600">📍</span>
-        <span className="absolute right-10 top-10 text-orange-500">📍</span>
-        <span className="absolute right-6 bottom-8 text-blue-600">📍</span>
-
-        {/* Location chip removed to match screenshot */}
       </div>
 
       {/* Pickup cards */}
