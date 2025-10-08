@@ -1,46 +1,55 @@
+'use client'
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
 
-const orders = {
-  "12345": {
-    name: "John Smith",
-    phone: "+1 234 567 8901",
-    addr: "1234 Elm Street, Apt 567",
-    eta: "12 mins",
-    distance: "2.5 km",
-    price: "$45.00",
-    items: 3,
-    orderId: "#123456789",
-    instructions: "Leave at the front door.",
-  },
-  "12346": {
-    name: "Bob Smith",
-    phone: "+1 111 222 3333",
-    addr: "456 Oak Avenue",
-    eta: "10 mins",
-    distance: "1.9 km",
-    price: "$30.00",
-    items: 2,
-    orderId: "#12346",
-    instructions: "Call on arrival.",
-  },
-  "12347": {
-    name: "Charlie Davis",
-    phone: "+1 999 888 7777",
-    addr: "789 Pine Street",
-    eta: "15 mins",
-    distance: "3.4 km",
-    price: "$60.00",
-    items: 4,
-    orderId: "#12347",
-    instructions: "Ring the doorbell twice.",
-  },
-} as const;
+interface Order {
+  _id: string;
+  orderId: string;
+  customerId: {
+    name: string;
+    mobile: string;
+  };
+  pickupAddress: {
+    street: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
+  totalAmount: number;
+  items: any[];
+  specialInstructions?: string;
+}
 
-export default function StartPickup({ params }: any) {
-  const order = orders[params.id as keyof typeof orders];
-  if (!order) return notFound();
+export default function StartPickup() {
+  const params = useParams();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrder();
+  }, []);
+
+  const fetchOrder = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/orders`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const foundOrder = data.data.find((o: any) => o._id === params.id);
+        setOrder(foundOrder);
+      }
+    } catch (error) {
+      console.error('Failed to fetch order:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (!order) return <div className="p-8 text-center">Order not found</div>;
   return (
     <div className="pb-6">
       {/* Header */}
@@ -53,28 +62,36 @@ export default function StartPickup({ params }: any) {
       </header>
 
       {/* Map with overlay */}
-      <div className="mt-3 mx-4 relative rounded-xl overflow-hidden">
-        <Image src="/map-temp.svg" alt="Route Map" width={800} height={260} className="w-full h-48 object-cover" />
+      <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-48">
+        <iframe
+          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}, ${order.pickupAddress.state}`)}&zoom=15`}
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
         <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
-          <p className="text-sm font-semibold text-black">{order.eta} ({order.distance})</p>
-          <p className="text-xs text-blue-600">Open in Google Maps</p>
+          <p className="text-sm font-semibold text-black">Pickup Location</p>
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="text-xs text-blue-600">Open in Google Maps</a>
         </div>
       </div>
 
       {/* Customer card */}
       <div className="mt-4 mx-4 rounded-xl border border-gray-200 bg-white shadow-sm p-4">
-        <p className="text-base font-semibold text-black">{order.name}</p>
-        <p className="text-xs text-black mt-1">{order.phone}</p>
-        <p className="text-xs text-black mt-1">📍 {order.addr}</p>
+        <p className="text-base font-semibold text-black">{order.customerId?.name || 'Customer'}</p>
+        <p className="text-xs text-black mt-1">{order.customerId?.mobile}</p>
+        <p className="text-xs text-black mt-1">📍 {order.pickupAddress.street}, {order.pickupAddress.city}</p>
         <div className="mt-3 flex items-center gap-3">
-          <button className="inline-flex items-center gap-2 rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">
+          <a href={`tel:${order.customerId?.mobile}`} className="inline-flex items-center gap-2 rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">
             <span>📞</span>
             Call Customer
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">
+          </a>
+          <a href={`sms:${order.customerId?.mobile}`} className="inline-flex items-center gap-2 rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">
             <span>💬</span>
             Message
-          </button>
+          </a>
         </div>
       </div>
 
@@ -83,26 +100,18 @@ export default function StartPickup({ params }: any) {
         <p className="text-base font-semibold text-black">Order Details</p>
         <div className="mt-2 text-sm text-black">
           <p>Order ID: {order.orderId}</p>
-          <p>Items: {order.items}</p>
-          <p>Total Price: {order.price}</p>
-          <p>Delivery Instructions: {order.instructions}</p>
+          <p>Items: {order.items?.length || 0}</p>
+          <p>Total Price: ₹{order.totalAmount}</p>
+          <p>Delivery Instructions: {order.specialInstructions || 'None'}</p>
         </div>
       </div>
 
       {/* CTA */}
       <div className="mx-4">
-        <Link href={`/pickups/confirm/${params.id}`} className="mt-5 w-full inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-3 text-base font-semibold">
+        <Link href={`/pickups/confirm/${order._id}`} className="mt-5 w-full inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-3 text-base font-semibold">
           Reached Location
         </Link>
       </div>
     </div>
   );
-}
-
-export function generateStaticParams() {
-  return [
-    { id: "12345" },
-    { id: "12346" },
-    { id: "12347" },
-  ];
 }
