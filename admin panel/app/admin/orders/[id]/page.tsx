@@ -45,29 +45,54 @@ export default function OrderDetails() {
           <div>
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-            <button style={{
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: '500',
-              cursor: 'pointer'
-            }}>
-              Update Status
-            </button>
-            <button style={{
-              backgroundColor: 'white',
-              color: '#2563eb',
-              border: '2px solid #2563eb',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: '500',
-              cursor: 'pointer'
-            }}>
+            <button 
+              onClick={async () => {
+                if (confirm('Are you sure you want to cancel this order?')) {
+                  const response = await fetch(`/api/orders/${order._id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'cancelled' })
+                  });
+                  if (response.ok) window.location.reload();
+                }
+              }}
+              style={{
+                backgroundColor: 'white',
+                color: '#2563eb',
+                border: '2px solid #2563eb',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+            >
               Cancel Order
+            </button>
+            <button 
+              onClick={async () => {
+                if (confirm('Are you sure you want to DELETE this order? This action cannot be undone.')) {
+                  const response = await fetch(`/api/orders/${order._id}`, {
+                    method: 'DELETE'
+                  });
+                  if (response.ok) {
+                    alert('Order deleted successfully');
+                    window.location.href = '/admin/orders';
+                  }
+                }
+              }}
+              style={{
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+            >
+              Delete Order
             </button>
           </div>
 
@@ -181,7 +206,7 @@ export default function OrderDetails() {
               marginBottom: '1.5rem'
             }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Hub Delivery Approval</h3>
-              <p style={{ color: '#6b7280', marginBottom: '1rem' }}>Order has been delivered to hub. Please approve or reject.</p>
+              <p style={{ color: '#6b7280', marginBottom: '1rem' }}>Order has been delivered to hub. Please approve or cancel.</p>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <button
                   onClick={async () => {
@@ -189,7 +214,7 @@ export default function OrderDetails() {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ 
-                        status: 'processing',
+                        status: 'ready',
                         hubApprovedAt: new Date().toISOString()
                       })
                     });
@@ -211,12 +236,14 @@ export default function OrderDetails() {
                 </button>
                 <button
                   onClick={async () => {
-                    const response = await fetch(`/api/orders/${order._id}`, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ status: 'picked_up' })
-                    });
-                    if (response.ok) window.location.reload();
+                    if (confirm('Are you sure you want to cancel this order?')) {
+                      const response = await fetch(`/api/orders/${order._id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'cancelled' })
+                      });
+                      if (response.ok) window.location.reload();
+                    }
                   }}
                   style={{
                     backgroundColor: '#ef4444',
@@ -230,9 +257,66 @@ export default function OrderDetails() {
                     flex: 1
                   }}
                 >
-                  ✗ Reject
+                  ✗ Cancel Order
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Ready to Process */}
+          {order?.status === 'ready' && (
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              padding: '1.5rem',
+              marginBottom: '1.5rem'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Ready to Process</h3>
+              <p style={{ color: '#6b7280', marginBottom: '1rem' }}>Order is ready. Click below to start processing.</p>
+              <button
+                onClick={async () => {
+                  const response = await fetch(`/api/orders/${order._id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'processing' })
+                  });
+                  if (response.ok) window.location.reload();
+                }}
+                style={{
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
+              >
+                Start Processing
+              </button>
+            </div>
+          )}
+
+          {/* Reported Issue */}
+          {order?.issue && (
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              border: '2px solid #ef4444'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0', color: '#ef4444' }}>⚠ Reported Issue</h3>
+              <div style={{ padding: '0.75rem', backgroundColor: '#fef2f2', borderRadius: '8px', marginBottom: '0.5rem' }}>
+                <p style={{ color: '#374151' }}>{order.issue}</p>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                Reported on: {order.issueReportedAt ? new Date(order.issueReportedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.issueReportedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
+              </p>
             </div>
           )}
 
@@ -306,12 +390,28 @@ export default function OrderDetails() {
                 </div>
               </div>
               <div>
+                <div style={{ fontWeight: '600' }}>Ironing</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {order?.ironingAt ? new Date(order.ironingAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.ironingAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontWeight: '600' }}>Process Completed</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {order?.processCompletedAt ? new Date(order.processCompletedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.processCompletedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
+                </div>
+              </div>
+              <div>
                 <div style={{ fontWeight: '600' }}>Out for Delivery</div>
-                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Pending</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {order?.outForDeliveryAt ? new Date(order.outForDeliveryAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.outForDeliveryAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
+                </div>
               </div>
               <div>
                 <div style={{ fontWeight: '600' }}>Delivered</div>
-                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Pending</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {order?.deliveredAt ? new Date(order.deliveredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveredAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
+                </div>
               </div>
             </div>
           </div>

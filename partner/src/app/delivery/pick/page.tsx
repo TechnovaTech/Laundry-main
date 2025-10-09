@@ -1,23 +1,47 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BottomNav from "@/components/BottomNav";
 
-type Order = {
-  id: string;
-  customer: string;
-  items: string;
-  address: string;
-};
-
-const ORDERS: Order[] = [
-  { id: "56789", customer: "Alex Johnson", items: "2 shirts, 1 bedsheet", address: "123 Main St, Springfield" },
-  { id: "56890", customer: "Maria Lopez", items: "3 towels, 2 pillowcases", address: "456 Elm St," },
-  { id: "56901", customer: "John Smith", items: "1 jacket, 2 hats", address: "789 Pine St," },
-];
-
 export default function PickForDelivery() {
-  const [selected, setSelected] = useState<Set<string>>(new Set(["56901"]));
+  const [orders, setOrders] = useState<any[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const partnerId = localStorage.getItem('partnerId');
+      const partnerRes = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+      const partnerData = await partnerRes.json();
+      
+      if (partnerData.success && partnerData.data.address?.pincode) {
+        const partnerPincode = partnerData.data.address.pincode;
+        
+        const ordersRes = await fetch('http://localhost:3000/api/orders');
+        const ordersData = await ordersRes.json();
+        
+        if (ordersData.success) {
+          console.log('Partner pincode:', partnerPincode);
+          console.log('All orders:', ordersData.data);
+          const filteredOrders = ordersData.data.filter((order: any) => {
+            console.log('Order:', order.orderId, 'Status:', order.status, 'Delivery Pincode:', order.deliveryAddress?.pincode, 'Pickup Pincode:', order.pickupAddress?.pincode);
+            return order.status === 'process_completed' && 
+                   (order.deliveryAddress?.pincode === partnerPincode || order.pickupAddress?.pincode === partnerPincode);
+          });
+          console.log('Filtered orders:', filteredOrders);
+          setOrders(filteredOrders);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -40,45 +64,65 @@ export default function PickForDelivery() {
 
       {/* Section title */}
       <div className="px-4 pt-4">
-        <p className="text-base font-semibold text-black">Select Orders to Deliver</p>
+        <p className="text-base font-semibold text-black">Select Orders to Deliver ({orders.length})</p>
       </div>
 
       {/* Cards */}
-      <div className="mt-3 px-4 flex flex-col gap-4">
-        {ORDERS.map((o) => {
-          const isSelected = selected.has(o.id);
-          return (
-            <div key={o.id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-black">Order ID: #{o.id}</p>
-                  <p className="text-xs text-gray-600 mt-2">Customer: <span className="text-black">{o.customer}</span></p>
-                  <p className="text-xs text-gray-600 mt-1">Items: <span className="text-black">{o.items}</span></p>
-                  <p className="text-xs text-gray-600 mt-1">Address: <span className="text-black">{o.address}</span></p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    aria-label={isSelected ? "Selected" : "Not selected"}
-                    onClick={() => toggle(o.id)}
-                    className={`h-8 w-8 rounded-lg border-2 flex items-center justify-center ${
-                      isSelected ? "border-blue-600 bg-blue-600 text-white" : "border-blue-400"
-                    }`}
-                  >
-                    {isSelected ? "✔" : ""}
-                  </button>
-                  <span className="text-blue-600">ℹ️</span>
+      {loading ? (
+        <div className="mt-4 px-4 text-center text-gray-500">Loading...</div>
+      ) : orders.length > 0 ? (
+        <div className="mt-3 px-4 flex flex-col gap-4">
+          {orders.map((order) => {
+            const isSelected = selected.has(order._id);
+            return (
+              <div key={order._id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
+                    <p className="text-xs text-gray-600 mt-2">Customer: <span className="text-black">{order.customerId?.name || 'N/A'}</span></p>
+                    <p className="text-xs text-gray-600 mt-1">Items: <span className="text-black">{order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ')}</span></p>
+                    <p className="text-xs text-gray-600 mt-1">Address: <span className="text-black">{order.pickupAddress?.street}, {order.pickupAddress?.city}</span></p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      aria-label={isSelected ? "Selected" : "Not selected"}
+                      onClick={() => toggle(order._id)}
+                      className={`h-8 w-8 rounded-lg border-2 flex items-center justify-center ${
+                        isSelected ? "border-blue-600 bg-blue-600 text-white" : "border-blue-400"
+                      }`}
+                    >
+                      {isSelected ? "✔" : ""}
+                    </button>
+                    <span className="text-blue-600">ℹ️</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="mt-6 px-4 text-center">
+          <p className="text-base font-semibold">No orders available for delivery.</p>
+          <p className="text-xs text-gray-600">Orders ready for delivery in your area will appear here.</p>
+        </div>
+      )}
 
       {/* Confirm CTA */}
       <div className="px-4">
-        <Link href="/delivery/56789" className="mt-5 w-full inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-3 text-base font-semibold">
-          Confirm Selection
-        </Link>
+        <button
+          onClick={() => {
+            if (selected.size > 0) {
+              const firstOrderId = Array.from(selected)[0];
+              window.location.href = `/delivery/${firstOrderId}`;
+            } else {
+              alert('Please select at least one order');
+            }
+          }}
+          disabled={orders.length === 0}
+          className="mt-5 w-full inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-3 text-base font-semibold disabled:bg-gray-400"
+        >
+          Confirm Selection ({selected.size})
+        </button>
       </div>
 
       <BottomNav />

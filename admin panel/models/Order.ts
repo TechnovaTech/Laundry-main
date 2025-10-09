@@ -12,7 +12,7 @@ const OrderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'reached_location', 'picked_up', 'delivered_to_hub', 'processing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'],
+    enum: ['pending', 'reached_location', 'picked_up', 'delivered_to_hub', 'processing', 'ironing', 'process_completed', 'ready', 'out_for_delivery', 'delivered', 'cancelled'],
     default: 'pending'
   },
   pickupAddress: {
@@ -44,10 +44,16 @@ const OrderSchema = new mongoose.Schema({
   specialInstructions: String,
   pickupPhotos: [String],
   pickupNotes: String,
+  issue: String,
+  issueReportedAt: Date,
   reachedLocationAt: Date,
   pickedUpAt: Date,
   deliveredToHubAt: Date,
   hubApprovedAt: Date,
+  ironingAt: Date,
+  processCompletedAt: Date,
+  outForDeliveryAt: Date,
+  deliveredAt: Date,
   statusHistory: [{
     status: String,
     timestamp: Date,

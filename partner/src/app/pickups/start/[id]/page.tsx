@@ -112,9 +112,8 @@ export default function StartPickup() {
           onClick={async () => {
             const partnerId = localStorage.getItem('partnerId');
             const updateData = { 
-              status: 'confirmed',
-              confirmedAt: new Date().toISOString(),
-              pickupStartedAt: new Date().toISOString(),
+              status: 'reached_location',
+              reachedLocationAt: new Date().toISOString(),
               partnerId: partnerId
             };
             console.log('Updating order with:', updateData);

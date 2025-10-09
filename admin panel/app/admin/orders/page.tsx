@@ -175,19 +175,145 @@ export default function OrdersPage() {
                 </div>
                 <div>{order.partner}</div>
                 <div>{order.time}</div>
-                <div>
-                  <button style={{
-                    backgroundColor: '#dc2626',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    fontSize: '0.8rem',
-                    fontWeight: '500',
-                    cursor: 'pointer'
-                  }}>
-                    CANCEL ORDER
-                  </button>
+                <div onClick={(e) => e.stopPropagation()}>
+                  {dbOrder.status === 'delivered_to_hub' ? (
+                    <button
+                      onClick={async () => {
+                        const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            status: 'ready',
+                            hubApprovedAt: new Date().toISOString()
+                          })
+                        });
+                        if (response.ok) fetchOrders();
+                      }}
+                      style={{
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      APPROVE
+                    </button>
+                  ) : dbOrder.status === 'ready' ? (
+                    <button
+                      onClick={async () => {
+                        const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ status: 'processing' })
+                        });
+                        if (response.ok) fetchOrders();
+                      }}
+                      style={{
+                        backgroundColor: '#2563eb',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      IN PROGRESS
+                    </button>
+                  ) : dbOrder.status === 'processing' ? (
+                    <button
+                      onClick={async () => {
+                        const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            status: 'ironing',
+                            ironingAt: new Date().toISOString()
+                          })
+                        });
+                        if (response.ok) fetchOrders();
+                      }}
+                      style={{
+                        backgroundColor: '#f59e0b',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      IRONING
+                    </button>
+                  ) : dbOrder.status === 'ironing' ? (
+                    <button
+                      onClick={async () => {
+                        const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            status: 'process_completed',
+                            processCompletedAt: new Date().toISOString()
+                          })
+                        });
+                        if (response.ok) fetchOrders();
+                      }}
+                      style={{
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      COMPLETED
+                    </button>
+                  ) : dbOrder.status === 'process_completed' ? (
+                    <span style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#dcfce7',
+                      color: '#166534',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem',
+                      fontWeight: '500'
+                    }}>
+                      COMPLETED
+                    </span>
+                  ) : (
+                    <button 
+                      onClick={async () => {
+                        if (confirm('Are you sure you want to cancel this order?')) {
+                          const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'cancelled' })
+                          });
+                          if (response.ok) fetchOrders();
+                        }
+                      }}
+                      style={{
+                        backgroundColor: '#dc2626',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      CANCEL ORDER
+                    </button>
+                  )}
                 </div>
               </div>
             )})}

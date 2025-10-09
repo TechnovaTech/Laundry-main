@@ -1,12 +1,36 @@
+'use client'
+
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 export default function DeliveredToHub() {
-  const delivered = [
-    { id: "#12345", customer: "John Doe", items: "3 shirts, 1 bedsheet", when: "Delivered on: 16 Sep, 3:15 PM" },
-    { id: "#12346", customer: "Jane Smith", items: "2 dresses, 1 towel", when: "Delivered on: 15 Sep, 2:00 PM" },
-    { id: "#12347", customer: "Alex Brown", items: "1 coat, 2 trousers", when: "Delivered on: 14 Sep, 4:00 PM" },
-  ];
+  const [delivered, setDelivered] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDeliveredOrders();
+  }, []);
+
+  const fetchDeliveredOrders = async () => {
+    try {
+      const partnerId = localStorage.getItem('partnerId');
+      const response = await fetch('http://localhost:3000/api/orders');
+      const data = await response.json();
+      
+      if (data.success) {
+        const filteredOrders = data.data.filter((order: any) => 
+          order.hubApprovedAt && (order.partnerId?._id === partnerId || order.partnerId === partnerId)
+        );
+        setDelivered(filteredOrders);
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="pb-10">
       {/* Header */}
@@ -30,27 +54,30 @@ export default function DeliveredToHub() {
       </div>
 
       {/* Delivered cards */}
-      <div className="mt-4 px-4 flex flex-col gap-4">
-        {delivered.map((d) => (
-          <div key={d.id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-base font-semibold text-black">{d.id}</p>
-                <p className="text-sm text-gray-700 mt-2">{d.customer}, <span className="text-black">{d.items}</span></p>
-                <p className="text-sm text-blue-600 mt-2">{d.when}</p>
+      {loading ? (
+        <div className="mt-4 px-4 text-center text-gray-500">Loading...</div>
+      ) : delivered.length > 0 ? (
+        <div className="mt-4 px-4 flex flex-col gap-4">
+          {delivered.map((order: any) => (
+            <div key={order._id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-base font-semibold text-black">#{order.orderId}</p>
+                  <p className="text-sm text-gray-700 mt-2">{order.customerId?.name || 'Customer'}, <span className="text-black">{order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items'}</span></p>
+                  <p className="text-sm text-blue-600 mt-2">Approved on: {order.hubApprovedAt ? new Date(order.hubApprovedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.hubApprovedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}</p>
+                </div>
+                <span className="rounded-full bg-green-500 text-white px-3 py-1 text-xs font-semibold">Approved</span>
               </div>
-              <span className="rounded-full bg-green-500 text-white px-3 py-1 text-xs font-semibold">Delivered</span>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Illustration and empty state */}
-      <div className="mt-6 px-4 text-center">
-        <Image src="/Delivery.svg" alt="Hub Building" width={260} height={180} className="mx-auto" />
-        <p className="mt-2 text-base font-semibold">No delivered to hub orders yet.</p>
-        <p className="text-xs text-black">Once you hand over pickups to hub, they’ll appear here.</p>
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-6 px-4 text-center">
+          <Image src="/Delivery.svg" alt="Hub Building" width={260} height={180} className="mx-auto" />
+          <p className="mt-2 text-base font-semibold">No delivered orders found.</p>
+          <p className="text-xs text-black">Orders you deliver to hub will appear here.</p>
+        </div>
+      )}
     </div>
   );
 }

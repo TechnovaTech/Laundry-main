@@ -9,6 +9,8 @@ const OrderDetails = () => {
   const location = useLocation();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showIssueForm, setShowIssueForm] = useState(false);
+  const [issueText, setIssueText] = useState('');
   
   const orderId = location.state?.orderId;
   
@@ -54,9 +56,11 @@ const OrderDetails = () => {
       'picked_up': 2,
       'delivered_to_hub': 3,
       'processing': 4,
+      'ironing': 5,
+      'process_completed': 6,
       'ready': 4,
-      'out_for_delivery': 5,
-      'delivered': 6
+      'out_for_delivery': 7,
+      'delivered': 8
     };
     
     const currentStep = statusMap[order.status] || 0;
@@ -72,6 +76,8 @@ const OrderDetails = () => {
     const pickedUpTime = order.pickedUpAt ? formatDateTime(order.pickedUpAt) : 'Pending';
     const deliveredToHubTime = order.deliveredToHubAt ? formatDateTime(order.deliveredToHubAt) : 'Pending';
     const processingTime = order.hubApprovedAt ? formatDateTime(order.hubApprovedAt) : 'Pending';
+    const ironingTime = order.ironingAt ? formatDateTime(order.ironingAt) : 'Pending';
+    const processCompletedTime = order.processCompletedAt ? formatDateTime(order.processCompletedAt) : 'Pending';
     
     return [
       { icon: Clock, label: 'Order Placed', time: placedTime, completed: currentStep >= 0, active: currentStep === 0 },
@@ -79,8 +85,10 @@ const OrderDetails = () => {
       { icon: Package, label: 'Picked Up', time: pickedUpTime, completed: currentStep >= 2, active: currentStep === 2 },
       { icon: Truck, label: 'Delivered to Hub', time: deliveredToHubTime, completed: currentStep >= 3, active: currentStep === 3 },
       { icon: Shirt, label: 'Processing', time: processingTime, completed: currentStep >= 4, active: currentStep === 4 },
-      { icon: Truck, label: 'Out for Delivery', time: 'Pending', completed: currentStep >= 5, active: currentStep === 5 },
-      { icon: CheckCircle2, label: 'Delivered', time: 'Pending', completed: currentStep >= 6, active: currentStep === 6 },
+      { icon: Shirt, label: 'Ironing', time: ironingTime, completed: currentStep >= 5, active: currentStep === 5 },
+      { icon: CheckCircle2, label: 'Process Completed', time: processCompletedTime, completed: currentStep >= 6, active: currentStep === 6 },
+      { icon: Truck, label: 'Out for Delivery', time: order.outForDeliveryAt ? formatDateTime(order.outForDeliveryAt) : 'Pending', completed: currentStep >= 7, active: currentStep === 7 },
+      { icon: CheckCircle2, label: 'Delivered', time: order.deliveredAt ? formatDateTime(order.deliveredAt) : 'Pending', completed: currentStep >= 8, active: currentStep === 8 },
     ];
   };
   
@@ -180,10 +188,71 @@ const OrderDetails = () => {
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
             Contact Partner
           </Button>
-          <Button variant="destructive" className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm">
+          <Button 
+            variant="destructive" 
+            className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm"
+            onClick={() => setShowIssueForm(true)}
+          >
             ⚠ Report Issue
           </Button>
         </div>
+
+        {showIssueForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+              <h2 className="text-lg font-bold mb-4">Report Issue</h2>
+              <textarea
+                value={issueText}
+                onChange={(e) => setIssueText(e.target.value)}
+                placeholder="Describe the issue..."
+                className="w-full border rounded-lg p-3 min-h-32 mb-4 outline-none focus:ring-2 focus:ring-primary"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowIssueForm(false);
+                    setIssueText('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={async () => {
+                    if (!issueText.trim()) {
+                      alert('Please describe the issue');
+                      return;
+                    }
+                    console.log('Reporting issue for order:', order._id);
+                    console.log('Issue text:', issueText);
+                    const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        issue: issueText,
+                        issueReportedAt: new Date().toISOString()
+                      })
+                    });
+                    const result = await response.json();
+                    console.log('Response:', result);
+                    if (response.ok) {
+                      alert('Issue reported successfully');
+                      setShowIssueForm(false);
+                      setIssueText('');
+                      fetchOrderDetails();
+                    } else {
+                      alert('Failed to report issue: ' + (result.message || 'Unknown error'));
+                    }
+                  }}
+                >
+                  Submit
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Button className="w-full h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base">
           <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />

@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Partner from '@/models/Partner'
+import Customer from '@/models/Customer'
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await dbConnect()
     Partner // Ensure Partner model is registered
+    Customer // Ensure Customer model is registered
     
     // Try to find by orderId first, then by _id
     let order = await Order.findOne({ orderId: params.id })
@@ -95,6 +97,33 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       success: false,
       message: 'Failed to update order',
       error: error.message
+    }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    await dbConnect()
+    
+    const order = await Order.findByIdAndDelete(params.id)
+    
+    if (!order) {
+      return NextResponse.json({
+        success: false,
+        message: 'Order not found'
+      }, { status: 404 })
+    }
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Order deleted successfully'
+    })
+    
+  } catch (error) {
+    console.error('Error deleting order:', error)
+    return NextResponse.json({
+      success: false,
+      message: 'Failed to delete order'
     }, { status: 500 })
   }
 }
