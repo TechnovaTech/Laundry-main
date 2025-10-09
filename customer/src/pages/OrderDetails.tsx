@@ -15,6 +15,9 @@ const OrderDetails = () => {
   useEffect(() => {
     if (orderId) {
       fetchOrderDetails();
+      // Refresh every 5 seconds to get latest updates
+      const interval = setInterval(fetchOrderDetails, 5000);
+      return () => clearInterval(interval);
     } else {
       setLoading(false);
     }
@@ -22,11 +25,18 @@ const OrderDetails = () => {
   
   const fetchOrderDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/orders/${orderId}`);
+      const response = await fetch(`http://localhost:3000/api/orders`);
       const data = await response.json();
       
       if (data.success) {
-        setOrder(data.data);
+        const foundOrder = data.data.find((o: any) => o._id === orderId || o.orderId === orderId);
+        console.log('Order data:', foundOrder);
+        console.log('reachedLocationAt:', foundOrder?.reachedLocationAt);
+        console.log('pickedUpAt:', foundOrder?.pickedUpAt);
+        console.log('deliveredToHubAt:', foundOrder?.deliveredToHubAt);
+        console.log('hubApprovedAt:', foundOrder?.hubApprovedAt);
+        console.log('status:', foundOrder?.status);
+        setOrder(foundOrder);
       }
     } catch (error) {
       console.error('Error fetching order details:', error);
@@ -40,27 +50,37 @@ const OrderDetails = () => {
     
     const statusMap = {
       'pending': 0,
-      'confirmed': 1,
+      'reached_location': 1,
       'picked_up': 2,
-      'processing': 3,
-      'ready': 3,
-      'out_for_delivery': 4,
-      'delivered': 5
+      'delivered_to_hub': 3,
+      'processing': 4,
+      'ready': 4,
+      'out_for_delivery': 5,
+      'delivered': 6
     };
     
     const currentStep = statusMap[order.status] || 0;
-    const orderDate = new Date(order.createdAt).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short'
-    });
+    
+    const formatDateTime = (date: string) => {
+      const d = new Date(date);
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + 
+             ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    };
+    
+    const placedTime = formatDateTime(order.createdAt);
+    const reachedLocationTime = order.reachedLocationAt ? formatDateTime(order.reachedLocationAt) : 'Pending';
+    const pickedUpTime = order.pickedUpAt ? formatDateTime(order.pickedUpAt) : 'Pending';
+    const deliveredToHubTime = order.deliveredToHubAt ? formatDateTime(order.deliveredToHubAt) : 'Pending';
+    const processingTime = order.hubApprovedAt ? formatDateTime(order.hubApprovedAt) : 'Pending';
     
     return [
-      { icon: Clock, label: `Scheduled - ${orderDate}`, completed: currentStep >= 0, active: currentStep === 0 },
-      { icon: Package, label: `Confirmed - ${orderDate}`, completed: currentStep >= 1, active: currentStep === 1 },
-      { icon: Package, label: `Picked Up - ${orderDate}`, completed: currentStep >= 2, active: currentStep === 2 },
-      { icon: Shirt, label: `Processing - ${orderDate}`, completed: currentStep >= 3, active: currentStep === 3 },
-      { icon: Truck, label: `Out for Delivery - ${orderDate}`, completed: currentStep >= 4, active: currentStep === 4 },
-      { icon: CheckCircle2, label: `Delivered - ${orderDate}`, completed: currentStep >= 5, active: currentStep === 5 },
+      { icon: Clock, label: 'Order Placed', time: placedTime, completed: currentStep >= 0, active: currentStep === 0 },
+      { icon: Package, label: 'Reached Location', time: reachedLocationTime, completed: currentStep >= 1, active: currentStep === 1 },
+      { icon: Package, label: 'Picked Up', time: pickedUpTime, completed: currentStep >= 2, active: currentStep === 2 },
+      { icon: Truck, label: 'Delivered to Hub', time: deliveredToHubTime, completed: currentStep >= 3, active: currentStep === 3 },
+      { icon: Shirt, label: 'Processing', time: processingTime, completed: currentStep >= 4, active: currentStep === 4 },
+      { icon: Truck, label: 'Out for Delivery', time: 'Pending', completed: currentStep >= 5, active: currentStep === 5 },
+      { icon: CheckCircle2, label: 'Delivered', time: 'Pending', completed: currentStep >= 6, active: currentStep === 6 },
     ];
   };
   
@@ -136,6 +156,9 @@ const OrderDetails = () => {
                     }`}
                   >
                     {item.label}
+                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    {item.time}
                   </p>
                 </div>
               </div>

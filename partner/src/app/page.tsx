@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const router = useRouter();
   useEffect(() => {
-    const t = setTimeout(() => router.replace("/login"), 1800);
+    const t = setTimeout(() => router.replace("/check-availability"), 1800);
     return () => clearTimeout(t);
   }, [router]);
   return (

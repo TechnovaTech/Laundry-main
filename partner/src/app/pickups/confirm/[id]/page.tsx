@@ -23,6 +23,19 @@ interface Order {
   status: string;
 }
 
+interface Hub {
+  _id: string;
+  name: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
+  contactPerson?: string;
+  contactNumber?: string;
+}
+
 export default function PickupConfirm() {
   const params = useParams();
   const [order, setOrder] = useState<Order | null>(null);
@@ -30,6 +43,7 @@ export default function PickupConfirm() {
   const [notes, setNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [hub, setHub] = useState<Hub | null>(null);
 
   useEffect(() => {
     fetchOrder();
@@ -74,7 +88,9 @@ export default function PickupConfirm() {
             <p className="mt-2 text-sm text-black">📍 {order.pickupAddress.street}, {order.pickupAddress.city}</p>
             <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="mt-3 inline-flex items-center rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">Open in Maps</a>
           </div>
-          <span className="rounded-lg border-2 border-blue-400 text-blue-600 px-3 py-1 text-sm font-semibold">{order.status}</span>
+          <span className="rounded-lg border-2 border-blue-400 text-blue-600 px-3 py-1 text-sm font-semibold">
+            {order.status === 'reached_location' ? 'Reached Location' : order.status === 'picked_up' ? 'Picked Up' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
+          </span>
         </div>
       </div>
 
@@ -108,6 +124,34 @@ export default function PickupConfirm() {
           ))}
         </div>
         <p className="mt-2 text-xs text-gray-500">Upload at least 2 photos of the clothes</p>
+        
+        <button
+          onClick={async () => {
+            if (photos.length < 2) {
+              alert('Please upload at least 2 photos');
+              return;
+            }
+            try {
+              const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pickupPhotos: photos })
+              });
+              if (response.ok) {
+                alert('Images uploaded successfully!');
+              } else {
+                alert('Failed to upload images');
+              }
+            } catch (error) {
+              console.error('Failed to upload images:', error);
+              alert('Failed to upload images');
+            }
+          }}
+          disabled={photos.length < 2}
+          className="mt-3 w-full inline-flex justify-center items-center bg-green-600 text-white rounded-xl py-3 text-base font-semibold disabled:bg-gray-400"
+        >
+          Upload Images ({photos.length}/6)
+        </button>
 
         <input
           className="mt-4 w-full rounded-xl border border-gray-300 px-3 py-3 text-base text-black placeholder:text-gray-600 outline-none focus:ring-2 focus:ring-blue-500"
@@ -131,19 +175,16 @@ export default function PickupConfirm() {
               alert('Please confirm you have collected all items');
               return;
             }
-            if (photos.length < 2) {
-              alert('Please upload at least 2 photos');
-              return;
-            }
             try {
+              const updateData = { 
+                status: 'picked_up',
+                pickupNotes: notes,
+                pickedUpAt: new Date().toISOString()
+              };
               const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  status: 'picked_up',
-                  pickupPhotos: photos,
-                  pickupNotes: notes
-                })
+                body: JSON.stringify(updateData)
               });
               if (response.ok) {
                 window.location.href = '/hub/drop';
@@ -152,10 +193,10 @@ export default function PickupConfirm() {
               console.error('Failed to update order:', error);
             }
           }}
-          disabled={!confirmed || photos.length < 2}
+          disabled={!confirmed || order.status !== 'reached_location'}
           className="mt-5 w-full inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-3 text-base font-semibold disabled:bg-gray-400"
         >
-          Confirm & Proceed ({photos.length}/6 photos)
+          {order.status === 'reached_location' ? 'Confirm & Proceed' : 'Already Picked Up'}
         </button>
       </div>
     </div>

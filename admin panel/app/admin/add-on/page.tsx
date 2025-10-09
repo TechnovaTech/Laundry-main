@@ -30,6 +30,19 @@ export default function AddOnPage() {
     signupBonusPoints: 25,
     orderCompletionPoints: 10
   })
+  const [hubs, setHubs] = useState<any[]>([])
+  const [hubForm, setHubForm] = useState({
+    name: '',
+    address: { street: '', city: '', state: '', pincode: '' },
+    pincodes: [],
+    contactPerson: '',
+    contactNumber: ''
+  })
+  const [hubState, setHubState] = useState('')
+  const [hubCity, setHubCity] = useState('')
+  const [hubCities, setHubCities] = useState<string[]>([])
+  const [hubPincodes, setHubPincodes] = useState<any[]>([])
+  const [selectedServicePincodes, setSelectedServicePincodes] = useState<string[]>([])
 
   useEffect(() => {
     fetchStates()
@@ -37,7 +50,49 @@ export default function AddOnPage() {
     fetchVouchers()
     fetchTimeSlots()
     fetchWalletSettings()
+    fetchHubs()
   }, [])
+
+  const fetchHubs = async () => {
+    const response = await fetch('/api/hubs')
+    const data = await response.json()
+    if (data.success) setHubs(data.data)
+  }
+
+  const handleHubStateChange = (stateCode: string) => {
+    setHubState(stateCode)
+    setHubCity('')
+    setHubPincodes([])
+    setSelectedServicePincodes([])
+    const cities = [...new Set(serviceableAreas.filter((a: any) => a.state === stateCode).map((a: any) => a.city))]
+    setHubCities(cities)
+  }
+
+  const handleHubCityChange = (city: string) => {
+    setHubCity(city)
+    setSelectedServicePincodes([])
+    const pincodes = serviceableAreas.filter((a: any) => a.state === hubState && a.city === city).map((a: any) => ({ pincode: a.pincode, area: a.area }))
+    setHubPincodes(pincodes)
+  }
+
+  const addHub = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const response = await fetch('/api/hubs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...hubForm,
+        pincodes: selectedServicePincodes
+      })
+    })
+    if (response.ok) {
+      fetchHubs()
+      setHubForm({ name: '', address: { street: '', city: '', state: '', pincode: '' }, pincodes: [], contactPerson: '', contactNumber: '' })
+      setHubState('')
+      setHubCity('')
+      setSelectedServicePincodes([])
+    }
+  }
 
   const fetchWalletSettings = async () => {
     try {
@@ -474,6 +529,21 @@ export default function AddOnPage() {
             }}
           >
             Wallet Points
+          </button>
+          <button 
+            onClick={() => setActiveSection('Hub')}
+            style={{ 
+              padding: '0.75rem 1.5rem', 
+              backgroundColor: activeSection === 'Hub' ? '#2563eb' : 'white', 
+              color: activeSection === 'Hub' ? 'white' : '#2563eb', 
+              border: activeSection === 'Hub' ? 'none' : '1px solid #2563eb', 
+              borderRadius: '8px', 
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
+          >
+            Hub
           </button>
         </div>
 
@@ -922,6 +992,53 @@ export default function AddOnPage() {
           >
             Save Settings
           </button>
+        </div>
+        )}
+
+        {/* Hub Management Section */}
+        {activeSection === 'Hub' && (
+        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Hub Management</h3>
+          
+          <form onSubmit={addHub} style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <input placeholder="Hub Name" value={hubForm.name} onChange={(e) => setHubForm({...hubForm, name: e.target.value})} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+              <input placeholder="Street" value={hubForm.address.street} onChange={(e) => setHubForm({...hubForm, address: {...hubForm.address, street: e.target.value}})} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+              <select value={hubState} onChange={(e) => { handleHubStateChange(e.target.value); setHubForm({...hubForm, address: {...hubForm.address, state: e.target.value}}); }} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
+                <option value="">Select State</option>
+                {[...new Set(serviceableAreas.map((a: any) => a.state))].map((state: string) => <option key={state} value={state}>{state}</option>)}
+              </select>
+              <select value={hubCity} onChange={(e) => { handleHubCityChange(e.target.value); setHubForm({...hubForm, address: {...hubForm.address, city: e.target.value}}); }} disabled={!hubState} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
+                <option value="">Select City</option>
+                {hubCities.map((city: string) => <option key={city} value={city}>{city}</option>)}
+              </select>
+              <select value={hubForm.address.pincode} onChange={(e) => setHubForm({...hubForm, address: {...hubForm.address, pincode: e.target.value}})} disabled={!hubCity} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
+                <option value="">Select Hub Pincode</option>
+                {hubPincodes.map((p: any) => <option key={p.pincode} value={p.pincode}>{p.pincode} - {p.area}</option>)}
+              </select>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Service Pincodes (select multiple)</label>
+                <select multiple value={selectedServicePincodes} onChange={(e) => setSelectedServicePincodes(Array.from(e.target.selectedOptions, option => option.value))} disabled={!hubCity} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', width: '100%', minHeight: '100px' }}>
+                  {hubPincodes.map((p: any) => <option key={p.pincode} value={p.pincode}>{p.pincode} - {p.area}</option>)}
+                </select>
+                <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>Hold Ctrl/Cmd to select multiple pincodes</p>
+              </div>
+              <input placeholder="Contact Person" value={hubForm.contactPerson} onChange={(e) => setHubForm({...hubForm, contactPerson: e.target.value})} style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+              <input placeholder="Contact Number" value={hubForm.contactNumber} onChange={(e) => setHubForm({...hubForm, contactNumber: e.target.value})} style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+            </div>
+            <button type="submit" style={{ backgroundColor: '#2563eb', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', width: '100%' }}>Add Hub</button>
+          </form>
+
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {hubs.map((hub) => (
+              <div key={hub._id} style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>{hub.name}</h4>
+                <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>📍 {hub.address.street}, {hub.address.city}, {hub.address.state} - {hub.address.pincode}</p>
+                <p style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '0.25rem' }}>Service Pincodes: {hub.pincodes.join(', ')}</p>
+                {hub.contactPerson && <p style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '0.25rem' }}>Contact: {hub.contactPerson} - {hub.contactNumber}</p>}
+              </div>
+            ))}
+          </div>
         </div>
         )}
       </div>

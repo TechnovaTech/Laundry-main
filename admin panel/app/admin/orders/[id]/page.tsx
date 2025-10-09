@@ -130,6 +130,11 @@ export default function OrderDetails() {
                 <div style={{ marginBottom: '0.5rem' }}>
                   <strong>Partner Name:</strong> {order?.partnerId?.name || 'Not Assigned'} {order?.partnerId?._id ? `(#${order.partnerId._id.slice(-4)})` : ''}
                 </div>
+                {order?.partnerId?.mobile && (
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <strong>Mobile:</strong> {order.partnerId.mobile}
+                  </div>
+                )}
               </div>
               <span style={{ color: order?.partnerId ? '#10b981' : '#6b7280', fontSize: '0.9rem', fontWeight: '500' }}>
                 {order?.partnerId ? 'Assigned' : 'Not Assigned'}
@@ -147,19 +152,118 @@ export default function OrderDetails() {
               }}>
                 Reassign Partner
               </button>
-              <button style={{
-                backgroundColor: 'white',
-                color: '#2563eb',
-                border: '2px solid #2563eb',
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                fontSize: '0.9rem',
-                cursor: 'pointer'
-              }}>
-                View Partner Profile
-              </button>
+              {order?.partnerId && (
+                <button 
+                  onClick={() => window.location.href = `/admin/delivery-partners/${order.partnerId._id}`}
+                  style={{
+                    backgroundColor: 'white',
+                    color: '#2563eb',
+                    border: '2px solid #2563eb',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  View Partner Profile
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Hub Delivery Approval */}
+          {order?.status === 'delivered_to_hub' && (
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              padding: '1.5rem',
+              marginBottom: '1.5rem'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Hub Delivery Approval</h3>
+              <p style={{ color: '#6b7280', marginBottom: '1rem' }}>Order has been delivered to hub. Please approve or reject.</p>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button
+                  onClick={async () => {
+                    const response = await fetch(`/api/orders/${order._id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        status: 'processing',
+                        hubApprovedAt: new Date().toISOString()
+                      })
+                    });
+                    if (response.ok) window.location.reload();
+                  }}
+                  style={{
+                    backgroundColor: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    flex: 1
+                  }}
+                >
+                  ✓ Approve
+                </button>
+                <button
+                  onClick={async () => {
+                    const response = await fetch(`/api/orders/${order._id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ status: 'picked_up' })
+                    });
+                    if (response.ok) window.location.reload();
+                  }}
+                  style={{
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    flex: 1
+                  }}
+                >
+                  ✗ Reject
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Pickup Photos */}
+          {order?.pickupPhotos && order.pickupPhotos.length > 0 && (
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              padding: '1.5rem',
+              marginBottom: '1.5rem'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Pickup Photos</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                {order.pickupPhotos.map((photo: string, index: number) => (
+                  <img 
+                    key={index} 
+                    src={photo} 
+                    alt={`Pickup ${index + 1}`} 
+                    style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer' }}
+                    onClick={() => window.open(photo, '_blank')}
+                  />
+                ))}
+              </div>
+              {order?.pickupNotes && (
+                <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
+                  <strong>Partner Notes:</strong> {order.pickupNotes}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Order Status Timeline */}
           <div style={{
@@ -170,17 +274,45 @@ export default function OrderDetails() {
             marginBottom: '1.5rem'
           }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Order Status Timeline</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.9rem' }}>
-              <div><strong>Order Placed</strong></div>
-              <div style={{ color: '#6b7280' }}>15 Sep, 8:00 AM</div>
-              <div><strong>Picked Up</strong></div>
-              <div style={{ color: '#6b7280' }}>15 Sep, 11:00 AM</div>
-              <div><strong>Reached Hub</strong></div>
-              <div style={{ color: '#6b7280' }}>15 Sep, 2:00 PM</div>
-              <div><strong>Out for Delivery</strong></div>
-              <div style={{ color: '#6b7280' }}>16 Sep, 10:00 AM</div>
-              <div><strong>Delivered</strong></div>
-              <div style={{ color: '#6b7280' }}>16 Sep, 5:20 PM</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
+              <div>
+                <div style={{ fontWeight: '600' }}>Order Placed</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {order?.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontWeight: '600' }}>Reached Location</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {order?.reachedLocationAt ? new Date(order.reachedLocationAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.reachedLocationAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontWeight: '600' }}>Picked Up</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {order?.pickedUpAt ? new Date(order.pickedUpAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.pickedUpAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontWeight: '600' }}>Delivered to Hub</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {order?.deliveredToHubAt ? new Date(order.deliveredToHubAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveredToHubAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontWeight: '600' }}>Processing</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                  {order?.hubApprovedAt ? new Date(order.hubApprovedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.hubApprovedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontWeight: '600' }}>Out for Delivery</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Pending</div>
+              </div>
+              <div>
+                <div style={{ fontWeight: '600' }}>Delivered</div>
+                <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Pending</div>
+              </div>
             </div>
           </div>
 

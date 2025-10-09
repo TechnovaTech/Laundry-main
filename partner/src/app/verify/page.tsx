@@ -56,10 +56,20 @@ export default function Verify() {
     const correctOTP = localStorage.getItem("partnerOTP");
     
     if (otpString === correctOTP) {
-      setTimeout(() => {
-        setLoading(false);
+      const partnerId = localStorage.getItem("partnerId");
+      try {
+        const response = await fetch(`http://localhost:3000/api/mobile/partners?partnerId=${partnerId}`);
+        const data = await response.json();
+        
+        if (data.success && data.data.email) {
+          router.push("/pickups");
+        } else {
+          router.push("/profile/create");
+        }
+      } catch (error) {
         router.push("/profile/create");
-      }, 1000);
+      }
+      setLoading(false);
     } else {
       setLoading(false);
       alert("Invalid OTP. Please try again.");

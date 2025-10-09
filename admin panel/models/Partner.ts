@@ -4,6 +4,7 @@ const PartnerSchema = new mongoose.Schema({
   name: { type: String, required: true },
   mobile: { type: String, required: true, unique: true },
   email: { type: String },
+  profileImage: { type: String },
   vehicleNumber: String,
   vehicleType: String,
   aadharNumber: String,

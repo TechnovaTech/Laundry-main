@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Customer from '@/models/Customer'
+import Partner from '@/models/Partner'
 import WalletSettings from '@/models/WalletSettings'
 
 export async function POST(request: NextRequest) {
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     await dbConnect()
+    Partner // Ensure Partner model is registered
     
     const { searchParams } = new URL(request.url)
     const customerId = searchParams.get('customerId')
@@ -104,6 +106,7 @@ export async function GET(request: NextRequest) {
     
     const orders = await Order.find(query)
       .populate('customerId', 'name mobile email')
+      .populate('partnerId', 'name mobile email')
       .sort({ createdAt: -1 })
     
     return NextResponse.json({

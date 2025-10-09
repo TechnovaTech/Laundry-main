@@ -108,9 +108,33 @@ export default function StartPickup() {
 
       {/* CTA */}
       <div className="mx-4">
-        <Link href={`/pickups/confirm/${order._id}`} className="mt-5 w-full inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-3 text-base font-semibold">
+        <button 
+          onClick={async () => {
+            const partnerId = localStorage.getItem('partnerId');
+            const updateData = { 
+              status: 'confirmed',
+              confirmedAt: new Date().toISOString(),
+              pickupStartedAt: new Date().toISOString(),
+              partnerId: partnerId
+            };
+            console.log('Updating order with:', updateData);
+            const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updateData)
+            });
+            const result = await response.json();
+            console.log('Update response:', result);
+            if (response.ok) {
+              window.location.href = `/pickups/confirm/${order._id}`;
+            } else {
+              alert('Failed to update order');
+            }
+          }}
+          className="mt-5 w-full inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-3 text-base font-semibold"
+        >
           Reached Location
-        </Link>
+        </button>
       </div>
     </div>
   );

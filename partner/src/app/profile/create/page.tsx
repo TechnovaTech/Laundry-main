@@ -8,6 +8,7 @@ export default function CreateProfile() {
     name: "",
     email: "",
     mobile: "",
+    profileImage: "",
     address: {
       street: "",
       city: "",
@@ -82,7 +83,11 @@ export default function CreateProfile() {
             const file = e.target.files?.[0];
             if (file) {
               const reader = new FileReader();
-              reader.onload = (e) => setProfileImage(e.target?.result);
+              reader.onload = (e) => {
+                const base64 = e.target?.result;
+                setProfileImage(base64);
+                setFormData(prev => ({ ...prev, profileImage: base64 }));
+              };
               reader.readAsDataURL(file);
             }
           }}
@@ -140,7 +145,17 @@ export default function CreateProfile() {
           />
         </div>
 
-
+        {/* Pincode */}
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600">📍</span>
+          <input
+            className="w-full rounded-xl border-2 border-blue-400 pl-9 pr-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Pincode"
+            type="text"
+            value={formData.address.pincode}
+            onChange={(e) => setFormData(prev => ({ ...prev, address: { ...prev.address, pincode: e.target.value } }))}
+          />
+        </div>
       </form>
 
 
