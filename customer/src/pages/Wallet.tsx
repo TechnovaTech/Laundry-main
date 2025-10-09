@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, Share2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,73 +6,71 @@ import { Button } from "@/components/ui/button";
 const Wallet = () => {
   const navigate = useNavigate();
   const [redeemPoints, setRedeemPoints] = useState(0);
+  const [pointsPerRupee, setPointsPerRupee] = useState(2);
 
   const [walletData, setWalletData] = useState({
-    availableBalance: "₹250",
-    points: 500,
-    redeemRate: "₹50"
+    availableBalance: 0,
+    points: 0
   });
 
-  const [walletHistory, setWalletHistory] = useState([
-    {
-      id: 1,
-      title: "Steam Iron Order #12345",
-      subtitle: "Redeemed 200 points",
-      amount: "-₹100",
-      type: "debit",
-      date: "2024-01-15",
-      status: "completed"
-    },
-    {
-      id: 2,
-      title: "Laundry Service Order #54321",
-      subtitle: "Redeemed 150 points",
-      amount: "+₹200",
-      type: "credit",
-      date: "2024-01-10",
-      status: "completed"
-    },
-    {
-      id: 3,
-      title: "Dry Cleaning Order #67890",
-      subtitle: "Redeemed 300 points",
-      amount: "-₹150",
-      type: "debit",
-      date: "2024-01-05",
-      status: "completed"
-    },
-    {
-      id: 4,
-      title: "Referral Bonus",
-      subtitle: "Friend joined using your code",
-      amount: "+₹50",
-      type: "credit",
-      date: "2024-01-01"
-    },
-    {
-      id: 5,
-      title: "Wash & Fold Order #45678",
-      subtitle: "Redeemed 100 points",
-      amount: "-₹75",
-      type: "debit",
-      date: "2023-12-28",
-      status: "completed"
-    }
-  ]);
+  useEffect(() => {
+    fetchWalletSettings();
+    fetchCustomerWallet();
+  }, []);
 
-  const handleUsePoints = () => {
+  const fetchCustomerWallet = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setWalletData({
+          availableBalance: data.data.walletBalance || 0,
+          points: data.data.loyaltyPoints || 0
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch wallet data:', error);
+    }
+  };
+
+  const fetchWalletSettings = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/wallet-settings');
+      const data = await response.json();
+      console.log('Wallet settings fetched:', data);
+      if (data.success) {
+        setPointsPerRupee(data.data.pointsPerRupee);
+        console.log('Points per rupee set to:', data.data.pointsPerRupee);
+      }
+    } catch (error) {
+      console.error('Failed to fetch wallet settings:', error);
+    }
+  };
+
+  const [walletHistory, setWalletHistory] = useState([]);
+
+  const handleUsePoints = async () => {
     if (walletData.points >= 100) {
-      setWalletData(prev => ({
-        ...prev,
-        points: prev.points - 100,
-        availableBalance: `₹${parseInt(prev.availableBalance.slice(1)) + 50}`
-      }));
+      const cashValue = Math.floor(100 / pointsPerRupee);
+      const newPoints = walletData.points - 100;
+      const newBalance = walletData.availableBalance + cashValue;
+      
+      await updateWalletInDB(newBalance, newPoints);
+      
+      setWalletData({
+        points: newPoints,
+        availableBalance: newBalance
+      });
       
       const newTransaction = {
         id: Date.now(),
         title: `Points Redeemed #${Math.floor(Math.random() * 10000)}`,
         subtitle: "Redeemed 100 points",
-        amount: "+₹50",
+        amount: `+₹${cashValue}`,
         type: "credit",
         date: new Date().toISOString().split('T')[0]
       };
@@ -81,8 +79,22 @@ const Wallet = () => {
     }
   };
 
-  const handleRedeemNow = () => {
-    handleUsePoints();
+  const updateWalletInDB = async (balance: number, points: number) => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      await fetch(`http://localhost:3000/api/customers/${customerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletBalance: balance,
+          loyaltyPoints: points
+        })
+      });
+    } catch (error) {
+      console.error('Failed to update wallet:', error);
+    }
   };
 
   return (
@@ -100,8 +112,8 @@ const Wallet = () => {
             <CreditCard className="w-6 h-6 text-blue-500" />
             <span className="text-lg sm:text-xl font-bold text-black">Available Balance:</span>
           </div>
-          <p className="text-3xl sm:text-4xl font-bold text-black mb-2">{walletData.availableBalance}</p>
-          <p className="text-gray-500 mb-4 text-sm sm:text-base">You have {walletData.points} points</p>
+          <p className="text-3xl sm:text-4xl font-bold text-black mb-2">₹{walletData.availableBalance}</p>
+          <p className="text-gray-500 mb-4 text-sm sm:text-base">You have {walletData.points} points ({pointsPerRupee} points = ₹1)</p>
           <Button 
             onClick={handleUsePoints}
             disabled={walletData.points < 100}
@@ -145,17 +157,21 @@ const Wallet = () => {
                 }
               `}</style>
             </div>
-            <p className="text-center text-gray-600 mb-4 text-sm sm:text-base">{redeemPoints} Points = ₹{Math.floor(redeemPoints / 2)}</p>
+            <p className="text-center text-gray-600 mb-4 text-sm sm:text-base">{redeemPoints} Points = ₹{Math.floor(redeemPoints / pointsPerRupee)}</p>
           </div>
           <Button 
-            onClick={() => {
+            onClick={async () => {
               if (walletData.points >= redeemPoints && redeemPoints > 0) {
-                const cashValue = Math.floor(redeemPoints / 2);
-                setWalletData(prev => ({
-                  ...prev,
-                  points: prev.points - redeemPoints,
-                  availableBalance: `₹${parseInt(prev.availableBalance.slice(1)) + cashValue}`
-                }));
+                const cashValue = Math.floor(redeemPoints / pointsPerRupee);
+                const newPoints = walletData.points - redeemPoints;
+                const newBalance = walletData.availableBalance + cashValue;
+                
+                await updateWalletInDB(newBalance, newPoints);
+                
+                setWalletData({
+                  points: newPoints,
+                  availableBalance: newBalance
+                });
                 
                 const newTransaction = {
                   id: Date.now(),
@@ -178,9 +194,9 @@ const Wallet = () => {
         </div>
 
         <div>
-          <h2 className="text-lg sm:text-xl font-bold mb-4 text-black">Wallet History</h2>
+          <h2 className="text-lg sm:text-xl font-bold mb-4 text-black">Wallet History (Last 5)</h2>
           <div className="space-y-3">
-            {walletHistory.map((transaction) => {
+            {walletHistory.slice(0, 5).map((transaction) => {
               const isOrderTransaction = transaction.title.includes('Order #');
               const orderId = isOrderTransaction ? transaction.title.match(/#(\d+)/)?.[1] : null;
               

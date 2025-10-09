@@ -23,13 +23,48 @@ export default function AddOnPage() {
   const [editingSlot, setEditingSlot] = useState(null)
   const [draggedItem, setDraggedItem] = useState(null)
   const [editingVoucher, setEditingVoucher] = useState(null)
+  const [walletSettings, setWalletSettings] = useState({
+    pointsPerRupee: 2,
+    minRedeemPoints: 100,
+    referralPoints: 50,
+    orderCompletionPoints: 10
+  })
 
   useEffect(() => {
     fetchStates()
     fetchServiceableAreas()
     fetchVouchers()
     fetchTimeSlots()
+    fetchWalletSettings()
   }, [])
+
+  const fetchWalletSettings = async () => {
+    try {
+      const response = await fetch('/api/wallet-settings')
+      const data = await response.json()
+      if (data.success) {
+        setWalletSettings(data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching wallet settings:', error)
+    }
+  }
+
+  const saveWalletSettings = async () => {
+    try {
+      const response = await fetch('/api/wallet-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(walletSettings)
+      })
+      const data = await response.json()
+      if (data.success) {
+        alert('Wallet settings saved successfully!')
+      }
+    } catch (error) {
+      alert('Failed to save wallet settings')
+    }
+  }
 
   const fetchStates = async () => {
     try {
@@ -424,6 +459,21 @@ export default function AddOnPage() {
           >
             Time Slot
           </button>
+          <button 
+            onClick={() => setActiveSection('Wallet')}
+            style={{ 
+              padding: '0.75rem 1.5rem', 
+              backgroundColor: activeSection === 'Wallet' ? '#2563eb' : 'white', 
+              color: activeSection === 'Wallet' ? 'white' : '#2563eb', 
+              border: activeSection === 'Wallet' ? 'none' : '1px solid #2563eb', 
+              borderRadius: '8px', 
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
+          >
+            Wallet Points
+          </button>
         </div>
 
         {/* Pincode Management Section */}
@@ -809,6 +859,58 @@ export default function AddOnPage() {
               ))
             )}
           </div>
+        </div>
+        )}
+
+        {/* Wallet Points Configuration Section */}
+        {activeSection === 'Wallet' && (
+        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#2563eb' }}>Wallet Points Configuration</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Points Per Rupee</label>
+              <input
+                type="number"
+                value={walletSettings.pointsPerRupee}
+                onChange={(e) => setWalletSettings({...walletSettings, pointsPerRupee: Number(e.target.value)})}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
+              />
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>₹1 = {walletSettings.pointsPerRupee} points</p>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Minimum Redeem Points</label>
+              <input
+                type="number"
+                value={walletSettings.minRedeemPoints}
+                onChange={(e) => setWalletSettings({...walletSettings, minRedeemPoints: Number(e.target.value)})}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Referral Bonus Points</label>
+              <input
+                type="number"
+                value={walletSettings.referralPoints}
+                onChange={(e) => setWalletSettings({...walletSettings, referralPoints: Number(e.target.value)})}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Order Completion Points</label>
+              <input
+                type="number"
+                value={walletSettings.orderCompletionPoints}
+                onChange={(e) => setWalletSettings({...walletSettings, orderCompletionPoints: Number(e.target.value)})}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
+              />
+            </div>
+          </div>
+          <button
+            onClick={saveWalletSettings}
+            style={{ marginTop: '1.5rem', padding: '0.75rem 2rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: '600', cursor: 'pointer' }}
+          >
+            Save Settings
+          </button>
         </div>
         )}
       </div>
