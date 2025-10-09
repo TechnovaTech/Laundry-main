@@ -46,12 +46,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, data: updatedCustomer })
     } else {
       // Create new customer
-      const customer = new Customer({
+      const customerData: any = {
         ...body,
         createdAt: new Date(),
         updatedAt: new Date()
-      })
+      }
       
+      // Handle referral code if provided
+      if (body.referralCode) {
+        customerData.referredBy = body.referralCode
+      }
+      
+      const customer = new Customer(customerData)
       const savedCustomer = await customer.save()
       console.log('Created new customer:', savedCustomer)
       return NextResponse.json({ success: true, data: savedCustomer })

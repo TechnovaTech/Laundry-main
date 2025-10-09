@@ -27,6 +27,7 @@ export default function AddOnPage() {
     pointsPerRupee: 2,
     minRedeemPoints: 100,
     referralPoints: 50,
+    signupBonusPoints: 25,
     orderCompletionPoints: 10
   })
 
@@ -903,6 +904,16 @@ export default function AddOnPage() {
                 onChange={(e) => setWalletSettings({...walletSettings, orderCompletionPoints: Number(e.target.value)})}
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
               />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Signup Bonus Points (Referred User)</label>
+              <input
+                type="number"
+                value={walletSettings.signupBonusPoints}
+                onChange={(e) => setWalletSettings({...walletSettings, signupBonusPoints: Number(e.target.value)})}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
+              />
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>Points given to new user who signs up with referral code</p>
             </div>
           </div>
           <button

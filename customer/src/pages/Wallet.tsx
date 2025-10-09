@@ -7,6 +7,8 @@ const Wallet = () => {
   const navigate = useNavigate();
   const [redeemPoints, setRedeemPoints] = useState(0);
   const [pointsPerRupee, setPointsPerRupee] = useState(2);
+  const [minRedeemPoints, setMinRedeemPoints] = useState(100);
+  const [referralPoints, setReferralPoints] = useState(50);
 
   const [walletData, setWalletData] = useState({
     availableBalance: 0,
@@ -44,6 +46,8 @@ const Wallet = () => {
       console.log('Wallet settings fetched:', data);
       if (data.success) {
         setPointsPerRupee(data.data.pointsPerRupee);
+        setMinRedeemPoints(data.data.minRedeemPoints);
+        setReferralPoints(data.data.referralPoints);
         console.log('Points per rupee set to:', data.data.pointsPerRupee);
       }
     } catch (error) {
@@ -54,7 +58,11 @@ const Wallet = () => {
   const [walletHistory, setWalletHistory] = useState([]);
 
   const handleUsePoints = async () => {
-    if (walletData.points >= 100) {
+    if (walletData.points < minRedeemPoints) {
+      alert(`Insufficient points! You need at least ${minRedeemPoints} points to redeem.`);
+      return;
+    }
+    if (walletData.points >= minRedeemPoints) {
       const cashValue = Math.floor(100 / pointsPerRupee);
       const newPoints = walletData.points - 100;
       const newBalance = walletData.availableBalance + cashValue;
@@ -116,10 +124,10 @@ const Wallet = () => {
           <p className="text-gray-500 mb-4 text-sm sm:text-base">You have {walletData.points} points ({pointsPerRupee} points = ₹1)</p>
           <Button 
             onClick={handleUsePoints}
-            disabled={walletData.points < 100}
+            disabled={walletData.points < minRedeemPoints}
             className="w-full h-12 sm:h-14 rounded-2xl font-semibold bg-blue-500 hover:bg-blue-600 text-white text-base disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            Use Points {walletData.points < 100 ? '(Insufficient Points)' : ''}
+            Use {minRedeemPoints} Points {walletData.points < minRedeemPoints ? `(Need ${minRedeemPoints - walletData.points} more)` : ''}
           </Button>
         </div>
 
@@ -161,6 +169,10 @@ const Wallet = () => {
           </div>
           <Button 
             onClick={async () => {
+              if (redeemPoints < minRedeemPoints) {
+                alert(`Minimum ${minRedeemPoints} points required to redeem!`);
+                return;
+              }
               if (walletData.points >= redeemPoints && redeemPoints > 0) {
                 const cashValue = Math.floor(redeemPoints / pointsPerRupee);
                 const newPoints = walletData.points - redeemPoints;
@@ -186,10 +198,10 @@ const Wallet = () => {
                 setRedeemPoints(0);
               }
             }}
-            disabled={redeemPoints === 0 || walletData.points < redeemPoints}
+            disabled={redeemPoints < minRedeemPoints || walletData.points < redeemPoints}
             className="w-full h-12 sm:h-14 rounded-2xl font-semibold bg-blue-500 hover:bg-blue-600 text-white text-base disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            Redeem Now {redeemPoints === 0 || walletData.points < redeemPoints ? '(Select Points)' : ''}
+            Redeem Now {redeemPoints < minRedeemPoints ? `(Min ${minRedeemPoints} points)` : walletData.points < redeemPoints ? '(Insufficient)' : ''}
           </Button>
         </div>
 
@@ -228,7 +240,7 @@ const Wallet = () => {
         </div>
 
         <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg flex items-center justify-between gap-4">
-          <p className="text-black text-sm sm:text-base flex-1">Earn 50 points for every friend you invite.</p>
+          <p className="text-black text-sm sm:text-base flex-1">Earn {referralPoints} points for every friend you invite.</p>
           <button className="text-blue-500 flex-shrink-0">
             <Share2 className="w-5 h-5" />
           </button>

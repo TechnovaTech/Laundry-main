@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Order from '@/models/Order'
+import Customer from '@/models/Customer'
+import WalletSettings from '@/models/WalletSettings'
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,6 +32,48 @@ export async function POST(request: NextRequest) {
     })
     
     const savedOrder = await newOrder.save()
+    
+    // Award points to customer and handle referral
+    try {
+      const settings = await WalletSettings.findOne()
+      const pointsToAward = settings?.orderCompletionPoints || 10
+      const customer = await Customer.findById(orderData.customerId)
+      
+      // Award order completion points
+      await Customer.findByIdAndUpdate(orderData.customerId, {
+        $inc: { loyaltyPoints: pointsToAward, totalOrders: 1 }
+      })
+      
+      // Check if this is first order and customer was referred
+      if (customer && customer.totalOrders === 0 && customer.referredBy) {
+        // Award signup bonus to new customer
+        const signupBonus = settings?.signupBonusPoints || 25
+        await Customer.findByIdAndUpdate(orderData.customerId, {
+          $inc: { loyaltyPoints: signupBonus }
+        })
+        
+        // Find referrer and award referral points
+        const referrer = await Customer.findOne({ 
+          'referralCodes.code': customer.referredBy,
+          'referralCodes.used': false
+        })
+        
+        if (referrer) {
+          const referralBonus = settings?.referralPoints || 50
+          await Customer.findByIdAndUpdate(referrer._id, {
+            $inc: { loyaltyPoints: referralBonus }
+          })
+          
+          // Mark referral code as used
+          await Customer.updateOne(
+            { _id: referrer._id, 'referralCodes.code': customer.referredBy },
+            { $set: { 'referralCodes.$.used': true, 'referralCodes.$.usedBy': customer.name, 'referralCodes.$.usedAt': new Date() } }
+          )
+        }
+      }
+    } catch (error) {
+      console.error('Error awarding points:', error)
+    }
     
     return NextResponse.json({
       success: true,

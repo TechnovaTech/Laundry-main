@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Users, ShoppingCart, Wallet, Share2, Copy, Home as HomeIcon, Tag, RotateCcw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,28 +7,110 @@ const ReferEarn = () => {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
 
-  const referralData = {
-    userCode: "SAG123",
-    pointsEarned: 500,
-    pendingRewards: 2
+  const [referralData, setReferralData] = useState({
+    userCode: "Loading...",
+    pointsEarned: 0,
+    pendingRewards: 0
+  });
+  const [referralPoints, setReferralPoints] = useState(50);
+
+  useEffect(() => {
+    fetchReferralSettings();
+    fetchCustomerReferralCode();
+    fetchPastReferrals();
+  }, []);
+
+  const fetchReferralSettings = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/wallet-settings');
+      const data = await response.json();
+      if (data.success) {
+        setReferralPoints(data.data.referralPoints);
+      }
+    } catch (error) {
+      console.error('Failed to fetch referral settings:', error);
+    }
   };
 
-  const pastReferrals = [
-    {
-      id: 1,
-      name: "Alice Johnson",
-      status: "completed",
-      points: 100,
-      joinedDate: "2024-01-15"
-    },
-    {
-      id: 2,
-      name: "Bob Smith",
-      status: "pending",
-      points: 0,
-      joinedDate: "2024-01-20"
+  const fetchCustomerReferralCode = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        let codes = data.data.referralCodes || [];
+        
+        // Find active (unused) code
+        let activeCode = codes.find((c: any) => !c.used);
+        
+        // Generate new code if no active code exists
+        if (!activeCode) {
+          const newCode = generateReferralCode(data.data.name, codes.length);
+          codes.push({ code: newCode, used: false, createdAt: new Date() });
+          
+          await fetch(`http://localhost:3000/api/customers/${customerId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ referralCodes: codes })
+          });
+          
+          activeCode = { code: newCode };
+        }
+        
+        setReferralData(prev => ({ ...prev, userCode: activeCode.code }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch referral code:', error);
+      setReferralData(prev => ({ ...prev, userCode: 'ERROR' }));
     }
-  ];
+  };
+
+  const generateReferralCode = (name: string, count: number) => {
+    const prefix = name.substring(0, 3).toUpperCase();
+    const suffix = (count + 1).toString().padStart(4, '0');
+    return `${prefix}${suffix}`;
+  };
+
+  const [pastReferrals, setPastReferrals] = useState([]);
+
+  useEffect(() => {
+    fetchPastReferrals();
+  }, []);
+
+  const fetchPastReferrals = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        const codes = data.data.referralCodes || [];
+        const usedCodes = codes.filter((c: any) => c.used);
+        
+        const referrals = usedCodes.map((code: any) => ({
+          id: code._id,
+          name: code.usedBy || 'Unknown',
+          status: 'completed',
+          points: referralPoints,
+          joinedDate: code.usedAt ? new Date(code.usedAt).toLocaleDateString() : 'N/A'
+        }));
+        
+        setPastReferrals(referrals);
+        setReferralData(prev => ({
+          ...prev,
+          pointsEarned: referrals.length * referralPoints,
+          pendingRewards: codes.filter((c: any) => !c.used).length
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch past referrals:', error);
+    }
+  };
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(referralData.userCode);
@@ -37,14 +119,18 @@ const ReferEarn = () => {
   };
 
   const handleShareCode = () => {
+    const shareText = `🎁 Join our laundry service and get FREE points on your first order!\n\nUse my referral code: ${referralData.userCode}\n\nSign up now: ${window.location.origin}\n\nDon't miss out on this exclusive offer! 🚀`;
+    
     if (navigator.share) {
       navigator.share({
-        title: 'Join me on this amazing laundry service!',
-        text: `Use my referral code ${referralData.userCode} and get amazing rewards!`,
-        url: window.location.origin
+        title: 'Get Free Points - Laundry Service',
+        text: shareText
       });
     } else {
-      handleCopyCode();
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -61,7 +147,7 @@ const ReferEarn = () => {
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-4 sm:p-6 lg:p-8 text-white relative overflow-hidden min-h-[140px] sm:min-h-[160px]">
           <div className="relative z-10 max-w-[60%] sm:max-w-[70%]">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 leading-tight">Invite friends, earn rewards!</h2>
-            <p className="text-blue-100 text-xs sm:text-sm lg:text-base leading-relaxed">Get 100 points when your friend places their first order.</p>
+            <p className="text-blue-100 text-xs sm:text-sm lg:text-base leading-relaxed">Get {referralPoints} points when your friend places their first order.</p>
           </div>
           
           {/* Background illustration */}
@@ -105,11 +191,14 @@ const ReferEarn = () => {
             <Button 
               onClick={handleCopyCode}
               variant="outline"
-              className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold border-2 border-blue-500 text-blue-500 hover:bg-blue-50 text-sm sm:text-base"
+              className={`flex-1 h-10 sm:h-12 rounded-2xl font-semibold border-2 text-sm sm:text-base ${
+                copied 
+                  ? 'border-green-500 text-green-500 bg-green-50' 
+                  : 'border-blue-500 text-blue-500 hover:bg-blue-50'
+              }`}
             >
               <Copy className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
-              <span className="hidden xs:inline">{copied ? 'Copied!' : 'Copy Code'}</span>
-              <span className="xs:hidden">{copied ? 'Copied!' : 'Copy'}</span>
+              <span>{copied ? 'Copied!' : 'Copy Code'}</span>
             </Button>
             <Button 
               onClick={handleShareCode}
@@ -163,7 +252,9 @@ const ReferEarn = () => {
         <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg">
           <h3 className="text-lg sm:text-xl font-bold text-black mb-4">Past Referrals</h3>
           <div className="space-y-3 sm:space-y-4">
-            {pastReferrals.map((referral) => (
+            {pastReferrals.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No referrals yet</p>
+            ) : pastReferrals.map((referral) => (
               <div key={referral.id} className="flex items-start sm:items-center justify-between py-2 gap-4">
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-black text-sm sm:text-base truncate">{referral.name}</p>

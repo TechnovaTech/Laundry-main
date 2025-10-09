@@ -13,7 +13,8 @@ const CreateProfile = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    phone: ''
+    phone: '',
+    referralCode: ''
   });
 
   useEffect(() => {
@@ -79,7 +80,8 @@ const CreateProfile = () => {
         body: JSON.stringify({
           name: formData.fullName,
           email: formData.email,
-          mobile: formData.phone
+          mobile: formData.phone,
+          referralCode: formData.referralCode || undefined
         })
       })
       const data = await response.json()
@@ -162,6 +164,16 @@ const CreateProfile = () => {
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               className="pl-10 sm:pl-12 h-10 sm:h-12 rounded-xl border-2 border-blue-500 text-sm sm:text-base"
+            />
+          </div>
+
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Referral Code (Optional)"
+              value={formData.referralCode}
+              onChange={(e) => handleInputChange('referralCode', e.target.value.toUpperCase())}
+              className="h-10 sm:h-12 rounded-xl border-2 border-gray-300 text-sm sm:text-base"
             />
           </div>
         </div>

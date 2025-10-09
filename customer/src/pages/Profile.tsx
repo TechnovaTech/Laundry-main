@@ -1,7 +1,42 @@
 import { useState, useEffect } from "react";
+
+const ReferAndEarn = () => {
+  const navigate = useNavigate();
+  const [referralPoints, setReferralPoints] = useState(50);
+
+  useEffect(() => {
+    fetchReferralPoints();
+  }, []);
+
+  const fetchReferralPoints = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/wallet-settings');
+      const data = await response.json();
+      if (data.success) {
+        setReferralPoints(data.data.referralPoints);
+      }
+    } catch (error) {
+      console.error('Failed to fetch referral points:', error);
+    }
+  };
+
+  return (
+    <div>
+      <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Refer and Earn</h2>
+      <button 
+        onClick={() => navigate("/refer-earn")}
+        className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:bg-gray-50 transition-colors"
+      >
+        <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
+        <span className="font-medium text-black text-sm sm:text-base">Earn {referralPoints} points for every referral</span>
+      </button>
+    </div>
+  );
+};
 import { useNavigate, useLocation } from "react-router-dom";
 import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, Phone as PhoneIcon, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -56,6 +91,7 @@ const Profile = () => {
 
   useEffect(() => {
     fetchCustomerProfile();
+    fetchWalletBalance();
   }, []);
 
   const fetchCustomerProfile = async () => {
@@ -109,7 +145,27 @@ const Profile = () => {
 
 
 
-  const walletBalance = "₹5000";
+  const [walletBalance, setWalletBalance] = useState("₹0");
+
+  useEffect(() => {
+    fetchWalletBalance();
+  }, []);
+
+  const fetchWalletBalance = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setWalletBalance(`₹${data.data.walletBalance || 0}`);
+      }
+    } catch (error) {
+      console.error('Failed to fetch wallet balance:', error);
+    }
+  };
 
   const supportOptions = [
     { id: 1, title: "FAQ", icon: HelpCircle },
@@ -620,16 +676,7 @@ const Profile = () => {
           </button>
         </div>
 
-        <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Refer and Earn</h2>
-          <button 
-            onClick={() => navigate("/refer-earn")}
-            className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:bg-gray-50 transition-colors"
-          >
-            <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-            <span className="font-medium text-black text-sm sm:text-base">Earn ₹100 for every referral</span>
-          </button>
-        </div>
+        <ReferAndEarn />
 
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Support</h2>

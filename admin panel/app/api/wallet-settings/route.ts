@@ -12,6 +12,7 @@ export async function GET() {
         pointsPerRupee: 2,
         minRedeemPoints: 100,
         referralPoints: 50,
+        signupBonusPoints: 25,
         orderCompletionPoints: 10
       })
     }
@@ -33,6 +34,7 @@ export async function POST(request: NextRequest) {
       settings.pointsPerRupee = body.pointsPerRupee
       settings.minRedeemPoints = body.minRedeemPoints
       settings.referralPoints = body.referralPoints
+      settings.signupBonusPoints = body.signupBonusPoints
       settings.orderCompletionPoints = body.orderCompletionPoints
       settings.updatedAt = new Date()
       await settings.save()
