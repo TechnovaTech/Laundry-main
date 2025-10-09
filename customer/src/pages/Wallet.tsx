@@ -92,7 +92,7 @@ const Wallet = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      await fetch(`http://localhost:3000/api/customers/${customerId}`, {
+      const response = await fetch(`http://localhost:3000/api/customers/${customerId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -100,6 +100,10 @@ const Wallet = () => {
           loyaltyPoints: points
         })
       });
+      
+      if (response.ok) {
+        await fetchCustomerWallet();
+      }
     } catch (error) {
       console.error('Failed to update wallet:', error);
     }

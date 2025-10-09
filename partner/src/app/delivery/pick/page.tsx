@@ -52,7 +52,7 @@ export default function PickForDelivery() {
   };
 
   return (
-    <div className="pb-24">
+    <div className="pb-24" suppressHydrationWarning>
       {/* Header */}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">

@@ -92,18 +92,22 @@ const ReferEarn = () => {
         const codes = data.data.referralCodes || [];
         const usedCodes = codes.filter((c: any) => c.used);
         
+        const settingsRes = await fetch('http://localhost:3000/api/wallet-settings');
+        const settingsData = await settingsRes.json();
+        const currentReferralPoints = settingsData.success ? settingsData.data.referralPoints : referralPoints;
+        
         const referrals = usedCodes.map((code: any) => ({
           id: code._id,
           name: code.usedBy || 'Unknown',
           status: 'completed',
-          points: referralPoints,
+          points: currentReferralPoints,
           joinedDate: code.usedAt ? new Date(code.usedAt).toLocaleDateString() : 'N/A'
         }));
         
         setPastReferrals(referrals);
         setReferralData(prev => ({
           ...prev,
-          pointsEarned: referrals.length * referralPoints,
+          pointsEarned: data.data.walletBalance || 0,
           pendingRewards: codes.filter((c: any) => !c.used).length
         }));
       }

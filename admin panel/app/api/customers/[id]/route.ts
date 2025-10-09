@@ -16,3 +16,24 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ success: false, error: 'Failed to fetch customer' }, { status: 500 })
   }
 }
+
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    await dbConnect()
+    const updateData = await request.json()
+    
+    const customer = await Customer.findByIdAndUpdate(
+      params.id,
+      { $set: updateData },
+      { new: true }
+    )
+    
+    if (!customer) {
+      return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true, data: customer })
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+  }
+}
