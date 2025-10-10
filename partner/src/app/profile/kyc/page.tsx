@@ -3,25 +3,17 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function KYCVerification() {
-  const [formData, setFormData] = useState({
-    vehicleType: "",
-    vehicleNumber: "",
-    aadharNumber: "",
-    drivingLicenseNumber: "",
-    aadharImage: "",
-    drivingLicenseImage: ""
-  });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [partner, setPartner] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
-    const partner = localStorage.getItem("partner");
-    if (!partner) {
+    const partnerData = localStorage.getItem("partner");
+    if (!partnerData) {
       router.push("/login");
       return;
     }
-    const data = JSON.parse(partner);
+    const data = JSON.parse(partnerData);
     const partnerId = data._id || data.id;
     fetchPartnerStatus(partnerId);
   }, []);
@@ -34,188 +26,86 @@ export default function KYCVerification() {
         const updatedPartner = data.data;
         setPartner(updatedPartner);
         localStorage.setItem("partner", JSON.stringify(updatedPartner));
-        if (updatedPartner.kycStatus === 'approved') {
-          router.push("/pickups");
-        }
       }
     } catch (error) {
       console.error("Failed to fetch partner:", error);
-    }
-  };
-
-  const handleImageUpload = (field, file) => {
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData(prev => ({ ...prev, [field]: e.target.result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.vehicleType || !formData.vehicleNumber || !formData.aadharNumber || !formData.drivingLicenseNumber || !formData.aadharImage || !formData.drivingLicenseImage) {
-      alert("Please fill all fields and upload images");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const partnerStr = localStorage.getItem("partner");
-      const partnerData = JSON.parse(partnerStr);
-      const partnerId = partnerData._id || partnerData.id;
-      console.log("Submitting KYC for partner:", partnerId);
-      
-      const response = await fetch(`http://localhost:3000/api/mobile/partners/kyc`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ partnerId, ...formData })
-      });
-
-      const result = await response.json();
-      console.log("KYC Response:", result);
-      
-      if (result.success) {
-        alert("KYC submitted successfully! Waiting for admin approval.");
-        await fetchPartnerStatus(partnerId);
-      } else {
-        console.error("KYC Error:", result.error);
-        alert(result.error || "Failed to submit KYC");
-      }
-    } catch (error) {
-      console.error("Network error:", error);
-      alert("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (partner?.kycStatus === 'pending' && partner?.kycSubmittedAt) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⏳</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">KYC Under Review</h2>
-          <p className="text-gray-600">Your documents are being verified by admin.</p>
-        </div>
-      </div>
-    );
-  }
 
-  if (partner?.kycStatus === 'rejected') {
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4">
-        <div className="text-center mb-6">
-          <div className="text-6xl mb-4">❌</div>
-          <h2 className="text-2xl font-bold text-red-600 mb-2">KYC Rejected</h2>
-          <p className="text-gray-600 mb-2">Please reupload legal documentation</p>
-          {partner.kycRejectionReason && (
-            <p className="text-sm text-red-500 mt-2">Reason: {partner.kycRejectionReason}</p>
-          )}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
-        <button
-          onClick={() => setPartner(prev => ({ ...prev, kycStatus: null }))}
-          className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold"
-        >
-          Resubmit Documents
-        </button>
       </div>
     );
   }
 
   return (
-    <div className="pb-24" suppressHydrationWarning>
-      <header className="sticky top-0 bg-white shadow-sm">
-        <div className="flex items-center justify-center px-4 py-3" suppressHydrationWarning>
-          <h2 className="text-lg font-semibold text-black">KYC Verification</h2>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-blue-600 text-white p-6">
+        <button onClick={() => router.back()} className="mb-4">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="text-2xl font-bold">KYC Details</h1>
+      </div>
 
-      <div className="px-4 pt-6" suppressHydrationWarning>
-        <p className="text-center text-gray-600 mb-6">Please upload your documents for verification</p>
-
-        <div className="flex flex-col gap-4" suppressHydrationWarning>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Type</label>
-            <select
-              className="w-full rounded-xl border-2 border-blue-400 px-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
-              value={formData.vehicleType}
-              onChange={(e) => setFormData(prev => ({ ...prev, vehicleType: e.target.value }))}
-            >
-              <option value="">Select Vehicle Type</option>
-              <option value="Bike">Bike</option>
-              <option value="Scooter">Scooter</option>
-              <option value="Car">Car</option>
-              <option value="Van">Van</option>
-            </select>
+      <div className="p-4">
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4 border-b flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-gray-900">KYC Information</h2>
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+              partner?.kycStatus === "approved" ? "bg-green-100 text-green-800" :
+              partner?.kycStatus === "rejected" ? "bg-red-100 text-red-800" :
+              "bg-yellow-100 text-yellow-800"
+            }`}>
+              {partner?.kycStatus?.toUpperCase() || "PENDING"}
+            </span>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Number</label>
-            <input
-              className="w-full rounded-xl border-2 border-blue-400 px-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter Vehicle Number"
-              type="text"
-              value={formData.vehicleNumber}
-              onChange={(e) => setFormData(prev => ({ ...prev, vehicleNumber: e.target.value }))}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Aadhar Card Number</label>
-            <input
-              className="w-full rounded-xl border-2 border-blue-400 px-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter Aadhar Number"
-              type="text"
-              value={formData.aadharNumber}
-              onChange={(e) => setFormData(prev => ({ ...prev, aadharNumber: e.target.value }))}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Aadhar Card Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload('aadharImage', e.target.files?.[0])}
-              className="w-full rounded-xl border-2 border-blue-400 px-3 py-2 text-base text-black"
-            />
-            {formData.aadharImage && (
-              <img src={formData.aadharImage} alt="Aadhar" className="mt-2 w-32 h-32 object-cover rounded-lg border" />
+          <div className="p-4 space-y-4">
+            <div>
+              <label className="text-sm font-semibold text-gray-800">Vehicle Type</label>
+              <p className="text-base font-normal text-gray-900">{partner?.vehicleType || "N/A"}</p>
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-gray-800">Vehicle Number</label>
+              <p className="text-base font-normal text-gray-900">{partner?.vehicleNumber || "N/A"}</p>
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-gray-800">Aadhar Number</label>
+              <p className="text-base font-normal text-gray-900">{partner?.aadharNumber || "N/A"}</p>
+            </div>
+            {partner?.aadharImage && (
+              <div>
+                <label className="text-sm font-semibold text-gray-800">Aadhar Card Image</label>
+                <img src={partner.aadharImage} alt="Aadhar" className="mt-2 w-full max-w-md h-48 object-contain rounded-lg border" />
+              </div>
+            )}
+            <div>
+              <label className="text-sm font-semibold text-gray-800">Driving License Number</label>
+              <p className="text-base font-normal text-gray-900">{partner?.drivingLicenseNumber || "N/A"}</p>
+            </div>
+            {partner?.drivingLicenseImage && (
+              <div>
+                <label className="text-sm font-semibold text-gray-800">Driving License Image</label>
+                <img src={partner.drivingLicenseImage} alt="License" className="mt-2 w-full max-w-md h-48 object-contain rounded-lg border" />
+              </div>
+            )}
+            {partner?.kycRejectionReason && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <label className="text-sm font-semibold text-red-800">Rejection Reason</label>
+                <p className="text-sm text-red-600 mt-1">{partner.kycRejectionReason}</p>
+              </div>
             )}
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Driving License Number</label>
-            <input
-              className="w-full rounded-xl border-2 border-blue-400 px-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter License Number"
-              type="text"
-              value={formData.drivingLicenseNumber}
-              onChange={(e) => setFormData(prev => ({ ...prev, drivingLicenseNumber: e.target.value }))}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Driving License Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload('drivingLicenseImage', e.target.files?.[0])}
-              className="w-full rounded-xl border-2 border-blue-400 px-3 py-2 text-base text-black"
-            />
-            {formData.drivingLicenseImage && (
-              <img src={formData.drivingLicenseImage} alt="License" className="mt-2 w-32 h-32 object-cover rounded-lg border" />
-            )}
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="mt-4 w-full bg-blue-600 text-white rounded-xl py-3 text-base font-semibold disabled:bg-gray-400"
-          >
-            {loading ? "Submitting..." : "Submit for Verification"}
-          </button>
         </div>
       </div>
     </div>

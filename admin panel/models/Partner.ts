@@ -16,9 +16,11 @@ const PartnerSchema = new mongoose.Schema({
   kycRejectionReason: String,
   kycSubmittedAt: Date,
   bankDetails: {
+    accountHolderName: String,
     accountNumber: String,
     ifscCode: String,
-    bankName: String
+    bankName: String,
+    branch: String
   },
   address: {
     street: String,
