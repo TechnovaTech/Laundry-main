@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Info, Shirt, MapPin, CheckCircle2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Info, Shirt, MapPin, CheckCircle2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PricingItem {
@@ -21,6 +21,7 @@ const Booking = () => {
   const [customerAddress, setCustomerAddress] = useState<any>(null);
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
   
   useEffect(() => {
     fetchPricingItems();
@@ -334,7 +335,8 @@ const Booking = () => {
         <Button
           onClick={() => {
             if (!customerAddress) {
-              alert('Please select a delivery address');
+              setToast({ show: true, message: 'Please select a delivery address', type: 'error' });
+              setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
               return;
             }
             const orderData = {
@@ -383,6 +385,18 @@ const Booking = () => {
           <User className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
       </nav>
+
+      {toast.show && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
+          <div className={`${toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px]`}>
+            <AlertCircle className="w-6 h-6 flex-shrink-0" />
+            <span className="font-semibold flex-1">{toast.message}</span>
+            <button onClick={() => setToast({ show: false, message: '', type: '' })} className="flex-shrink-0 hover:bg-white/20 rounded-full p-1 transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown, X, AlertCircle } from "lucide-react";
 
 const AddAddress = () => {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ const AddAddress = () => {
   const [showServiceMessage, setShowServiceMessage] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
   useEffect(() => {
     fetchAddresses();
@@ -164,7 +165,8 @@ const AddAddress = () => {
           const saveResult = await saveResponse.json();
           if (!saveResult.success) {
             console.error('Failed to save address:', saveResult.error);
-            alert('Failed to save address');
+            setToast({ show: true, message: 'Failed to save address', type: 'error' });
+            setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
             return;
           }
           
@@ -194,7 +196,8 @@ const AddAddress = () => {
         }
       } catch (error) {
         console.error('Error checking serviceable area:', error)
-        alert('Failed to verify service area')
+        setToast({ show: true, message: 'Failed to verify service area', type: 'error' });
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
       }
     }
   };
@@ -366,6 +369,17 @@ const AddAddress = () => {
               } transition-colors duration-200`}
             >
               Save Address
+            </button>
+          </div>
+        </div>
+      )}
+      {toast.show && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
+          <div className={`${toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px]`}>
+            <AlertCircle className="w-6 h-6 flex-shrink-0" />
+            <span className="font-semibold flex-1">{toast.message}</span>
+            <button onClick={() => setToast({ show: false, message: '', type: '' })} className="flex-shrink-0 hover:bg-white/20 rounded-full p-1 transition-colors">
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
