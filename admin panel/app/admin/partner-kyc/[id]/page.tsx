@@ -9,6 +9,8 @@ interface Partner {
   name: string
   mobile: string
   email?: string
+  vehicleType?: string
+  vehicleNumber?: string
   aadharNumber?: string
   drivingLicenseNumber?: string
   aadharImage?: string
@@ -157,8 +159,10 @@ export default function PartnerKYCDetailPage() {
             borderRadius: '12px',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
           }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Document Details</h3>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Vehicle & Document Details</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div><strong>Vehicle Type:</strong> {partner.vehicleType || 'Not provided'}</div>
+              <div><strong>Vehicle Number:</strong> {partner.vehicleNumber || 'Not provided'}</div>
               <div><strong>Aadhar Number:</strong> {partner.aadharNumber || 'Not provided'}</div>
               <div><strong>Driving License:</strong> {partner.drivingLicenseNumber || 'Not provided'}</div>
             </div>

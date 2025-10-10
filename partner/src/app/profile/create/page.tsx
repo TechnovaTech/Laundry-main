@@ -46,7 +46,7 @@ export default function CreateProfile() {
       const data = await response.json();
       
       if (data.success) {
-        localStorage.setItem("partnerId", data.data._id);
+        localStorage.setItem("partner", JSON.stringify(data.data));
         router.push("/profile/kyc");
       } else {
         alert(data.error || "Failed to save profile");

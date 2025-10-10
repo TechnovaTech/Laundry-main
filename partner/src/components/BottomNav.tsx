@@ -1,8 +1,18 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 function Icon({ src, active, showCheck }: { src: string; active: boolean; showCheck?: boolean }) {
+  if (src === "profile") {
+    return (
+      <div className="relative">
+        <svg className={`h-6 w-6 ${active ? "text-blue-600" : "text-gray-500"}`} fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      </div>
+    );
+  }
   return (
     <div className="relative">
       <div
@@ -27,23 +37,39 @@ function Icon({ src, active, showCheck }: { src: string; active: boolean; showCh
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const [kycApproved, setKycApproved] = useState(false);
+
+  useEffect(() => {
+    const partner = localStorage.getItem("partner");
+    if (partner) {
+      const data = JSON.parse(partner);
+      setKycApproved(data.kycStatus === "approved");
+    }
+  }, []);
+
+  if (!kycApproved) {
+    return null;
+  }
 
   const isPickup = pathname.startsWith("/pickups");
   const isHub = pathname.startsWith("/hub");
   const isPickForDelivery = pathname.startsWith("/delivery/pick");
   const isDelivery = pathname.startsWith("/delivery") && !isPickForDelivery;
 
+  const isProfile = pathname.startsWith("/profile");
+
   const items = [
     { href: "/pickups", label: "Pickup", icon: "/PickupIcon.svg", active: isPickup, check: false },
     { href: "/hub/drop", label: "Reached Hub", icon: "/ReachedHubIcon.svg", active: isHub, check: false },
     { href: "/delivery/pick", label: "Pick for Delivery", icon: "/PickforDeliveryIcon.svg", active: isPickForDelivery, check: false },
     { href: "/delivery/history", label: "Delivery", icon: "/DeliveryIcon.svg", active: isDelivery, check: true },
+    { href: "/profile", label: "Profile", icon: "profile", active: isProfile, check: false },
   ] as const;
 
   return (
     <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
       <div className="mx-auto max-w-md px-6 py-3">
-        <ul className="grid grid-cols-4 items-center gap-6">
+        <ul className="grid grid-cols-5 items-center gap-2">
           {items.map((it) => (
             <li key={it.href} className="flex flex-col items-center text-center">
               <Link href={it.href} className="flex flex-col items-center gap-1">

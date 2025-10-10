@@ -6,6 +6,26 @@ export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('/api/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+      if (data.success) {
+        localStorage.setItem('adminUser', JSON.stringify(data.data));
+        window.location.href = '/admin/dashboard';
+      } else {
+        alert('Invalid email or password');
+      }
+    } catch (error) {
+      alert('Login failed');
+    }
+  };
 
   return (
     <div style={{
@@ -13,7 +33,7 @@ export default function AdminLogin() {
       minHeight: '100vh',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      {/* Left Side - Blue Background with Illustration */}
+      {/* Left Side - Blue Background with Image */}
       <div style={{
         flex: 1,
         background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
@@ -40,7 +60,7 @@ export default function AdminLogin() {
           marginBottom: '0.5rem',
           textAlign: 'center'
         }}>
-          Steam Iron Admin
+          Steam & Iron - Admin
         </h1>
 
         {/* Subtitle */}
@@ -114,7 +134,7 @@ export default function AdminLogin() {
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: '#2563eb',
-                fontSize: '1.1rem'
+                fontSize: '1.2rem'
               }}>
                 ✉
               </span>
@@ -130,7 +150,7 @@ export default function AdminLogin() {
                   borderRadius: '8px',
                   fontSize: '1rem',
                   outline: 'none',
-                  transition: 'border-color 0.2s',
+                  transition: 'border-color 0.2s'
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#2563eb'}
                 onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
@@ -139,7 +159,7 @@ export default function AdminLogin() {
           </div>
 
           {/* Password Field */}
-          <div style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1.5rem' }}>
             <label style={{
               display: 'block',
               fontSize: '0.9rem',
@@ -155,27 +175,43 @@ export default function AdminLogin() {
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: '#2563eb',
-                fontSize: '1.1rem'
+                fontSize: '1.2rem'
               }}>
                 🔒
               </span>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 12px 12px 40px',
+                  padding: '12px 45px 12px 40px',
                   border: '2px solid #e5e7eb',
                   borderRadius: '8px',
                   fontSize: '1rem',
                   outline: 'none',
-                  transition: 'border-color 0.2s',
+                  transition: 'border-color 0.2s'
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#2563eb'}
                 onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem'
+                }}
+              >
+                {showPassword ? '👁️' : '👁️🗨️'}
+              </button>
             </div>
           </div>
 
@@ -216,22 +252,22 @@ export default function AdminLogin() {
 
           {/* Login Button */}
           <button 
-            onClick={() => window.location.href = '/admin/dashboard'}
+            onClick={handleLogin}
             style={{
-            width: '100%',
-            padding: '12px',
-            backgroundColor: '#2563eb',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '1rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            marginBottom: '1.5rem',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseOver={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#1d4ed8'}
-          onMouseOut={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#2563eb'}
+              width: '100%',
+              padding: '12px',
+              backgroundColor: '#2563eb',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              marginBottom: '1.5rem',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#1d4ed8'}
+            onMouseOut={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#2563eb'}
           >
             Login
           </button>

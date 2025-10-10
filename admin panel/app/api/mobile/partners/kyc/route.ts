@@ -30,7 +30,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     await connectDB()
-    const { partnerId, aadharNumber, drivingLicenseNumber, aadharImage, drivingLicenseImage } = await request.json()
+    const { partnerId, vehicleType, vehicleNumber, aadharNumber, drivingLicenseNumber, aadharImage, drivingLicenseImage } = await request.json()
     
     console.log('KYC Submission - Partner ID:', partnerId)
     console.log('KYC Data:', { aadharNumber, drivingLicenseNumber, hasAadharImage: !!aadharImage, hasDLImage: !!drivingLicenseImage })
@@ -38,6 +38,8 @@ export async function POST(request: NextRequest) {
     const partner = await Partner.findByIdAndUpdate(
       partnerId,
       {
+        vehicleType,
+        vehicleNumber,
         aadharNumber,
         drivingLicenseNumber,
         aadharImage,

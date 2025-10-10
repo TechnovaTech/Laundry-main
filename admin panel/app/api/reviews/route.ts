@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Review from '@/models/Review'
+import Customer from '@/models/Customer'
+import Order from '@/models/Order'
 
 export async function GET() {
   try {

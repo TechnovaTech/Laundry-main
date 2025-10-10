@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 interface HeaderProps {
   title: string
@@ -13,6 +13,18 @@ const HamburgerIcon = () => (
 )
 
 export default function Header({ title, searchPlaceholder = "Search...", onMobileMenuToggle }: HeaderProps) {
+  const [userName, setUserName] = useState('John Doe')
+  const [userRole, setUserRole] = useState('')
+
+  useEffect(() => {
+    const userData = localStorage.getItem('adminUser')
+    if (userData) {
+      const user = JSON.parse(userData)
+      setUserName(user.username || user.name || 'User')
+      setUserRole(user.role || '')
+    }
+  }, [])
+
   return (
     <div style={{
       backgroundColor: 'white',
@@ -70,7 +82,7 @@ export default function Header({ title, searchPlaceholder = "Search...", onMobil
           }}>
             👤
           </div>
-          <span style={{ fontWeight: '500' }}>John Doe</span>
+          <span style={{ fontWeight: '500' }}>{userRole}: {userName}</span>
         </div>
       </div>
     </div>
