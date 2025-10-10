@@ -226,7 +226,22 @@ export default function DeliveryPartnersPage() {
                   <div>{partner.totalDeliveries}</div>
                   <div>₹{partner.totalEarnings}</div>
                 <div>
-                  <div style={{
+                  <div 
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`/api/mobile/partners/${partner._id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ isActive: !partner.isActive })
+                        })
+                        if (response.ok) {
+                          fetchPartners()
+                        }
+                      } catch (error) {
+                        console.error('Failed to update partner status:', error)
+                      }
+                    }}
+                    style={{
                     width: '50px',
                     height: '24px',
                     borderRadius: '12px',
@@ -252,32 +267,47 @@ export default function DeliveryPartnersPage() {
                   <button 
                     onClick={() => window.location.href = `/admin/delivery-partners/${partner._id}`}
                     style={{
-                    backgroundColor: 'transparent',
-                    color: '#2563eb',
+                    backgroundColor: '#2563eb',
+                    color: 'white',
                     border: 'none',
                     padding: '0.5rem 0.75rem',
                     borderRadius: '6px',
                     fontSize: '0.75rem',
                     fontWeight: '500',
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    textDecoration: 'underline'
+                    whiteSpace: 'nowrap'
                   }}>
                     View Profile
                   </button>
-                  <button style={{
-                    backgroundColor: 'transparent',
-                    color: '#2563eb',
+                  <button 
+                    onClick={async () => {
+                      if (confirm(`Are you sure you want to ${partner.isActive ? 'block' : 'unblock'} this partner?`)) {
+                        try {
+                          const response = await fetch(`/api/mobile/partners/${partner._id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ isActive: !partner.isActive })
+                          })
+                          if (response.ok) {
+                            fetchPartners()
+                          }
+                        } catch (error) {
+                          console.error('Failed to update partner status:', error)
+                        }
+                      }
+                    }}
+                    style={{
+                    backgroundColor: partner.isActive ? '#dc2626' : '#10b981',
+                    color: 'white',
                     border: 'none',
                     padding: '0.5rem 0.75rem',
                     borderRadius: '6px',
                     fontSize: '0.75rem',
                     fontWeight: '500',
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    textDecoration: 'underline'
+                    whiteSpace: 'nowrap'
                   }}>
-                    Block
+                    {partner.isActive ? 'Block' : 'Unblock'}
                   </button>
                 </div>
                 </div>

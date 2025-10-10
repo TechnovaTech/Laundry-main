@@ -363,7 +363,7 @@ export default function CustomersPage() {
                     View Profile
                   </button>
                   <button style={{
-                    backgroundColor: '#6b7280',
+                    backgroundColor: '#dc2626',
                     color: 'white',
                     border: 'none',
                     padding: '0.5rem 0.75rem',

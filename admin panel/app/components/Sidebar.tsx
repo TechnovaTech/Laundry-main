@@ -90,6 +90,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
     { icon: <OrdersIcon />, label: 'Orders', href: '/admin/orders' },
     { icon: <CustomersIcon />, label: 'Customers', href: '/admin/customers' },
     { icon: <DeliveryIcon />, label: 'Delivery Partners', href: '/admin/delivery-partners' },
+    { icon: <RoleIcon />, label: 'Partner KYC', href: '/admin/partner-kyc' },
     { icon: <PricingIcon />, label: 'Pricing', href: '/admin/pricing' },
     { icon: <WalletIcon />, label: 'Wallet & Points', href: '/admin/wallet-points' },
     { icon: <ReportsIcon />, label: 'Reports', href: '/admin/reports' },
@@ -98,7 +99,6 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
     { icon: <SettingsIcon />, label: 'Settings', href: '/admin/settings' },
     { icon: <RoleIcon />, label: 'Role Management', href: '/admin/role-management' },
     { icon: <ReviewsIcon />, label: 'Reviews', href: '/admin/reviews' },
-    { icon: <RoleIcon />, label: 'Partner KYC', href: '/admin/partner-kyc' },
     { icon: <LogoutIcon />, label: 'Logout', href: '/admin/login' }
   ]
 

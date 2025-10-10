@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Customer ID required' }, { status: 400 })
     }
 
-    const customer = await Customer.findById(customerId)
+    const customer = await Customer.findById(customerId).lean()
     if (!customer) {
       return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })
     }

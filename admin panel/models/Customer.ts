@@ -29,6 +29,9 @@ const CustomerSchema = new mongoose.Schema({
   totalOrders: { type: Number, default: 0 },
   walletBalance: { type: Number, default: 0 },
   loyaltyPoints: { type: Number, default: 0 },
+  lastAdjustmentReason: { type: String },
+  lastAdjustmentAction: { type: String },
+  lastAdjustmentAt: { type: Date },
   referralCodes: [{ 
     code: String, 
     used: { type: Boolean, default: false },

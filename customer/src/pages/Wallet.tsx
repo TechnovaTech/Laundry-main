@@ -14,10 +14,14 @@ const Wallet = () => {
     availableBalance: 0,
     points: 0
   });
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastAction, setToastAction] = useState('');
 
   useEffect(() => {
     fetchWalletSettings();
     fetchCustomerWallet();
+    fetchWalletTransactions();
   }, []);
 
   const fetchCustomerWallet = async () => {
@@ -29,10 +33,36 @@ const Wallet = () => {
       const data = await response.json();
       
       if (data.success && data.data) {
+        console.log('Customer data:', data.data);
         setWalletData({
           availableBalance: data.data.walletBalance || 0,
           points: data.data.loyaltyPoints || 0
         });
+        
+        console.log('lastAdjustmentReason:', data.data.lastAdjustmentReason);
+        console.log('lastAdjustmentAt:', data.data.lastAdjustmentAt);
+        console.log('lastAdjustmentAction:', data.data.lastAdjustmentAction);
+        
+        if (data.data.lastAdjustmentReason && data.data.lastAdjustmentAt) {
+          const adjustmentTime = new Date(data.data.lastAdjustmentAt).getTime();
+          const now = new Date().getTime();
+          const timeDiff = now - adjustmentTime;
+          
+          console.log('Time diff (ms):', timeDiff);
+          console.log('Time diff (hours):', timeDiff / 3600000);
+          
+          if (timeDiff < 86400000) {
+            console.log('Showing toast notification');
+            setToastMessage(data.data.lastAdjustmentReason);
+            setToastAction(data.data.lastAdjustmentAction || 'increase');
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 30000);
+          } else {
+            console.log('Adjustment too old, not showing notification');
+          }
+        } else {
+          console.log('No adjustment data found');
+        }
       }
     } catch (error) {
       console.error('Failed to fetch wallet data:', error);
@@ -57,6 +87,36 @@ const Wallet = () => {
 
   const [walletHistory, setWalletHistory] = useState([]);
 
+  const fetchWalletTransactions = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      console.log('Fetching transactions for customer:', customerId);
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/wallet-transactions?customerId=${customerId}`);
+      const data = await response.json();
+      console.log('Transactions response:', data);
+      
+      if (data.success && data.data) {
+        console.log('Raw transactions:', data.data);
+        const formattedTransactions = data.data.map((t: any) => ({
+          id: t._id,
+          title: `${t.type === 'balance' ? 'Balance' : 'Points'} ${t.action === 'increase' ? 'Added' : 'Deducted'}`,
+          subtitle: t.reason,
+          amount: `${t.action === 'increase' ? '+' : '-'}${t.type === 'balance' ? '₹' : ''}${t.amount}${t.type === 'points' ? ' pts' : ''}`,
+          type: t.action === 'increase' ? 'credit' : 'debit',
+          date: new Date(t.createdAt).toLocaleDateString()
+        }));
+        console.log('Formatted transactions:', formattedTransactions);
+        setWalletHistory(formattedTransactions);
+      } else {
+        console.log('No transactions found or error:', data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+    }
+  };
+
   const handleUsePoints = async () => {
     if (walletData.points < minRedeemPoints) {
       alert(`Insufficient points! You need at least ${minRedeemPoints} points to redeem.`);
@@ -67,27 +127,18 @@ const Wallet = () => {
       const newPoints = walletData.points - 100;
       const newBalance = walletData.availableBalance + cashValue;
       
-      await updateWalletInDB(newBalance, newPoints);
+      await updateWalletInDB(newBalance, newPoints, 100, cashValue);
       
       setWalletData({
         points: newPoints,
         availableBalance: newBalance
       });
       
-      const newTransaction = {
-        id: Date.now(),
-        title: `Points Redeemed #${Math.floor(Math.random() * 10000)}`,
-        subtitle: "Redeemed 100 points",
-        amount: `+₹${cashValue}`,
-        type: "credit",
-        date: new Date().toISOString().split('T')[0]
-      };
-      
-      setWalletHistory(prev => [newTransaction, ...prev]);
+      fetchWalletTransactions();
     }
   };
 
-  const updateWalletInDB = async (balance: number, points: number) => {
+  const updateWalletInDB = async (balance: number, points: number, pointsRedeemed: number, cashValue: number) => {
     try {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
@@ -102,6 +153,28 @@ const Wallet = () => {
       });
       
       if (response.ok) {
+        await fetch(`http://localhost:3000/api/customers/${customerId}/adjust`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'points',
+            action: 'decrease',
+            amount: pointsRedeemed,
+            reason: `Redeemed ${pointsRedeemed} points for ₹${cashValue}`
+          })
+        });
+        
+        await fetch(`http://localhost:3000/api/customers/${customerId}/adjust`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'balance',
+            action: 'increase',
+            amount: cashValue,
+            reason: `Redeemed ${pointsRedeemed} points`
+          })
+        });
+        
         await fetchCustomerWallet();
       }
     } catch (error) {
@@ -182,23 +255,14 @@ const Wallet = () => {
                 const newPoints = walletData.points - redeemPoints;
                 const newBalance = walletData.availableBalance + cashValue;
                 
-                await updateWalletInDB(newBalance, newPoints);
+                await updateWalletInDB(newBalance, newPoints, redeemPoints, cashValue);
                 
                 setWalletData({
                   points: newPoints,
                   availableBalance: newBalance
                 });
                 
-                const newTransaction = {
-                  id: Date.now(),
-                  title: `Points Redeemed #${Math.floor(Math.random() * 10000)}`,
-                  subtitle: `Redeemed ${redeemPoints} points`,
-                  amount: `+₹${cashValue}`,
-                  type: "credit",
-                  date: new Date().toISOString().split('T')[0]
-                };
-                
-                setWalletHistory(prev => [newTransaction, ...prev]);
+                fetchWalletTransactions();
                 setRedeemPoints(0);
               }
             }}
@@ -270,6 +334,42 @@ const Wallet = () => {
           <User className="w-5 h-5 sm:w-7 sm:h-7 text-blue-500" />
         </button>
       </nav>
+
+      {showToast && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: toastAction === 'increase' ? '#10b981' : '#ef4444',
+          color: 'white',
+          padding: '1rem 1.5rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          zIndex: 1000,
+          maxWidth: '90%',
+          textAlign: 'center',
+          fontWeight: '500'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '1.5rem' }}>{toastAction === 'increase' ? '🎉' : '😢'}</span>
+            <span>{toastMessage}</span>
+            <button 
+              onClick={() => setShowToast(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                fontSize: '1.25rem',
+                cursor: 'pointer',
+                padding: '0 0.25rem'
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
