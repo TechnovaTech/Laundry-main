@@ -14,6 +14,7 @@ const ContinueBooking = () => {
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
   const [couponError, setCouponError] = useState("");
   const [customerInfo, setCustomerInfo] = useState<any>(null);
+  const [pastOrders, setPastOrders] = useState<any[]>([]);
   
   const itemsText = orderData.items ? orderData.items.map((item: any) => `${item.quantity} ${item.name}`).join(', ') : '3 Shirts, 1 Bedsheet';
   const totalAmount = orderData.total || 120;
@@ -21,6 +22,7 @@ const ContinueBooking = () => {
   
   useEffect(() => {
     fetchCustomerInfo();
+    fetchPastOrders();
   }, []);
   
   const fetchCustomerInfo = async () => {
@@ -36,6 +38,23 @@ const ContinueBooking = () => {
       }
     } catch (error) {
       console.error('Failed to fetch customer info:', error);
+    }
+  };
+  
+  const fetchPastOrders = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/orders?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        const recentOrder = data.data.slice(0, 1);
+        setPastOrders(recentOrder);
+      }
+    } catch (error) {
+      console.error('Failed to fetch past orders:', error);
     }
   };
   
@@ -96,29 +115,6 @@ const ContinueBooking = () => {
           </div>
         </div>
 
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 flex-shrink-0" fill="currentColor" />
-            <span className="font-semibold text-blue-500 text-sm sm:text-base">Scheduled</span>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500 flex-shrink-0" fill="currentColor" />
-            <span className="text-black text-sm sm:text-base">Picked Up at 10:20 AM</span>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Circle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 flex-shrink-0" />
-            <span className="text-black text-sm sm:text-base">Ironing</span>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Circle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 flex-shrink-0" />
-            <span className="text-black text-sm sm:text-base">Out for Delivery</span>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Circle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 flex-shrink-0" />
-            <span className="text-black text-sm sm:text-base">Delivered</span>
-          </div>
-        </div>
-
         <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg relative overflow-hidden">
           <div className="mb-3 sm:mb-4 h-32 sm:h-48 rounded-xl overflow-hidden relative">
             {customerInfo?.address?.[0] ? (
@@ -155,24 +151,26 @@ const ContinueBooking = () => {
           </div>
         </div>
 
-        <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Past Orders</h2>
-          <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
-            <div className="flex items-center justify-between mb-2 gap-3">
-              <p className="font-bold text-black text-sm sm:text-base">Order #12219</p>
-              <span className="px-2 sm:px-4 py-1 bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0">
-                Delivered
-              </span>
+        {pastOrders.length > 0 && (
+          <div>
+            <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Past Orders</h2>
+            <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
+              <div className="flex items-center justify-between mb-2 gap-3">
+                <p className="font-bold text-black text-sm sm:text-base">Order #{pastOrders[0].orderId}</p>
+                <span className="px-2 sm:px-4 py-1 bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0">
+                  {pastOrders[0].status}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-gray-500 mb-2">{pastOrders[0].items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items'}</p>
+              <button 
+                onClick={() => navigate("/order-details", { state: { orderId: pastOrders[0].orderId, order: pastOrders[0] } })}
+                className="text-blue-500 font-semibold text-xs sm:text-sm"
+              >
+                View Details
+              </button>
             </div>
-            <p className="text-xs sm:text-sm text-gray-500 mb-2">2 Shirts, 1 Saree</p>
-            <button 
-              onClick={() => navigate("/order-details")}
-              className="text-blue-500 font-semibold text-xs sm:text-sm"
-            >
-              View Details
-            </button>
           </div>
-        </div>
+        )}
 
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Additional Information</h2>

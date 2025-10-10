@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import loginPersonImg from "@/assets/login-person.jpg";
+import loginPersonImg from "@/assets/LOGIN.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -42,11 +42,11 @@ const Login = () => {
           Let's log into your<br />account →
         </h1>
         
-        <div className="mb-4 sm:mb-6 w-full max-w-xs sm:max-w-sm rounded-3xl border-4 border-blue-500 p-3 sm:p-4 bg-gray-100">
+        <div className="mb-4 sm:mb-6 w-full max-w-xs sm:max-w-sm">
           <img 
             src={loginPersonImg}
             alt="Login" 
-            className="w-full h-48 sm:h-72 object-contain rounded-2xl"
+            className="w-full h-64 sm:h-80 object-contain"
           />
         </div>
         

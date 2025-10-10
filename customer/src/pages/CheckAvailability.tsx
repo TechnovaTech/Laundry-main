@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import checkAvailabilityImg from "@/assets/Group (6).png";
+import checkAvailabilityImg from "@/assets/Pincode availablity screen.png";
 
 const CheckAvailability = () => {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ const CheckAvailability = () => {
         <img 
           src={checkAvailabilityImg}
           alt="Check Availability" 
-          className="mb-4 sm:mb-6 w-48 h-48 sm:w-64 sm:h-64 object-contain"
+          className="mb-4 sm:mb-6 w-72 h-72 sm:w-96 sm:h-96 object-contain"
         />
         
         <p className="mb-4 sm:mb-6 text-center text-muted-foreground font-semibold text-sm sm:text-base px-4">

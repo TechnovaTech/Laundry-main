@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Minus, Plus, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
-import group10Image from "@/assets/Group (10).png";
+import homeScreenImage from "@/assets/Home screen.png";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -179,9 +179,9 @@ const Home = () => {
         <div className="bg-white rounded-3xl p-4 sm:p-6 flex items-center gap-3 sm:gap-4 text-black mb-4 sm:mb-6 shadow-lg">
           <div className="flex-shrink-0">
             <img 
-              src={group10Image}
+              src={homeScreenImage}
               alt="Service Features" 
-              className="w-48 h-48 sm:w-64 sm:h-64 object-contain"
+              className="w-56 h-56 sm:w-72 sm:h-72 object-contain"
             />
           </div>
           <div className="flex-1 min-w-0">

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import notAvailableImg from "@/assets/not-available.png";
+import notAvailableImg from "@/assets/Sorry not available.png";
 
 const NotAvailable = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const NotAvailable = () => {
         <img 
           src={notAvailableImg}
           alt="Not Available" 
-          className="mb-6 sm:mb-8 w-48 h-36 sm:w-64 sm:h-48 object-contain"
+          className="mb-6 sm:mb-8 w-72 h-72 sm:w-96 sm:h-96 object-contain"
         />
         
         <h1 className="mb-4 sm:mb-6 text-2xl sm:text-3xl font-bold text-foreground">

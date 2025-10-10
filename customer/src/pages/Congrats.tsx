@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import congratsImg from "@/assets/Group (7).png";
+import congratsImg from "@/assets/Congrats we are available.png";
 
 const Congrats = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const Congrats = () => {
         <img 
           src={congratsImg}
           alt="Congrats" 
-          className="mb-6 sm:mb-8 w-48 h-48 sm:w-64 sm:h-64 object-contain"
+          className="mb-6 sm:mb-8 w-72 h-72 sm:w-96 sm:h-96 object-contain"
         />
         
         <h1 className="mb-4 sm:mb-6 text-3xl sm:text-4xl font-bold text-primary">

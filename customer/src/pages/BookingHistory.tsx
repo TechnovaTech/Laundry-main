@@ -4,6 +4,7 @@ import { ArrowLeft, Shirt, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import group12Image from "@/assets/Group (12).png";
+import deliveryImage from "@/assets/Delivery.png";
 
 const BookingHistory = () => {
   const navigate = useNavigate();
@@ -144,9 +145,9 @@ const BookingHistory = () => {
         ) : (
           <div className="flex flex-col items-center py-8 sm:py-12">
           <img 
-            src={group12Image}
+            src={deliveryImage}
             alt="No Orders" 
-            className="w-32 h-32 sm:w-48 sm:h-48 mb-4 sm:mb-6 object-contain"
+            className="w-64 h-64 sm:w-80 sm:h-80 mb-4 sm:mb-6 object-contain"
           />
           <h3 className="text-lg sm:text-xl font-bold mb-2">No orders yet.</h3>
           <p className="text-muted-foreground text-center mb-4 sm:mb-6 text-sm sm:text-base px-4">
