@@ -111,32 +111,32 @@ const Wallet = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
-      <header className="bg-gray-50 px-4 sm:px-6 py-4 flex items-center">
+      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 py-4 flex items-center shadow-lg">
         <button onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-6 h-6 text-gray-600" />
+          <ArrowLeft className="w-6 h-6 text-white" />
         </button>
-        <h1 className="text-xl font-bold ml-4 text-black">Wallet</h1>
+        <h1 className="text-xl font-bold ml-4 text-white">Wallet</h1>
       </header>
 
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg text-center">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 sm:p-8 shadow-lg text-center border-2 border-blue-200">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <CreditCard className="w-6 h-6 text-blue-500" />
-            <span className="text-lg sm:text-xl font-bold text-black">Available Balance:</span>
+            <CreditCard className="w-6 h-6 text-blue-600" />
+            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Available Balance:</span>
           </div>
-          <p className="text-3xl sm:text-4xl font-bold text-black mb-2">₹{walletData.availableBalance}</p>
-          <p className="text-gray-500 mb-4 text-sm sm:text-base">You have {walletData.points} points ({pointsPerRupee} points = ₹1)</p>
+          <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent mb-2">₹{walletData.availableBalance}</p>
+          <p className="text-gray-700 mb-4 text-sm sm:text-base font-medium">You have {walletData.points} points ({pointsPerRupee} points = ₹1)</p>
           <Button 
             onClick={handleUsePoints}
             disabled={walletData.points < minRedeemPoints}
-            className="w-full h-12 sm:h-14 rounded-2xl font-semibold bg-blue-500 hover:bg-blue-600 text-white text-base disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full h-12 sm:h-14 rounded-2xl font-semibold bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white text-base disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
           >
             Use {minRedeemPoints} Points {walletData.points < minRedeemPoints ? `(Need ${minRedeemPoints - walletData.points} more)` : ''}
           </Button>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg">
-          <h2 className="text-lg sm:text-xl font-bold mb-4 text-black">Redeem Points</h2>
+        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-shadow">
+          <h2 className="text-lg sm:text-xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Redeem Points</h2>
           <div className="mb-4">
             <div className="relative mb-4">
               <input
@@ -203,14 +203,14 @@ const Wallet = () => {
               }
             }}
             disabled={redeemPoints < minRedeemPoints || walletData.points < redeemPoints}
-            className="w-full h-12 sm:h-14 rounded-2xl font-semibold bg-blue-500 hover:bg-blue-600 text-white text-base disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full h-12 sm:h-14 rounded-2xl font-semibold bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white text-base disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
           >
             Redeem Now {redeemPoints < minRedeemPoints ? `(Min ${minRedeemPoints} points)` : walletData.points < redeemPoints ? '(Insufficient)' : ''}
           </Button>
         </div>
 
         <div>
-          <h2 className="text-lg sm:text-xl font-bold mb-4 text-black">Wallet History (Last 5)</h2>
+          <h2 className="text-lg sm:text-xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Wallet History (Last 5)</h2>
           <div className="space-y-3">
             {walletHistory.slice(0, 5).map((transaction) => {
               const isOrderTransaction = transaction.title.includes('Order #');
@@ -221,8 +221,8 @@ const Wallet = () => {
               return (
                 <TransactionComponent 
                   key={transaction.id} 
-                  className={`w-full bg-white rounded-2xl p-4 sm:p-6 shadow-lg ${
-                    isOrderTransaction ? 'hover:bg-gray-50 cursor-pointer transition-colors' : ''
+                  className={`w-full bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow ${
+                    isOrderTransaction ? 'cursor-pointer' : ''
                   }`}
                   onClick={isOrderTransaction && orderId ? () => navigate(`/rate-order/${orderId}`) : undefined}
                 >
@@ -243,31 +243,31 @@ const Wallet = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg flex items-center justify-between gap-4">
-          <p className="text-black text-sm sm:text-base flex-1">Earn {referralPoints} points for every friend you invite.</p>
-          <button className="text-blue-500 flex-shrink-0">
-            <Share2 className="w-5 h-5" />
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-4 sm:p-6 shadow-lg flex items-center justify-between gap-4 border-2 border-green-200 hover:shadow-xl transition-shadow">
+          <p className="text-gray-800 text-sm sm:text-base flex-1 font-medium">Earn {referralPoints} points for every friend you invite.</p>
+          <button className="bg-gradient-to-r from-blue-500 to-blue-700 p-2 rounded-full shadow-md hover:shadow-lg transition-shadow flex-shrink-0">
+            <Share2 className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl">
-        <button onClick={() => navigate("/")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl border-t">
+        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
           <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gray-300 flex items-center justify-center border-2 border-white shadow-lg">
-            <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-gray-600" />
+        <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow">
+            <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
         </button>
-        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
           <RotateCcw className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-blue-500 p-1">
-          <User className="w-5 h-5 sm:w-7 sm:h-7" />
+        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
+          <User className="w-5 h-5 sm:w-7 sm:h-7 text-blue-500" />
         </button>
       </nav>
     </div>

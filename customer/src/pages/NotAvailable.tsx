@@ -25,7 +25,7 @@ const NotAvailable = () => {
         <div className="w-full space-y-4 sm:space-y-6">
           <Button 
             onClick={() => navigate("/check-availability")}
-            className="w-full rounded-2xl py-4 sm:py-6 text-base sm:text-lg font-semibold"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-lg"
             size="lg"
           >
             Change Pincode

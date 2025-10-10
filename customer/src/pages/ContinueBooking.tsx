@@ -86,7 +86,7 @@ const ContinueBooking = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-blue-500 text-white px-4 sm:px-6 py-4 flex items-center justify-between">
+      <header className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 sm:px-6 py-5 flex items-center justify-between shadow-lg">
         <button onClick={() => navigate(-1)} className="flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
@@ -100,7 +100,7 @@ const ContinueBooking = () => {
         <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0 shadow-md">
                 <Shirt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="min-w-0">
@@ -109,7 +109,7 @@ const ContinueBooking = () => {
                 <p className="text-base sm:text-lg font-bold text-blue-500">₹{totalAmount}</p>
               </div>
             </div>
-            <span className="px-2 sm:px-4 py-1 sm:py-1.5 bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0">
+            <span className="px-2 sm:px-4 py-1 sm:py-1.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0 shadow-md">
               In Progress
             </span>
           </div>
@@ -194,7 +194,7 @@ const ContinueBooking = () => {
               />
               <Button 
                 onClick={applyCoupon}
-                className="h-10 sm:h-12 rounded-2xl px-4 sm:px-8 font-semibold bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm"
+                className="h-10 sm:h-12 rounded-2xl px-4 sm:px-8 font-semibold bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white text-xs sm:text-sm shadow-md"
               >
                 Apply
               </Button>
@@ -278,7 +278,7 @@ const ContinueBooking = () => {
               alert('Failed to place order. Please try again.');
             }
           }}
-          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-blue-500 hover:bg-blue-600 text-white"
+          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white shadow-lg"
         >
           Continue
         </Button>

@@ -22,10 +22,10 @@ const ReferAndEarn = () => {
 
   return (
     <div>
-      <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Refer and Earn</h2>
+      <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Refer and Earn</h2>
       <button 
         onClick={() => navigate("/refer-earn")}
-        className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:bg-gray-50 transition-colors"
+        className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:shadow-xl transition-shadow"
       >
         <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
         <span className="font-medium text-black text-sm sm:text-base">Earn {referralPoints} points for every referral</span>
@@ -47,7 +47,7 @@ const Profile = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingPaymentIndex, setEditingPaymentIndex] = useState<number | null>(null);
   const [newPayment, setNewPayment] = useState({ 
-    type: 'Cash', 
+    type: 'UPI', 
     upiId: '',
     cardNumber: '',
     cardHolder: '',
@@ -240,9 +240,7 @@ const Profile = () => {
       };
       
       // Validate and add type-specific fields
-      if (newPayment.type === 'Cash') {
-        paymentMethod.details = 'Cash on Delivery';
-      } else if (newPayment.type === 'UPI') {
+      if (newPayment.type === 'UPI') {
         if (!newPayment.upiId.trim()) {
           console.error('UPI ID is required');
           return;
@@ -288,7 +286,7 @@ const Profile = () => {
       
       if (response.ok) {
         setPaymentOptions(updatedPayments);
-        setNewPayment({ type: 'Cash', upiId: '', cardNumber: '', cardHolder: '', expiryDate: '', cvv: '', accountNumber: '', ifscCode: '', bankName: '' });
+        setNewPayment({ type: 'UPI', upiId: '', cardNumber: '', cardHolder: '', expiryDate: '', cvv: '', accountNumber: '', ifscCode: '', bankName: '' });
         setEditingPaymentIndex(null);
         setShowPaymentModal(false);
         console.log('Payment method saved successfully');
@@ -368,7 +366,7 @@ const Profile = () => {
 
   const hasAllPaymentTypes = () => {
     const existingTypes = paymentOptions.map(option => option.type);
-    const allTypes = ['Cash', 'UPI', 'Card', 'Bank Transfer'];
+    const allTypes = ['UPI', 'Card', 'Bank Transfer'];
     return allTypes.every(type => existingTypes.includes(type));
   };
 
@@ -376,17 +374,17 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
-      <header className="bg-gray-50 px-4 sm:px-6 py-4 flex items-center justify-between">
-        <h1 className="text-lg sm:text-xl font-bold text-black">Profile</h1>
+      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg">
+        <h1 className="text-lg sm:text-xl font-bold text-white">Profile</h1>
         <button>
-          <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+          <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>
       </header>
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex items-center gap-3 sm:gap-4 mb-4">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg sm:text-2xl font-bold flex-shrink-0">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white text-lg sm:text-2xl font-bold flex-shrink-0 shadow-md">
               {userProfile.avatar}
             </div>
             <div className="flex-1 min-w-0">
@@ -398,16 +396,16 @@ const Profile = () => {
           </div>
           <button 
             onClick={() => navigate("/create-profile")}
-            className="text-blue-500 font-semibold text-xs sm:text-sm"
+            className="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-800"
           >
             Edit
           </button>
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">My Addresses</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">My Addresses</h2>
           {addresses.map((address) => (
-            <div key={address.id} className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3">
+            <div key={address.id} className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 hover:shadow-xl transition-shadow">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
                   <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
@@ -435,14 +433,14 @@ const Profile = () => {
           ))}
           <button 
             onClick={() => navigate("/add-address")}
-            className="text-blue-500 font-semibold text-xs sm:text-sm"
+            className="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-800"
           >
             + Add New
           </button>
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Payment Options</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Payment Options</h2>
           {paymentOptions.map((option, index) => {
             const getPaymentIcon = (type) => {
               switch (type) {
@@ -456,7 +454,7 @@ const Profile = () => {
             const PaymentIcon = getPaymentIcon(option.type);
             
             return (
-            <div key={index} className={`bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center justify-between gap-2 sm:gap-3 ${option.isPrimary ? 'border-2 border-blue-500' : ''}`}>
+            <div key={index} className={`bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center justify-between gap-2 sm:gap-3 hover:shadow-xl transition-shadow ${option.isPrimary ? 'border-2 border-blue-500' : ''}`}>
               <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                 <PaymentIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
                 <div className="min-w-0">
@@ -465,7 +463,6 @@ const Profile = () => {
                     {option.isPrimary && <span className="text-blue-500 text-xs font-medium">Primary</span>}
                   </div>
                   <p className="text-xs text-gray-500 truncate">
-                    {option.type === 'Cash' && 'Cash on Delivery'}
                     {option.type === 'UPI' && option.upiId}
                     {option.type === 'Card' && `${option.cardHolder} - ****${option.cardNumber?.slice(-4)}`}
                     {option.type === 'Bank Transfer' && `${option.bankName} - ****${option.accountNumber?.slice(-4)}`}
@@ -501,7 +498,7 @@ const Profile = () => {
           {!hasAllPaymentTypes() && (
             <button 
               onClick={() => setShowPaymentModal(true)}
-              className="text-blue-500 font-semibold text-xs sm:text-sm"
+              className="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-800"
             >
               + Add Payment
             </button>
@@ -524,17 +521,11 @@ const Profile = () => {
                     className="w-full p-2.5 sm:p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-sm sm:text-base"
                     style={{ fontSize: '16px' }}
                   >
-                    <option value="Cash">Cash</option>
                     <option value="UPI">UPI</option>
                     <option value="Card">Card</option>
                     <option value="Bank Transfer">Bank Transfer</option>
                   </select>
                 </div>
-                {newPayment.type === 'Cash' && (
-                  <div className="bg-blue-50 p-3 rounded-xl">
-                    <p className="text-xs sm:text-sm text-blue-700">💵 Pay with cash when your order is delivered</p>
-                  </div>
-                )}
                 
                 {newPayment.type === 'UPI' && (
                   <div>
@@ -646,7 +637,7 @@ const Profile = () => {
                   <button
                     onClick={() => {
                       setShowPaymentModal(false);
-                      setNewPayment({ type: 'Cash', upiId: '', cardNumber: '', cardHolder: '', expiryDate: '', cvv: '', accountNumber: '', ifscCode: '', bankName: '' });
+                      setNewPayment({ type: 'UPI', upiId: '', cardNumber: '', cardHolder: '', expiryDate: '', cvv: '', accountNumber: '', ifscCode: '', bankName: '' });
                       setEditingPaymentIndex(null);
                     }}
                     className="flex-1 py-2.5 sm:py-3 rounded-xl font-semibold text-gray-600 border border-gray-300 text-sm sm:text-base"
@@ -655,7 +646,7 @@ const Profile = () => {
                   </button>
                   <button
                     onClick={handleAddPayment}
-                    className="flex-1 py-2.5 sm:py-3 rounded-xl font-semibold text-white bg-blue-500 hover:bg-blue-600 text-sm sm:text-base"
+                    className="flex-1 py-2.5 sm:py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-sm sm:text-base shadow-lg"
                   >
                     {editingPaymentIndex !== null ? 'Update' : 'Add'}
                   </button>
@@ -666,24 +657,24 @@ const Profile = () => {
         )}
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Wallet</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Wallet</h2>
           <button 
             onClick={() => navigate("/wallet")}
-            className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:bg-gray-50 transition-colors"
+            className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:shadow-xl transition-shadow"
           >
             <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-            <span className="font-semibold text-black text-sm sm:text-base">Balance: {walletBalance}</span>
+            <span className="font-semibold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent text-sm sm:text-base">Balance: {walletBalance}</span>
           </button>
         </div>
 
         <ReferAndEarn />
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Support</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Support</h2>
           {supportOptions.map((option) => {
             const Icon = option.icon;
             return (
-              <div key={option.id} className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:bg-gray-50 transition-colors">
+              <div key={option.id} className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:shadow-xl transition-shadow">
                 <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
                 <span className="font-medium text-black text-sm sm:text-base">{option.title}</span>
               </div>
@@ -692,8 +683,8 @@ const Profile = () => {
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">App Settings / Legal</h2>
-          <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">App Settings / Legal</h2>
+          <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center justify-between gap-3 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
               <span className="font-medium text-black text-sm sm:text-base truncate">Notification</span>
@@ -701,7 +692,7 @@ const Profile = () => {
             <Switch checked={notificationEnabled} onCheckedChange={setNotificationEnabled} className="flex-shrink-0" />
           </div>
           {legalOptions.map((option) => (
-            <div key={option.id} className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:bg-gray-50 transition-colors">
+            <div key={option.id} className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:shadow-xl transition-shadow">
               <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
               <span className="font-medium text-black text-sm sm:text-base">{option.title}</span>
             </div>
@@ -710,7 +701,7 @@ const Profile = () => {
 
         <button
           onClick={() => navigate("/")}
-          className="w-full h-10 sm:h-12 rounded-2xl text-red-500 font-semibold hover:bg-red-50 flex items-center justify-center gap-2 transition-colors text-sm sm:text-base"
+          className="w-full h-10 sm:h-12 rounded-2xl bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-semibold flex items-center justify-center gap-2 transition-all text-sm sm:text-base shadow-lg"
         >
           <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
           Logout
@@ -719,23 +710,23 @@ const Profile = () => {
 
 
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl">
-        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl border-t">
+        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
           <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-         <button className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gray-700 flex items-center justify-center border-2 border-white shadow-lg">
+         <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow">
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
         </button>
-        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
           <RotateCcw className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button className="flex flex-col items-center gap-0.5 sm:gap-1 text-blue-500 p-1">
-          <User className="w-5 h-5 sm:w-7 sm:h-7" />
+        <button className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
+          <User className="w-5 h-5 sm:w-7 sm:h-7 text-blue-500" />
         </button>
       </nav>
     </div>

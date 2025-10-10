@@ -24,7 +24,7 @@ const BookingConfirmation = () => {
       </header>
 
       <div className="px-4 sm:px-6 py-8 sm:py-12 flex flex-col items-center">
-        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-primary flex items-center justify-center mb-4 sm:mb-6">
+        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center mb-4 sm:mb-6 shadow-xl">
           <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 text-white" strokeWidth={3} />
         </div>
 
@@ -68,7 +68,7 @@ const BookingConfirmation = () => {
 
         <Button
           onClick={() => navigate("/order-details", { state: orderData })}
-          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-3"
+          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white shadow-lg"
         >
           <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           Track Order
@@ -77,7 +77,7 @@ const BookingConfirmation = () => {
         <Button
           onClick={() => navigate("/home")}
           variant="outline"
-          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6"
+          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
         >
           Back to Home
         </Button>

@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Phone, Shirt, Clock, Package, Truck, CheckCircle2, Download } from "lucide-react";
+import { ArrowLeft, Phone, Shirt, Clock, Package, Truck, CheckCircle2, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -11,6 +11,7 @@ const OrderDetails = () => {
   const [loading, setLoading] = useState(true);
   const [showIssueForm, setShowIssueForm] = useState(false);
   const [issueText, setIssueText] = useState('');
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
   
   const orderId = location.state?.orderId;
   
@@ -96,13 +97,13 @@ const OrderDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 bg-background border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between z-10">
+      <header className="sticky top-0 bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 py-4 flex items-center justify-between z-10 shadow-lg">
         <button onClick={() => navigate(-1)} className="flex-shrink-0">
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>
-        <h1 className="text-lg sm:text-xl font-bold flex-1 text-center mx-4">Track Order</h1>
+        <h1 className="text-lg sm:text-xl font-bold flex-1 text-center mx-4 text-white">Track Order</h1>
         <button className="flex-shrink-0">
-          <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+          <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>
       </header>
 
@@ -117,10 +118,10 @@ const OrderDetails = () => {
           </div>
         ) : (
           <>
-        <Card className="p-3 sm:p-4 rounded-2xl border-2">
+        <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0 shadow-md">
                 <Shirt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="min-w-0">
@@ -128,10 +129,10 @@ const OrderDetails = () => {
                 <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {order?.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items'}
                 </p>
-                <p className="text-base sm:text-lg font-bold text-primary">₹{order?.totalAmount || 0}</p>
+                <p className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">₹{order?.totalAmount || 0}</p>
               </div>
             </div>
-            <span className="px-2 sm:px-4 py-1 sm:py-1.5 bg-primary text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0">
+            <span className="px-2 sm:px-4 py-1 sm:py-1.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0 shadow-md">
               {order?.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ') : 'Unknown'}
             </span>
           </div>
@@ -143,11 +144,11 @@ const OrderDetails = () => {
             return (
               <div key={index} className="flex items-center gap-3 sm:gap-4">
                 <div
-                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${
                     item.completed
                       ? item.active
-                        ? "bg-primary"
-                        : "bg-primary"
+                        ? "bg-gradient-to-r from-blue-500 to-blue-700"
+                        : "bg-gradient-to-r from-blue-400 to-blue-600"
                       : "bg-muted"
                   }`}
                 >
@@ -160,7 +161,7 @@ const OrderDetails = () => {
                 <div className="flex-1 min-w-0">
                   <p
                     className={`font-semibold text-sm sm:text-base ${
-                      item.active ? "text-primary" : item.completed ? "text-foreground" : "text-muted-foreground"
+                      item.active ? "bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent" : item.completed ? "text-foreground" : "text-muted-foreground"
                     }`}
                   >
                     {item.label}
@@ -174,23 +175,23 @@ const OrderDetails = () => {
           })}
         </div>
 
-        <Card className="p-3 sm:p-4 rounded-2xl border-2 bg-muted/50">
-          <p className="text-xs sm:text-sm text-muted-foreground">
+        <Card className="p-3 sm:p-4 rounded-2xl border-2 bg-gradient-to-br from-blue-50 to-blue-100 shadow-md">
+          <p className="text-xs sm:text-sm text-gray-700 font-medium">
             Pickup Address: {order?.pickupAddress ? `${order.pickupAddress.street}, ${order.pickupAddress.city}` : 'Not specified'}
           </p>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-gray-700 font-medium mt-1">
             Pickup Slot: {order?.pickupSlot?.timeSlot || 'Not scheduled'}
           </p>
         </Card>
 
         <div className="flex gap-2 sm:gap-3">
-          <Button variant="outline" className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm">
+          <Button variant="outline" className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm border-2 border-blue-500 text-blue-600 hover:bg-blue-50 shadow-md">
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
             Contact Partner
           </Button>
           <Button 
             variant="destructive" 
-            className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm"
+            className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 shadow-lg"
             onClick={() => setShowIssueForm(true)}
           >
             ⚠ Report Issue
@@ -210,7 +211,7 @@ const OrderDetails = () => {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 border-2"
                   onClick={() => {
                     setShowIssueForm(false);
                     setIssueText('');
@@ -219,7 +220,7 @@ const OrderDetails = () => {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-lg"
                   onClick={async () => {
                     if (!issueText.trim()) {
                       alert('Please describe the issue');
@@ -238,9 +239,10 @@ const OrderDetails = () => {
                     const result = await response.json();
                     console.log('Response:', result);
                     if (response.ok) {
-                      alert('Issue reported successfully');
                       setShowIssueForm(false);
                       setIssueText('');
+                      setShowSuccessToast(true);
+                      setTimeout(() => setShowSuccessToast(false), 3000);
                       fetchOrderDetails();
                     } else {
                       alert('Failed to report issue: ' + (result.message || 'Unknown error'));
@@ -254,13 +256,25 @@ const OrderDetails = () => {
           </div>
         )}
 
-        <Button className="w-full h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base">
+        <Button className="w-full h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-lg">
           <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           Download Invoice ⚙
         </Button>
           </>
         )}
       </div>
+
+      {showSuccessToast && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px]">
+            <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
+            <span className="font-semibold flex-1">Issue reported successfully!</span>
+            <button onClick={() => setShowSuccessToast(false)} className="flex-shrink-0 hover:bg-white/20 rounded-full p-1 transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

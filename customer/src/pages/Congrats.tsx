@@ -25,7 +25,7 @@ const Congrats = () => {
         <div className="w-full space-y-3 sm:space-y-4">
           <Button 
             onClick={() => navigate("/login")}
-            className="w-full rounded-2xl py-4 sm:py-6 text-base sm:text-lg font-semibold"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-lg"
             size="lg"
           >
             Continue to Signup
@@ -34,7 +34,7 @@ const Congrats = () => {
           <Button 
             variant="outline"
             onClick={() => navigate("/services")}
-            className="w-full rounded-2xl border-2 border-primary py-4 sm:py-6 text-base sm:text-lg font-semibold text-primary hover:bg-secondary"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-lg"
             size="lg"
           >
             Browse Services

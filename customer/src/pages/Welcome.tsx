@@ -24,7 +24,7 @@ const Welcome = () => {
         
         <Button 
           onClick={() => navigate("/check-availability")}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 sm:py-6 rounded-xl text-sm sm:text-base font-medium"
+          className="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white py-4 sm:py-6 rounded-xl text-sm sm:text-base font-medium shadow-lg"
         >
           Get Started
         </Button>

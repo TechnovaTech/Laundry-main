@@ -162,21 +162,23 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
-      {/* Blue Header Section */}
-      <div className="bg-blue-500 text-white px-4 sm:px-6 py-6 sm:py-8">
+      {/* Gradient Header Section */}
+      <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white px-4 sm:px-6 py-6 sm:py-8 shadow-xl">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Hi, {userName}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Hi, {userName} 👋</h1>
             <p className="text-white/90 text-sm sm:text-base">Let's schedule your order</p>
           </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex-shrink-0"></div>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+            <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </div>
         </div>
       </div>
 
       {/* White Content Section */}
       <div className="px-4 sm:px-6 py-4 sm:py-6">
         {/* Service Card */}
-        <div className="bg-white rounded-3xl p-4 sm:p-6 flex items-center gap-3 sm:gap-4 text-black mb-4 sm:mb-6 shadow-lg">
+        <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl p-4 sm:p-6 flex items-center gap-3 sm:gap-4 text-black mb-4 sm:mb-6 shadow-xl border border-blue-100">
           <div className="flex-shrink-0">
             <img 
               src={homeScreenImage}
@@ -185,15 +187,18 @@ const Home = () => {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="space-y-2 sm:space-y-3">
-              <div className="text-blue-500">
-                <span className="text-sm sm:text-base font-medium">Fast pickup</span>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center gap-2 text-blue-600">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <span className="text-sm sm:text-base font-semibold">Doorstep Pickup & Delivery</span>
               </div>
-              <div className="text-blue-500">
-                <span className="text-sm sm:text-base font-medium">24h delivery</span>
+              <div className="flex items-center gap-2 text-blue-600">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <span className="text-sm sm:text-base font-semibold">Professional Steam Ironing</span>
               </div>
-              <div className="text-blue-500">
-                <span className="text-sm sm:text-base font-medium">Satisfaction guarantee</span>
+              <div className="flex items-center gap-2 text-blue-600">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <span className="text-sm sm:text-base font-semibold">100% Quality Assured</span>
               </div>
             </div>
           </div>
@@ -202,30 +207,39 @@ const Home = () => {
         {/* Book Order Button */}
         <Button
           onClick={() => navigate("/booking")}
-          className="w-full h-12 sm:h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 shadow-lg"
+          className="w-full h-12 sm:h-14 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 shadow-lg"
         >
           <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           Book Your Order
         </Button>
 
         {/* Next Slot Info */}
-        <div className="bg-white rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 shadow-lg">
-          <p className="text-gray-600 text-xs sm:text-sm mb-1">Next available slot:</p>
-          <p className="text-black font-semibold mb-2 text-sm sm:text-base">Tomorrow, 9-11 AM</p>
-          <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 break-words">Address preview: {customerAddress}</p>
+        <div className="bg-white rounded-2xl p-4 sm:p-5 mb-4 sm:mb-6 shadow-lg border border-gray-100">
+          <div className="flex items-start gap-2 mb-2">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <Check className="w-4 h-4 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-gray-500 text-xs sm:text-sm mb-1">Next available slot</p>
+              <p className="text-black font-bold text-base sm:text-lg">Tomorrow, 9-11 AM</p>
+            </div>
+          </div>
+          <div className="bg-blue-50 rounded-xl p-3 mb-3 sm:mb-4">
+            <p className="text-gray-600 text-xs sm:text-sm font-medium break-words">📍 {customerAddress}</p>
+          </div>
           
           {/* Quantity Selector */}
-          <div className="flex items-center justify-center gap-3 sm:gap-4">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 bg-gray-50 rounded-xl py-3">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white flex items-center justify-center font-bold shadow-md hover:shadow-lg transition-shadow"
             >
               <Minus className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <span className="text-black text-xl sm:text-2xl font-bold w-8 sm:w-12 text-center">{quantity}</span>
+            <span className="text-black text-2xl sm:text-3xl font-bold w-12 sm:w-16 text-center">{quantity}</span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white flex items-center justify-center font-bold shadow-md hover:shadow-lg transition-shadow"
             >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -243,19 +257,25 @@ const Home = () => {
             onMouseDown={handleTouchStart}
           >
             {vouchers.map((voucher: any, index) => (
-              <div key={voucher._id} className="bg-blue-200 rounded-2xl p-4 shadow-lg flex-shrink-0 w-72 snap-center">
+              <div key={voucher._id} className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-5 shadow-lg flex-shrink-0 w-72 snap-center border border-blue-300">
                 <div className="flex flex-col">
-                  <h3 className="font-bold text-base mb-1 text-blue-800">{voucher.slogan}</h3>
-                  <p className="text-blue-600 text-sm mb-2">Limited time offer</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                      <Tag className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded-full">LIMITED</span>
+                  </div>
+                  <h3 className="font-bold text-base mb-1 text-blue-900">{voucher.slogan}</h3>
+                  <p className="text-blue-700 text-sm mb-3">Limited time offer</p>
                   <Button 
                     onClick={() => !claimedVouchers.includes(voucher.code) && handleApplyVoucher(voucher.code)}
-                    className={`w-20 h-8 rounded-lg text-sm font-semibold ${
+                    className={`w-full h-9 rounded-xl text-sm font-semibold shadow-md ${
                       claimedVouchers.includes(voucher.code)
                         ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white'
                     }`}
                   >
-                    {claimedVouchers.includes(voucher.code) ? 'Claimed' : 'Apply'}
+                    {claimedVouchers.includes(voucher.code) ? '✓ Claimed' : 'Apply Now'}
                   </Button>
                 </div>
               </div>
@@ -276,15 +296,19 @@ const Home = () => {
         </div>
 
         {/* Recent Orders */}
-        <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
-          <div className="space-y-2 sm:space-y-3">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-lg border border-gray-100">
+          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <RotateCcw className="w-5 h-5 text-blue-600" />
+            Recent Orders
+          </h3>
+          <div className="space-y-3">
             {recentOrders.length > 0 ? (
               recentOrders.map((order: any) => (
-                <div key={order._id} className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-blue-500 text-sm sm:text-base">Order #{order.orderId}</span>
+                <div key={order._id} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl p-3 hover:bg-gray-100 transition-colors">
+                  <span className="font-bold text-blue-600 text-sm sm:text-base">Order #{order.orderId}</span>
                   <Button
                     onClick={() => navigate("/order-details", { state: { orderId: order.orderId } })}
-                    className="h-8 sm:h-9 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-semibold flex-shrink-0"
+                    className="h-9 sm:h-10 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-xl text-xs sm:text-sm font-semibold flex-shrink-0 shadow-md px-4"
                   >
                     <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                     Reorder
@@ -292,8 +316,9 @@ const Home = () => {
                 </div>
               ))
             ) : (
-              <div className="text-center py-4 text-gray-500 text-sm">
-                No recent orders found
+              <div className="text-center py-6 text-gray-400 text-sm bg-gray-50 rounded-xl">
+                <ShoppingCart className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No recent orders found</p>
               </div>
             )}
           </div>

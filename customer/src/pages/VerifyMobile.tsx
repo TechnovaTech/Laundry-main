@@ -111,7 +111,7 @@ const VerifyMobile = () => {
         <Button 
           onClick={handleVerify}
           disabled={otp.some(digit => digit === "")}
-          className="mb-6 sm:mb-8 w-full max-w-sm sm:max-w-md bg-blue-500 hover:bg-blue-600 text-white rounded-2xl py-3 sm:py-4 text-base sm:text-lg font-semibold"
+          className="mb-6 sm:mb-8 w-full max-w-sm sm:max-w-md bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           size="lg"
         >
           Verify & Continue

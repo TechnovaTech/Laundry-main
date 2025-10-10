@@ -69,7 +69,7 @@ const Login = () => {
           <Button 
             onClick={handleLogin}
             disabled={mobileNumber.length !== 10}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-2xl py-3 sm:py-4 text-base sm:text-lg font-semibold"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             size="lg"
           >
             Log In

@@ -37,7 +37,7 @@ const Booking = () => {
         // Initialize quantities
         const initialQuantities: {[key: string]: number} = {};
         data.data.forEach((item: PricingItem) => {
-          initialQuantities[item._id] = 1;
+          initialQuantities[item._id] = 0;
         });
         setQuantities(initialQuantities);
       }
@@ -102,13 +102,13 @@ const Booking = () => {
   const updateQuantity = (itemId: string, increment: boolean) => {
     setQuantities(prev => ({
       ...prev,
-      [itemId]: Math.max(1, (prev[itemId] || 1) + (increment ? 1 : -1))
+      [itemId]: Math.max(0, (prev[itemId] || 0) + (increment ? 1 : -1))
     }));
   };
   
   const calculateTotal = () => {
     return pricingItems.reduce((total, item) => {
-      return total + (item.price * (quantities[item._id] || 1));
+      return total + (item.price * (quantities[item._id] || 0));
     }, 0);
   };
   
@@ -161,16 +161,16 @@ const Booking = () => {
                 <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <button
                     onClick={() => updateQuantity(item._id, false)}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center font-bold touch-manipulation"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white flex items-center justify-center font-bold touch-manipulation shadow-md"
                   >
                     <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
                   <span className="w-6 sm:w-8 text-center font-semibold text-black text-sm sm:text-base">
-                    {quantities[item._id] || 1}
+                    {quantities[item._id] || 0}
                   </span>
                   <button
                     onClick={() => updateQuantity(item._id, true)}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center font-bold touch-manipulation"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white flex items-center justify-center font-bold touch-manipulation shadow-md"
                   >
                     <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
@@ -185,9 +185,9 @@ const Booking = () => {
           <div className="flex gap-2 sm:gap-3">
             <Button
               onClick={() => setPickupType("now")}
-              className={`flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base ${
+              className={`flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base shadow-md ${
                 pickupType === "now" 
-                  ? "bg-blue-500 hover:bg-blue-600 text-white" 
+                  ? "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white" 
                   : "bg-white border border-gray-300 text-blue-500 hover:bg-gray-50"
               }`}
             >
@@ -195,9 +195,9 @@ const Booking = () => {
             </Button>
             <Button
               onClick={() => setPickupType("later")}
-              className={`flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base ${
+              className={`flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base shadow-md ${
                 pickupType === "later" 
-                  ? "bg-blue-500 hover:bg-blue-600 text-white" 
+                  ? "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white" 
                   : "bg-white border border-gray-300 text-blue-500 hover:bg-gray-50"
               }`}
             >
@@ -209,7 +209,7 @@ const Booking = () => {
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Schedule Pickup & Delivery</h2>
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base px-3 sm:px-4 flex-shrink-0">
+            <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white text-sm sm:text-base px-3 sm:px-4 flex-shrink-0 shadow-md">
               {pickupType === "now" ? "Today" : "Tomorrow"}
             </Button>
             {timeSlots.map((slot) => (
@@ -220,7 +220,7 @@ const Booking = () => {
                   isSlotPassed(slot.time) && pickupType === 'now'
                     ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
                     : selectedSlot === slot.time 
-                      ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white shadow-md' 
                       : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
                 }`}
               >
@@ -309,7 +309,7 @@ const Booking = () => {
           <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Order Summary</h2>
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg space-y-2 sm:space-y-3">
             <p className="text-xs sm:text-sm text-black">
-              Items: {pricingItems.map(item => `${quantities[item._id] || 1} ${item.name}`).join(', ')}
+              Items: {pricingItems.filter(item => (quantities[item._id] || 0) > 0).map(item => `${quantities[item._id]} ${item.name}`).join(', ') || 'No items selected'}
             </p>
             <p className="text-xs sm:text-sm text-black">Service: Steam Iron</p>
             <p className="text-xs sm:text-sm text-black font-semibold">Minimum Order Value: ₹500</p>
@@ -338,11 +338,13 @@ const Booking = () => {
               return;
             }
             const orderData = {
-              items: pricingItems.map(item => ({
-                name: item.name,
-                quantity: quantities[item._id] || 1,
-                price: item.price
-              })),
+              items: pricingItems
+                .filter(item => (quantities[item._id] || 0) > 0)
+                .map(item => ({
+                  name: item.name,
+                  quantity: quantities[item._id],
+                  price: item.price
+                })),
               total: calculateTotal(),
               pickupType,
               selectedSlot,
@@ -351,10 +353,10 @@ const Booking = () => {
             navigate("/continue-booking", { state: orderData });
           }}
           disabled={calculateTotal() < 500}
-          className={`w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold transition-colors ${
+          className={`w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold transition-colors shadow-lg ${
             calculateTotal() < 500 
               ? 'bg-gray-300 cursor-not-allowed text-gray-500' 
-              : 'bg-blue-500 hover:bg-blue-600 text-white'
+              : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white'
           }`}
         >
           <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />

@@ -58,7 +58,7 @@ const CheckAvailability = () => {
           <Button 
             onClick={handleCheckAvailability}
             disabled={pincode.length !== 6}
-            className="w-full rounded-2xl py-6 sm:py-8 text-base sm:text-lg font-semibold transition-colors"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl py-6 sm:py-8 text-base sm:text-lg font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             size="lg"
           >
             Check Availability
