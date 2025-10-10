@@ -51,18 +51,19 @@ export default function Pickups() {
     }
   };
   return (
-    <div className="pb-24">
+    <div className="pb-24 bg-gray-50 min-h-screen">
       {/* Header */}
-      <header className="px-4 pt-4">
+      <header className="px-4 pt-6 pb-4 bg-white shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-black">Today’s Pickups</h2>
-          <span className="text-blue-600">🔔</span>
+          <h2 className="text-xl font-bold text-gray-900">Today's Pickups</h2>
+          <button className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+            <span className="text-xl">🔔</span>
+          </button>
         </div>
-        {/* Intentionally no location line to match screenshot */}
       </header>
 
       {/* Map Banner */}
-      <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-40">
+      <div className="mt-4 mx-4 relative rounded-2xl overflow-hidden h-40 shadow-md">
         <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1!2d-73.98!3d40.75!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ1JzAwLjAiTiA3M8KwNTgnNDguMCJX!5e0!3m2!1sen!2sus!4v1234567890"
           width="100%"
@@ -73,8 +74,8 @@ export default function Pickups() {
           referrerPolicy="no-referrer-when-downgrade"
         />
         {/* Floating card */}
-        <div className="absolute left-4 top-4 bg-white shadow-sm rounded-xl px-4 py-2 text-sm font-medium">
-          {pickups.length} pickups assigned today
+        <div className="absolute left-4 top-4 bg-white shadow-lg rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-900">
+          <span className="text-blue-600">{pickups.length}</span> pickups today
         </div>
       </div>
 
@@ -84,35 +85,37 @@ export default function Pickups() {
           <div className="text-center py-8 text-gray-500">Loading pickups...</div>
         ) : pickups.length > 0 ? (
           pickups.map((p) => (
-            <div key={p._id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-base font-semibold text-black">{p.customerId?.name || 'Customer'}</p>
-                  <p className="text-xs text-black mt-1">
-                    {p.pickupAddress?.street}, {p.pickupAddress?.city}
+            <div key={p._id} className="rounded-2xl bg-white card-shadow p-4 border border-gray-100">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <p className="text-base font-bold text-gray-900">{p.customerId?.name || 'Customer'}</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    📍 {p.pickupAddress?.street}, {p.pickupAddress?.city}
                   </p>
-                  <p className="text-[11px] mt-1 text-black">
-                    Pickup {p.pickupSlot?.timeSlot || 'Time not set'}
+                  <p className="text-xs mt-1.5 text-blue-600 font-medium">
+                    🕐 {p.pickupSlot?.timeSlot || 'Time not set'}
                   </p>
                 </div>
-                <span className="text-xs text-gray-500">Order #{p.orderId}</span>
+                <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">#{p.orderId}</span>
               </div>
-              <div className="mt-3 flex items-center justify-between">
-                <a href={`tel:${p.customerId?.mobile}`} className="inline-flex items-center gap-2 rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">
+              <div className="flex items-center gap-3">
+                <a href={`tel:${p.customerId?.mobile}`} className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-blue-500 text-blue-600 py-2.5 text-sm font-bold btn-press">
                   <span>📞</span>
                   Call
                 </a>
-                <Link href={`/pickups/start/${p._id}`} className="inline-flex justify-center items-center bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-semibold">
-                  Start Pickup
+                <Link href={`/pickups/start/${p._id}`} className="flex-1 inline-flex justify-center items-center bg-blue-600 text-white rounded-xl py-2.5 text-sm font-bold shadow-md btn-press">
+                  Start Pickup →
                 </Link>
               </div>
             </div>
           ))
         ) : (
-          <div className="mt-6 px-4 text-center">
-            <Image src="/scooter.svg" alt="Scooter" width={180} height={130} className="mx-auto" />
-            <p className="mt-2 text-base font-semibold">No pickups assigned yet.</p>
-            <p className="text-xs text-black">Orders will appear here once assigned.</p>
+          <div className="mt-12 px-4 text-center">
+            <div className="bg-white rounded-2xl p-8 card-shadow">
+              <Image src="/scooter.svg" alt="Scooter" width={180} height={130} className="mx-auto opacity-80" />
+              <p className="mt-4 text-lg font-bold text-gray-900">No pickups assigned yet</p>
+              <p className="text-sm text-gray-500 mt-2">Orders will appear here once assigned</p>
+            </div>
           </div>
         )}
       </div>

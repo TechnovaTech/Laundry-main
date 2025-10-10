@@ -67,14 +67,14 @@ export default function BottomNav() {
   ] as const;
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-      <div className="mx-auto max-w-md px-6 py-3">
-        <ul className="grid grid-cols-5 items-center gap-2">
+    <nav className="fixed bottom-0 inset-x-0 bg-white shadow-2xl" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <div className="mx-auto max-w-md px-4 py-2">
+        <ul className="grid grid-cols-5 items-center gap-1">
           {items.map((it) => (
             <li key={it.href} className="flex flex-col items-center text-center">
-              <Link href={it.href} className="flex flex-col items-center gap-1">
+              <Link href={it.href} className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl hover:bg-gray-50 transition-colors">
                 <Icon src={it.icon} active={it.active} showCheck={it.check} />
-                <span className={it.active ? "text-blue-600 font-semibold text-sm" : "text-gray-500 text-sm"}>{it.label}</span>
+                <span className={it.active ? "text-blue-600 font-bold text-[10px]" : "text-gray-500 text-[10px]"}>{it.label}</span>
               </Link>
             </li>
           ))}
