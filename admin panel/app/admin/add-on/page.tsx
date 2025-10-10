@@ -4,7 +4,13 @@ import { useState, useEffect } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function AddOnPage() {
-  const [activeSection, setActiveSection] = useState('Pincode')
+  const [activeSection, setActiveSection] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '')
+      return hash || 'Pincode'
+    }
+    return 'Pincode'
+  })
   const [states, setStates] = useState([])
   const [cities, setCities] = useState([])
   const [pincodes, setPincodes] = useState([])
@@ -474,7 +480,10 @@ export default function AddOnPage() {
         {/* Header Buttons */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
           <button 
-            onClick={() => setActiveSection('Pincode')}
+            onClick={() => {
+              setActiveSection('Pincode')
+              window.location.hash = 'Pincode'
+            }}
             style={{ 
               padding: '0.75rem 1.5rem', 
               backgroundColor: activeSection === 'Pincode' ? '#2563eb' : 'white', 
@@ -489,7 +498,10 @@ export default function AddOnPage() {
             Pincode
           </button>
           <button 
-            onClick={() => setActiveSection('Voucher')}
+            onClick={() => {
+              setActiveSection('Voucher')
+              window.location.hash = 'Voucher'
+            }}
             style={{ 
               padding: '0.75rem 1.5rem', 
               backgroundColor: activeSection === 'Voucher' ? '#2563eb' : 'white', 
@@ -504,7 +516,10 @@ export default function AddOnPage() {
             Voucher
           </button>
           <button 
-            onClick={() => setActiveSection('TimeSlot')}
+            onClick={() => {
+              setActiveSection('TimeSlot')
+              window.location.hash = 'TimeSlot'
+            }}
             style={{ 
               padding: '0.75rem 1.5rem', 
               backgroundColor: activeSection === 'TimeSlot' ? '#2563eb' : 'white', 
@@ -519,7 +534,10 @@ export default function AddOnPage() {
             Time Slot
           </button>
           <button 
-            onClick={() => setActiveSection('Wallet')}
+            onClick={() => {
+              setActiveSection('Wallet')
+              window.location.hash = 'Wallet'
+            }}
             style={{ 
               padding: '0.75rem 1.5rem', 
               backgroundColor: activeSection === 'Wallet' ? '#2563eb' : 'white', 
@@ -534,7 +552,10 @@ export default function AddOnPage() {
             Wallet Points
           </button>
           <button 
-            onClick={() => setActiveSection('Hub')}
+            onClick={() => {
+              setActiveSection('Hub')
+              window.location.hash = 'Hub'
+            }}
             style={{ 
               padding: '0.75rem 1.5rem', 
               backgroundColor: activeSection === 'Hub' ? '#2563eb' : 'white', 
