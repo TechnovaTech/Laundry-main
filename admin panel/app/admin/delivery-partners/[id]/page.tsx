@@ -14,9 +14,11 @@ interface Partner {
   aadharNumber?: string
   panNumber?: string
   bankDetails?: {
+    accountHolderName?: string
     accountNumber: string
     ifscCode: string
     bankName: string
+    branch?: string
   }
   address?: {
     street: string
@@ -181,9 +183,11 @@ export default function PartnerProfilePage() {
         }}>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#2563eb' }}>Bank Details</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div><strong>Bank Name:</strong> {partner.bankDetails?.bankName || 'Not provided'}</div>
+            <div><strong>Account Holder Name:</strong> {partner.bankDetails?.accountHolderName || 'Not provided'}</div>
             <div><strong>Account Number:</strong> {partner.bankDetails?.accountNumber || 'Not provided'}</div>
             <div><strong>IFSC Code:</strong> {partner.bankDetails?.ifscCode || 'Not provided'}</div>
+            <div><strong>Bank Name:</strong> {partner.bankDetails?.bankName || 'Not provided'}</div>
+            <div><strong>Branch:</strong> {partner.bankDetails?.branch || 'Not provided'}</div>
           </div>
         </div>
 
