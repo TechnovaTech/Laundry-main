@@ -7,21 +7,31 @@ import ResponsiveLayout from '../../components/ResponsiveLayout'
 export default function OrdersPage() {
   const router = useRouter()
   const [orders, setOrders] = useState([])
+  const [filteredOrders, setFilteredOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeFilter, setActiveFilter] = useState('all')
+  const [dateFilter, setDateFilter] = useState('')
+  const [partnerFilter, setPartnerFilter] = useState('all')
+  const [partners, setPartners] = useState<any[]>([])
 
   const statusFilters = [
-    { label: 'All', active: true },
-    { label: 'New', active: false },
-    { label: 'Picked Up', active: false },
-    { label: 'At Hub', active: false },
-    { label: 'Out for Delivery', active: false },
-    { label: 'Delivered', active: false },
-    { label: 'Cancelled', active: false }
+    { label: 'All', value: 'all' },
+    { label: 'Pending', value: 'pending' },
+    { label: 'Picked Up', value: 'picked_up' },
+    { label: 'At Hub', value: 'delivered_to_hub' },
+    { label: 'Out for Delivery', value: 'out_for_delivery' },
+    { label: 'Delivered', value: 'delivered' },
+    { label: 'Cancelled', value: 'cancelled' }
   ]
 
   useEffect(() => {
     fetchOrders()
+    fetchPartners()
   }, [])
+
+  useEffect(() => {
+    applyFilters()
+  }, [orders, activeFilter, dateFilter, partnerFilter])
 
   const fetchOrders = async () => {
     try {
@@ -30,12 +40,49 @@ export default function OrdersPage() {
       
       if (data.success) {
         setOrders(data.data)
+        setFilteredOrders(data.data)
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchPartners = async () => {
+    try {
+      const response = await fetch('/api/partners')
+      const data = await response.json()
+      if (data.success) {
+        setPartners(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch partners:', error)
+    }
+  }
+
+  const applyFilters = () => {
+    let filtered = [...orders]
+
+    // Status filter
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === activeFilter)
+    }
+
+    // Date filter
+    if (dateFilter) {
+      filtered = filtered.filter(order => {
+        const orderDate = new Date(order.createdAt).toISOString().split('T')[0]
+        return orderDate === dateFilter
+      })
+    }
+
+    // Partner filter
+    if (partnerFilter !== 'all') {
+      filtered = filtered.filter(order => order.partnerId?._id === partnerFilter)
+    }
+
+    setFilteredOrders(filtered)
   }
 
   const formatOrderForDisplay = (order: any) => {
@@ -59,41 +106,53 @@ export default function OrdersPage() {
             {statusFilters.map((filter, index) => (
               <button
                 key={index}
+                onClick={() => setActiveFilter(filter.value)}
                 style={{
                   padding: '0.75rem 1.5rem',
                   borderRadius: '8px',
-                  border: filter.active ? 'none' : '1px solid #d1d5db',
-                  backgroundColor: filter.active ? '#2563eb' : 'white',
-                  color: filter.active ? 'white' : '#6b7280',
+                  border: activeFilter === filter.value ? 'none' : '1px solid #d1d5db',
+                  backgroundColor: activeFilter === filter.value ? '#2563eb' : 'white',
+                  color: activeFilter === filter.value ? 'white' : '#6b7280',
                   fontSize: '0.9rem',
                   fontWeight: '500',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
                 }}
               >
                 {filter.label}
               </button>
             ))}
             <input
-              type="text"
-              placeholder="YYYY-MM-DD"
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 outline: 'none',
-                marginLeft: '1rem'
+                marginLeft: '1rem',
+                cursor: 'pointer'
               }}
             />
             <select
+              value={partnerFilter}
+              onChange={(e) => setPartnerFilter(e.target.value)}
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 outline: 'none',
-                backgroundColor: 'white'
+                backgroundColor: 'white',
+                cursor: 'pointer'
               }}
             >
-              <option>Partner #P1</option>
+              <option value="all">All Partners</option>
+              {partners.map(partner => (
+                <option key={partner._id} value={partner._id}>
+                  {partner.name || partner.personalDetails?.name || `Partner ${partner.partnerId}`}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -130,11 +189,11 @@ export default function OrdersPage() {
               <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
                 Loading orders...
               </div>
-            ) : orders.length === 0 ? (
+            ) : filteredOrders.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
                 No orders found
               </div>
-            ) : orders.map((dbOrder, index) => {
+            ) : filteredOrders.map((dbOrder, index) => {
               const order = formatOrderForDisplay(dbOrder)
               return (
               <div
@@ -145,7 +204,7 @@ export default function OrdersPage() {
                   display: 'grid',
                   gridTemplateColumns: '1fr 1.5fr 2fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
                   gap: '1rem',
-                  borderBottom: index < orders.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  borderBottom: index < filteredOrders.length - 1 ? '1px solid #f3f4f6' : 'none',
                   fontSize: '0.9rem',
                   alignItems: 'center',
                   cursor: 'pointer'
@@ -327,7 +386,7 @@ export default function OrdersPage() {
             marginTop: '1.5rem'
           }}>
             <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-              Showing 1-20 of 540 orders
+              Showing {filteredOrders.length} of {orders.length} orders
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button style={{

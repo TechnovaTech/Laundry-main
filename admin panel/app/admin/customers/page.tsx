@@ -22,6 +22,10 @@ export default function CustomersPage() {
     activeCustomers: 0,
     highValueCustomers: 0
   })
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set())
+  const [currentPage, setCurrentPage] = useState(1)
+  const customersPerPage = 20
 
   useEffect(() => {
     fetchCustomers()
@@ -49,12 +53,64 @@ export default function CustomersPage() {
     setStats({ totalCustomers: total, activeCustomers: active, highValueCustomers: highValue })
   }
 
+  const toggleSelection = (customerId: string) => {
+    const newSelected = new Set(selectedCustomers)
+    if (newSelected.has(customerId)) {
+      newSelected.delete(customerId)
+    } else {
+      newSelected.add(customerId)
+    }
+    setSelectedCustomers(newSelected)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedCustomers.size === customers.length) {
+      setSelectedCustomers(new Set())
+    } else {
+      setSelectedCustomers(new Set(customers.map(c => c._id)))
+    }
+  }
+
+  const indexOfLastCustomer = currentPage * customersPerPage
+  const indexOfFirstCustomer = indexOfLastCustomer - customersPerPage
+  const currentCustomers = customers.slice(indexOfFirstCustomer, indexOfLastCustomer)
+  const totalPages = Math.ceil(customers.length / customersPerPage)
+
+  const handleBulkDelete = async () => {
+    if (selectedCustomers.size === 0) return
+    
+    if (confirm(`Are you sure you want to delete ${selectedCustomers.size} customer(s)? This action cannot be undone.`)) {
+      try {
+        const deletePromises = Array.from(selectedCustomers).map(async (id) => {
+          const response = await fetch(`/api/customers/${id}`, { 
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          if (!response.ok) {
+            throw new Error(`Failed to delete customer ${id}`)
+          }
+          return response.json()
+        })
+        
+        await Promise.all(deletePromises)
+        alert(`Successfully deleted ${selectedCustomers.size} customer(s)`)
+        setSelectedCustomers(new Set())
+        setSelectionMode(false)
+        fetchCustomers()
+      } catch (error) {
+        console.error('Failed to delete customers:', error)
+        alert('Failed to delete some customers. Please try again.')
+      }
+    }
+  }
+
   return (
     <ResponsiveLayout activePage="Customers" title="Customers" searchPlaceholder="Search by Name / Mobile">
         {/* Customers Content */}
         <div style={{ padding: '1.5rem' }}>
           {/* Filter Section */}
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <select
               style={{
                 padding: '0.75rem 1rem',
@@ -95,6 +151,44 @@ export default function CustomersPage() {
               onFocus={(e) => e.target.style.borderColor = '#2563eb'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
             />
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => {
+                  setSelectionMode(!selectionMode)
+                  setSelectedCustomers(new Set())
+                }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: selectionMode ? '#dc2626' : '#2563eb',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                {selectionMode ? 'Cancel Selection' : 'Select Customers'}
+              </button>
+              {selectionMode && selectedCustomers.size > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Delete Selected ({selectedCustomers.size})
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -154,13 +248,29 @@ export default function CustomersPage() {
               backgroundColor: '#f8fafc',
               padding: '1rem',
               display: 'grid',
-              gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr 2fr',
+              gridTemplateColumns: selectionMode ? '50px 1fr 2fr 2fr 1.5fr 1.5fr 2fr' : '1fr 2fr 2fr 1.5fr 1.5fr 2fr',
               gap: '1rem',
               fontSize: '0.9rem',
               fontWeight: '600',
               color: '#6b7280',
               borderBottom: '1px solid #e5e7eb'
             }}>
+              {selectionMode && (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedCustomers.size === currentCustomers.length && currentCustomers.length > 0}
+                    onChange={() => {
+                      if (selectedCustomers.size === currentCustomers.length) {
+                        setSelectedCustomers(new Set())
+                      } else {
+                        setSelectedCustomers(new Set(currentCustomers.map(c => c._id)))
+                      }
+                    }}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                </div>
+              )}
               <div>Customer ID</div>
               <div>Name</div>
               <div>Mobile</div>
@@ -175,23 +285,62 @@ export default function CustomersPage() {
                 Loading customers...
               </div>
             ) : customers.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
-                No customers found
+              <div style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  textAlign: 'left'
+                }}>
+                  <div style={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    backgroundColor: '#2563eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '1.5rem',
+                    flexShrink: 0
+                  }}>
+                    ●
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem' }}>
+                      No customers found.
+                    </div>
+                    <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                      Try adjusting your search or filter criteria.
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
-              customers.map((customer, index) => (
+              currentCustomers.map((customer, index) => (
                 <div
                   key={customer._id}
                   style={{
                     padding: '1rem',
                     display: 'grid',
-                    gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr 2fr',
+                    gridTemplateColumns: selectionMode ? '50px 1fr 2fr 2fr 1.5fr 1.5fr 2fr' : '1fr 2fr 2fr 1.5fr 1.5fr 2fr',
                     gap: '1rem',
-                    borderBottom: index < customers.length - 1 ? '1px solid #f3f4f6' : 'none',
+                    borderBottom: index < currentCustomers.length - 1 ? '1px solid #f3f4f6' : 'none',
                     fontSize: '0.9rem',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    backgroundColor: selectedCustomers.has(customer._id) ? '#eff6ff' : 'white'
                   }}
                 >
+                  {selectionMode && (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedCustomers.has(customer._id)}
+                        onChange={() => toggleSelection(customer._id)}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                    </div>
+                  )}
                   <div style={{ fontWeight: '500' }}>#{customer._id.slice(-6)}</div>
                   <div>{customer.name || 'User'}</div>
                   <div>{customer.mobile}</div>
@@ -245,71 +394,56 @@ export default function CustomersPage() {
             )}
           </div>
 
-          {/* No Customers Found Section */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            marginTop: '2rem',
-            padding: '1rem 0'
-          }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: '#2563eb',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '1.2rem',
-              flexShrink: 0
-            }}>
-              ●
-            </div>
-            <div>
-              <div style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem' }}>
-                No customers found.
-              </div>
-              <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                Try adjusting your search or filter criteria.
-              </div>
-            </div>
-          </div>
-
           {/* Pagination */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '1.5rem'
-          }}>
-            <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-              Showing 1-20 of 540 orders
+          {customers.length > 0 && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '1.5rem'
+            }}>
+              <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                Showing {indexOfFirstCustomer + 1}-{Math.min(indexOfLastCustomer, customers.length)} of {customers.length} customers
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: currentPage === 1 ? '#d1d5db' : '#2563eb',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  Prev
+                </button>
+                <span style={{ color: '#6b7280', fontSize: '0.9rem', padding: '0 0.5rem' }}>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: currentPage === totalPages ? '#d1d5db' : '#2563eb',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  Next
+                </button>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
-                Prev
-              </button>
-              <button style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
-                Next
-              </button>
-            </div>
-          </div>
+          )}
       </div>
     </ResponsiveLayout>
   )

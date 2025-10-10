@@ -16,16 +16,23 @@ interface Partner {
 
 export default function DeliveryPartnersPage() {
   const [partners, setPartners] = useState<Partner[]>([])
+  const [filteredPartners, setFilteredPartners] = useState<Partner[]>([])
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     totalPartners: 0,
     activePartners: 0,
     blockedPartners: 0
   })
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [sortFilter, setSortFilter] = useState('all')
 
   useEffect(() => {
     fetchPartners()
   }, [])
+
+  useEffect(() => {
+    applyFilters()
+  }, [partners, statusFilter, sortFilter])
 
   const fetchPartners = async () => {
     try {
@@ -34,6 +41,7 @@ export default function DeliveryPartnersPage() {
       if (data.success) {
         const approvedPartners = data.data.filter((p: Partner) => p.isVerified)
         setPartners(approvedPartners)
+        setFilteredPartners(approvedPartners)
         calculateStats(approvedPartners)
       }
     } catch (error) {
@@ -48,6 +56,29 @@ export default function DeliveryPartnersPage() {
     const active = partnerData.filter(p => p.isActive).length
     const blocked = partnerData.filter(p => !p.isActive).length
     setStats({ totalPartners: total, activePartners: active, blockedPartners: blocked })
+  }
+
+  const applyFilters = () => {
+    let filtered = [...partners]
+
+    // Status filter
+    if (statusFilter === 'active') {
+      filtered = filtered.filter(p => p.isActive)
+    } else if (statusFilter === 'inactive') {
+      filtered = filtered.filter(p => !p.isActive)
+    }
+
+    // Sort filter
+    if (sortFilter === 'most_deliveries') {
+      filtered.sort((a, b) => b.totalDeliveries - a.totalDeliveries)
+    } else if (sortFilter === 'least_deliveries') {
+      filtered.sort((a, b) => a.totalDeliveries - b.totalDeliveries)
+    } else if (sortFilter === 'highest_earnings') {
+      filtered.sort((a, b) => b.totalEarnings - a.totalEarnings)
+    }
+    // 'all' means no specific sorting, keep original order
+
+    setFilteredPartners(filtered)
   }
 
   return (
@@ -97,36 +128,43 @@ export default function DeliveryPartnersPage() {
           {/* Filter Section */}
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
             <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 outline: 'none',
                 backgroundColor: 'white',
-                minWidth: '120px'
+                minWidth: '120px',
+                cursor: 'pointer'
               }}
               onFocus={(e) => e.target.style.borderColor = '#2563eb'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
             >
-              <option>Active</option>
-              <option>Inactive</option>
-              <option>All</option>
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </select>
             <select
+              value={sortFilter}
+              onChange={(e) => setSortFilter(e.target.value)}
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 outline: 'none',
                 backgroundColor: 'white',
-                minWidth: '150px'
+                minWidth: '150px',
+                cursor: 'pointer'
               }}
               onFocus={(e) => e.target.style.borderColor = '#2563eb'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
             >
-              <option>Most Deliveries</option>
-              <option>Least Deliveries</option>
-              <option>Highest Earnings</option>
+              <option value="all">All</option>
+              <option value="most_deliveries">Most Deliveries</option>
+              <option value="least_deliveries">Least Deliveries</option>
+              <option value="highest_earnings">Highest Earnings</option>
             </select>
           </div>
 
@@ -164,12 +202,12 @@ export default function DeliveryPartnersPage() {
               <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
                 Loading partners...
               </div>
-            ) : partners.length === 0 ? (
+            ) : filteredPartners.length === 0 ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
                 No partners found
               </div>
             ) : (
-              partners.map((partner, index) => (
+              filteredPartners.map((partner, index) => (
                 <div
                   key={partner._id}
                   style={{
@@ -177,7 +215,7 @@ export default function DeliveryPartnersPage() {
                     display: 'grid',
                     gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr 1fr 2fr',
                     gap: '1rem',
-                    borderBottom: index < partners.length - 1 ? '1px solid #f3f4f6' : 'none',
+                    borderBottom: index < filteredPartners.length - 1 ? '1px solid #f3f4f6' : 'none',
                     fontSize: '0.9rem',
                     alignItems: 'center'
                   }}
@@ -248,38 +286,18 @@ export default function DeliveryPartnersPage() {
           </div>
 
           {/* Pagination */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '1.5rem'
-          }}>
-            <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-              Showing 1-20 of 540 orders
+          {filteredPartners.length > 0 && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '1.5rem'
+            }}>
+              <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                Showing {filteredPartners.length} of {partners.length} partners
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
-                Prev
-              </button>
-              <button style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
-                Next
-              </button>
-            </div>
-          </div>
+          )}
       </div>
     </ResponsiveLayout>
   )
