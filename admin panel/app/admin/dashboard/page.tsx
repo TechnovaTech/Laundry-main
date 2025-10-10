@@ -1,8 +1,76 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    ordersToday: 0,
+    activeDeliveries: 0,
+    completedOrders: 0,
+    revenueToday: 0
+  })
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch orders
+      const ordersRes = await fetch('http://localhost:3000/api/orders')
+      const ordersData = await ordersRes.json()
+      
+      if (ordersData.success) {
+        const orders = ordersData.data
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        
+        // Calculate stats
+        const ordersToday = orders.filter((o: any) => new Date(o.createdAt) >= today).length
+        const activeDeliveries = orders.filter((o: any) => 
+          ['pending', 'picked_up', 'processing', 'out_for_delivery'].includes(o.status)
+        ).length
+        const completedOrders = orders.filter((o: any) => o.status === 'delivered').length
+        const revenueToday = orders
+          .filter((o: any) => new Date(o.createdAt) >= today)
+          .reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0)
+        
+        setStats({
+          ordersToday,
+          activeDeliveries,
+          completedOrders,
+          revenueToday
+        })
+        
+        // Get recent activity
+        const recent = orders
+          .sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
+          .slice(0, 5)
+          .map((o: any) => ({
+            text: `Order #${o.orderId} - ${o.status}`,
+            time: new Date(o.updatedAt || o.createdAt).toLocaleString()
+          }))
+        
+        setRecentActivity(recent)
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <ResponsiveLayout activePage="Dashboard" title="Dashboard" searchPlaceholder="Search...">
+        <div style={{ padding: '1.5rem', textAlign: 'center' }}>Loading...</div>
+      </ResponsiveLayout>
+    )
+  }
+
   return (
     <ResponsiveLayout activePage="Dashboard" title="Dashboard" searchPlaceholder="Search...">
 
@@ -24,7 +92,7 @@ export default function AdminDashboard() {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>120</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>{stats.ordersToday}</div>
                   <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Orders Today</div>
                 </div>
                 <div style={{
@@ -34,7 +102,7 @@ export default function AdminDashboard() {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>45</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>{stats.activeDeliveries}</div>
                   <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Active Deliveries</div>
                 </div>
                 <div style={{
@@ -44,7 +112,7 @@ export default function AdminDashboard() {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>75</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>{stats.completedOrders}</div>
                   <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Completed Orders</div>
                 </div>
                 <div style={{
@@ -54,7 +122,7 @@ export default function AdminDashboard() {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>₹18,500</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>₹{stats.revenueToday.toLocaleString()}</div>
                   <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>Revenue Today</div>
                 </div>
               </div>
@@ -209,16 +277,19 @@ export default function AdminDashboard() {
                 flexDirection: 'column'
               }}>
                 <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: '600' }}>Recent Activity</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
-                  <div style={{ padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '8px', fontSize: '0.9rem' }}>
-                    Order #12345 delivered by Partner #P10
-                  </div>
-                  <div style={{ padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '8px', fontSize: '0.9rem' }}>
-                    New customer registered
-                  </div>
-                  <div style={{ padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '8px', fontSize: '0.9rem' }}>
-                    Partner KYC approved
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, overflowY: 'auto' }}>
+                  {recentActivity.length > 0 ? (
+                    recentActivity.map((activity, index) => (
+                      <div key={index} style={{ padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '8px', fontSize: '0.85rem' }}>
+                        <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{activity.text}</div>
+                        <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{activity.time}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'center', color: '#6b7280' }}>
+                      No recent activity
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
