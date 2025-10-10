@@ -65,28 +65,31 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24" suppressHydrationWarning>
-      <div className="bg-blue-600 text-white p-6">
-        <button onClick={() => router.back()} className="mb-4">
+      <div className="p-4">
+        <button onClick={() => router.back()} className="mb-4 flex items-center gap-2 text-gray-600">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
+          <span className="font-semibold">Back</span>
         </button>
-        <div className="flex items-center gap-4">
-          {partnerData.profileImage ? (
-            <img src={partnerData.profileImage} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-white" />
-          ) : (
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-blue-600 text-3xl font-bold">
-              {partnerData.name.charAt(0).toUpperCase()}
+        
+        <div className="bg-white rounded-lg shadow p-6 mb-4">
+          <div className="flex items-center gap-4">
+            {partnerData.profileImage ? (
+              <img src={partnerData.profileImage} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-blue-600" />
+            ) : (
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-3xl font-bold">
+                {partnerData.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{partnerData.name}</h1>
+              <p className="text-gray-600">{partnerData.mobile}</p>
             </div>
-          )}
-          <div>
-            <h1 className="text-2xl font-bold">{partnerData.name}</h1>
-            <p className="text-blue-100">{partnerData.mobile}</p>
           </div>
         </div>
-      </div>
 
-      <div className="p-4 space-y-4">
+      <div className="space-y-4">
         <div 
           onClick={() => router.push("/profile/personal")}
           className="bg-white rounded-lg shadow p-6 flex items-center gap-4 cursor-pointer hover:shadow-lg transition"
@@ -151,16 +154,17 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="p-4">
-        <button
-          onClick={handleLogout}
-          className="w-full bg-red-600 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Logout
-        </button>
+        <div className="mt-4">
+          <button
+            onClick={handleLogout}
+            className="w-full bg-red-600 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   );
