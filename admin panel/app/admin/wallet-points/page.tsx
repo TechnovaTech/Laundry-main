@@ -12,6 +12,7 @@ export default function WalletPointsPage() {
   })
   const [showModal, setShowModal] = useState(false)
   const [modalData, setModalData] = useState({ customerId: '', customerName: '', type: '', currentValue: 0 })
+  const [toast, setToast] = useState({ show: false, message: '', type: '' })
 
   useEffect(() => {
     fetchCustomers()
@@ -49,15 +50,18 @@ export default function WalletPointsPage() {
         body: JSON.stringify({ type: modalData.type, action, amount, reason })
       })
       if (response.ok) {
-        alert('Adjustment successful')
+        setToast({ show: true, message: 'Adjustment successful!', type: 'success' })
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
         setShowModal(false)
         fetchCustomers()
       } else {
         const data = await response.json()
-        alert(data.error || 'Failed to adjust')
+        setToast({ show: true, message: data.error || 'Failed to adjust', type: 'error' })
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
       }
     } catch (error) {
-      alert('Failed to adjust')
+      setToast({ show: true, message: 'Failed to adjust', type: 'error' })
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
     }
   }
 
@@ -150,6 +154,33 @@ export default function WalletPointsPage() {
                   </div>
                 </form>
               </div>
+            </div>
+          )}
+
+          {toast.show && (
+            <div style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
+              color: 'white',
+              padding: '1rem 1.5rem',
+              borderRadius: '8px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <span>{toast.message}</span>
+              <button onClick={() => setToast({ show: false, message: '', type: '' })} style={{
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                fontSize: '1.25rem',
+                cursor: 'pointer',
+                padding: '0 0.25rem'
+              }}>×</button>
             </div>
           )}
       </div>

@@ -25,6 +25,8 @@ export default function DeliveryPartnersPage() {
   })
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortFilter, setSortFilter] = useState('all')
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [confirmAction, setConfirmAction] = useState({ partnerId: '', isActive: false })
 
   useEffect(() => {
     fetchPartners()
@@ -280,21 +282,9 @@ export default function DeliveryPartnersPage() {
                     View Profile
                   </button>
                   <button 
-                    onClick={async () => {
-                      if (confirm(`Are you sure you want to ${partner.isActive ? 'block' : 'unblock'} this partner?`)) {
-                        try {
-                          const response = await fetch(`/api/mobile/partners/${partner._id}`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ isActive: !partner.isActive })
-                          })
-                          if (response.ok) {
-                            fetchPartners()
-                          }
-                        } catch (error) {
-                          console.error('Failed to update partner status:', error)
-                        }
-                      }
+                    onClick={() => {
+                      setConfirmAction({ partnerId: partner._id, isActive: partner.isActive })
+                      setShowConfirmModal(true)
                     }}
                     style={{
                     backgroundColor: partner.isActive ? '#dc2626' : '#10b981',
@@ -325,6 +315,33 @@ export default function DeliveryPartnersPage() {
             }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
                 Showing {filteredPartners.length} of {partners.length} partners
+              </div>
+            </div>
+          )}
+
+          {showConfirmModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '400px' }}>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>Confirm Action</h3>
+                <p style={{ marginBottom: '1.5rem', color: '#6b7280' }}>Are you sure you want to {confirmAction.isActive ? 'block' : 'unblock'} this partner?</p>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <button onClick={() => setShowConfirmModal(false)} style={{ padding: '0.5rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={async () => {
+                    try {
+                      const response = await fetch(`/api/mobile/partners/${confirmAction.partnerId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ isActive: !confirmAction.isActive })
+                      })
+                      if (response.ok) {
+                        fetchPartners()
+                      }
+                    } catch (error) {
+                      console.error('Failed to update partner status:', error)
+                    }
+                    setShowConfirmModal(false)
+                  }} style={{ padding: '0.5rem 1rem', backgroundColor: confirmAction.isActive ? '#dc2626' : '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>{confirmAction.isActive ? 'Block' : 'Unblock'}</button>
+                </div>
               </div>
             </div>
           )}

@@ -43,6 +43,7 @@ export default function AddOnPage() {
   const [hubCities, setHubCities] = useState<string[]>([])
   const [hubPincodes, setHubPincodes] = useState<any[]>([])
   const [selectedServicePincodes, setSelectedServicePincodes] = useState<string[]>([])
+  const [toast, setToast] = useState({ show: false, message: '', type: '' })
 
   useEffect(() => {
     fetchStates()
@@ -115,10 +116,12 @@ export default function AddOnPage() {
       })
       const data = await response.json()
       if (data.success) {
-        alert('Wallet settings saved successfully!')
+        setToast({ show: true, message: 'Wallet settings saved successfully!', type: 'success' })
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
       }
     } catch (error) {
-      alert('Failed to save wallet settings')
+      setToast({ show: true, message: 'Failed to save wallet settings', type: 'error' })
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
     }
   }
 
@@ -1040,6 +1043,33 @@ export default function AddOnPage() {
             ))}
           </div>
         </div>
+        )}
+
+        {toast.show && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
+            color: 'white',
+            padding: '1rem 1.5rem',
+            borderRadius: '8px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <span>{toast.message}</span>
+            <button onClick={() => setToast({ show: false, message: '', type: '' })} style={{
+              background: 'none',
+              border: 'none',
+              color: 'white',
+              fontSize: '1.25rem',
+              cursor: 'pointer',
+              padding: '0 0.25rem'
+            }}>×</button>
+          </div>
         )}
       </div>
     </ResponsiveLayout>

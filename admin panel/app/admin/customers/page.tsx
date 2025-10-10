@@ -26,6 +26,8 @@ export default function CustomersPage() {
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const customersPerPage = 20
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [toast, setToast] = useState({ show: false, message: '', type: '' })
 
   useEffect(() => {
     fetchCustomers()
@@ -78,29 +80,30 @@ export default function CustomersPage() {
 
   const handleBulkDelete = async () => {
     if (selectedCustomers.size === 0) return
+    setShowConfirmModal(false)
     
-    if (confirm(`Are you sure you want to delete ${selectedCustomers.size} customer(s)? This action cannot be undone.`)) {
-      try {
-        const deletePromises = Array.from(selectedCustomers).map(async (id) => {
-          const response = await fetch(`/api/customers/${id}`, { 
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
-          })
-          if (!response.ok) {
-            throw new Error(`Failed to delete customer ${id}`)
-          }
-          return response.json()
+    try {
+      const deletePromises = Array.from(selectedCustomers).map(async (id) => {
+        const response = await fetch(`/api/customers/${id}`, { 
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
         })
-        
-        await Promise.all(deletePromises)
-        alert(`Successfully deleted ${selectedCustomers.size} customer(s)`)
-        setSelectedCustomers(new Set())
-        setSelectionMode(false)
-        fetchCustomers()
-      } catch (error) {
-        console.error('Failed to delete customers:', error)
-        alert('Failed to delete some customers. Please try again.')
-      }
+        if (!response.ok) {
+          throw new Error(`Failed to delete customer ${id}`)
+        }
+        return response.json()
+      })
+      
+      await Promise.all(deletePromises)
+      setToast({ show: true, message: `Successfully deleted ${selectedCustomers.size} customer(s)`, type: 'success' })
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
+      setSelectedCustomers(new Set())
+      setSelectionMode(false)
+      fetchCustomers()
+    } catch (error) {
+      console.error('Failed to delete customers:', error)
+      setToast({ show: true, message: 'Failed to delete some customers. Please try again.', type: 'error' })
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
     }
   }
 
@@ -173,7 +176,7 @@ export default function CustomersPage() {
               </button>
               {selectionMode && selectedCustomers.size > 0 && (
                 <button
-                  onClick={handleBulkDelete}
+                  onClick={() => setShowConfirmModal(true)}
                   style={{
                     padding: '0.75rem 1.5rem',
                     backgroundColor: '#dc2626',
@@ -442,6 +445,46 @@ export default function CustomersPage() {
                   Next
                 </button>
               </div>
+            </div>
+          )}
+
+          {showConfirmModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '400px' }}>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>Confirm Delete</h3>
+                <p style={{ marginBottom: '1.5rem', color: '#6b7280' }}>Are you sure you want to delete {selectedCustomers.size} customer(s)? This action cannot be undone.</p>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <button onClick={() => setShowConfirmModal(false)} style={{ padding: '0.5rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={handleBulkDelete} style={{ padding: '0.5rem 1rem', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {toast.show && (
+            <div style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
+              color: 'white',
+              padding: '1rem 1.5rem',
+              borderRadius: '8px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <span>{toast.message}</span>
+              <button onClick={() => setToast({ show: false, message: '', type: '' })} style={{
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                fontSize: '1.25rem',
+                cursor: 'pointer',
+                padding: '0 0.25rem'
+              }}>×</button>
             </div>
           )}
       </div>

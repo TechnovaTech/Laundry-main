@@ -20,6 +20,9 @@ export default function PartnerKYCPage() {
   const [partners, setPartners] = useState<Partner[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [rejectPartnerId, setRejectPartnerId] = useState('')
+  const [toast, setToast] = useState({ show: false, message: '', type: '' })
 
   useEffect(() => {
     fetchPartners()
@@ -47,28 +50,40 @@ export default function PartnerKYCPage() {
         body: JSON.stringify({ action: 'approve' })
       })
       if (response.ok) {
+        setToast({ show: true, message: 'KYC approved successfully!', type: 'success' })
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
         fetchPartners()
+      } else {
+        setToast({ show: true, message: 'Failed to approve KYC', type: 'error' })
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
       }
     } catch (error) {
       console.error('Failed to approve:', error)
+      setToast({ show: true, message: 'Failed to approve KYC', type: 'error' })
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
     }
   }
 
-  const handleReject = async (partnerId: string) => {
-    const reason = prompt('Enter rejection reason:')
-    if (!reason) return
-    
+  const handleReject = async (reason: string) => {
     try {
-      const response = await fetch(`/api/mobile/partners/kyc/${partnerId}`, {
+      const response = await fetch(`/api/mobile/partners/kyc/${rejectPartnerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reject', reason })
       })
       if (response.ok) {
+        setToast({ show: true, message: 'KYC rejected successfully!', type: 'success' })
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
+        setShowRejectModal(false)
         fetchPartners()
+      } else {
+        setToast({ show: true, message: 'Failed to reject KYC', type: 'error' })
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
       }
     } catch (error) {
       console.error('Failed to reject:', error)
+      setToast({ show: true, message: 'Failed to reject KYC', type: 'error' })
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
     }
   }
 
@@ -194,7 +209,10 @@ export default function PartnerKYCPage() {
                         Approve
                       </button>
                       <button
-                        onClick={() => handleReject(partner._id)}
+                        onClick={() => {
+                          setRejectPartnerId(partner._id)
+                          setShowRejectModal(true)
+                        }}
                         style={{
                           padding: '0.5rem 0.75rem',
                           backgroundColor: '#dc2626',
@@ -214,6 +232,55 @@ export default function PartnerKYCPage() {
             ))
           )}
         </div>
+
+        {showRejectModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', width: '400px', maxWidth: '90%' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>Reject KYC</h3>
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                const formData = new FormData(e.target as HTMLFormElement)
+                handleReject(formData.get('reason') as string)
+              }}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Rejection Reason</label>
+                  <textarea name="reason" required rows={4} style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', resize: 'vertical' }} />
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <button type="button" onClick={() => setShowRejectModal(false)} style={{ padding: '0.5rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+                  <button type="submit" style={{ padding: '0.5rem 1rem', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Reject</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {toast.show && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
+            color: 'white',
+            padding: '1rem 1.5rem',
+            borderRadius: '8px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <span>{toast.message}</span>
+            <button onClick={() => setToast({ show: false, message: '', type: '' })} style={{
+              background: 'none',
+              border: 'none',
+              color: 'white',
+              fontSize: '1.25rem',
+              cursor: 'pointer',
+              padding: '0 0.25rem'
+            }}>×</button>
+          </div>
+        )}
       </div>
     </ResponsiveLayout>
   )
