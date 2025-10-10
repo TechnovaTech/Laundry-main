@@ -98,6 +98,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
     { icon: <SettingsIcon />, label: 'Settings', href: '/admin/settings' },
     { icon: <RoleIcon />, label: 'Role Management', href: '/admin/role-management' },
     { icon: <ReviewsIcon />, label: 'Reviews', href: '/admin/reviews' },
+    { icon: <RoleIcon />, label: 'Partner KYC', href: '/admin/partner-kyc' },
     { icon: <LogoutIcon />, label: 'Logout', href: '/admin/login' }
   ]
 

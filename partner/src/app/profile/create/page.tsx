@@ -47,7 +47,7 @@ export default function CreateProfile() {
       
       if (data.success) {
         localStorage.setItem("partnerId", data.data._id);
-        router.push("/pickups");
+        router.push("/profile/kyc");
       } else {
         alert(data.error || "Failed to save profile");
       }

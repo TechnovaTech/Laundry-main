@@ -32,8 +32,9 @@ export default function DeliveryPartnersPage() {
       const response = await fetch('/api/mobile/partners')
       const data = await response.json()
       if (data.success) {
-        setPartners(data.data)
-        calculateStats(data.data)
+        const approvedPartners = data.data.filter((p: Partner) => p.isVerified)
+        setPartners(approvedPartners)
+        calculateStats(approvedPartners)
       }
     } catch (error) {
       console.error('Failed to fetch partners:', error)

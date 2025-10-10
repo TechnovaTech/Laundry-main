@@ -9,6 +9,12 @@ const PartnerSchema = new mongoose.Schema({
   vehicleType: String,
   aadharNumber: String,
   panNumber: String,
+  drivingLicenseNumber: String,
+  aadharImage: String,
+  drivingLicenseImage: String,
+  kycStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  kycRejectionReason: String,
+  kycSubmittedAt: Date,
   bankDetails: {
     accountNumber: String,
     ifscCode: String,
