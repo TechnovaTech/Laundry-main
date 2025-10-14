@@ -1,0 +1,30 @@
+{
+  "name": "laundry-management",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed:admin": "node scripts/seed-admin.js"
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "mongoose": "^8.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.5",
+    "eslint": "^8",
+    "eslint-config-next": "^15.1.0",
+    "typescript": "^5"
+  }
+}
