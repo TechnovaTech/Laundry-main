@@ -53,27 +53,47 @@ export default function Verify() {
     }
 
     setLoading(true);
-    const correctOTP = localStorage.getItem("partnerOTP");
+    const phone = `+91${mobile}`;
     
-    if (otpString === correctOTP) {
-      const partnerId = localStorage.getItem("partnerId");
-      try {
-        const response = await fetch(`http://localhost:3000/api/mobile/partners?partnerId=${partnerId}`);
-        const data = await response.json();
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, code: otpString, role: 'partner' })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        localStorage.setItem("authToken", data.token);
         
-        if (data.success && data.data.email) {
-          router.push("/pickups");
-        } else {
-          router.push("/profile/create");
+        const partnerResponse = await fetch("http://localhost:3000/api/mobile/partners", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mobile, name: "Partner" })
+        });
+        const partnerData = await partnerResponse.json();
+        
+        if (partnerData.success) {
+          localStorage.setItem("partnerId", partnerData.data.partnerId || partnerData.data._id);
+          
+          const checkResponse = await fetch(`http://localhost:3000/api/mobile/partners?partnerId=${partnerData.data.partnerId || partnerData.data._id}`);
+          const checkData = await checkResponse.json();
+          
+          if (checkData.success && checkData.data.email) {
+            router.push("/pickups");
+          } else {
+            router.push("/profile/create");
+          }
         }
-      } catch (error) {
-        router.push("/profile/create");
+      } else {
+        alert(data.error || "Invalid OTP. Please try again.");
+        setOtp(Array(6).fill(""));
       }
-      setLoading(false);
-    } else {
-      setLoading(false);
-      alert("Invalid OTP. Please try again.");
+    } catch (error) {
+      alert("Verification failed. Please try again.");
       setOtp(Array(6).fill(""));
+    } finally {
+      setLoading(false);
     }
   };
 

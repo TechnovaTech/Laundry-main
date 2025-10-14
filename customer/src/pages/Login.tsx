@@ -11,26 +11,22 @@ const Login = () => {
   const handleLogin = async () => {
     if (mobileNumber.length === 10) {
       try {
-        const response = await fetch('http://localhost:3000/api/mobile/auth/login', {
+        const phone = `+91${mobileNumber}`;
+        const response = await fetch('http://localhost:3000/api/auth/send-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobile: mobileNumber })
-        })
-        const data = await response.json()
+          body: JSON.stringify({ phone })
+        });
+        const data = await response.json();
         if (data.success) {
-          localStorage.setItem('userMobile', mobileNumber)
-          navigate("/verify-mobile", { 
-            state: { 
-              mobileNumber, 
-              otp: data.data.otp, 
-              customerId: data.data.customerId,
-              isExistingUser: data.data.isExistingUser,
-              customer: data.data.customer
-            } 
-          })
+          localStorage.setItem('userMobile', mobileNumber);
+          navigate("/verify-mobile", { state: { mobileNumber } });
+        } else {
+          alert(data.error || 'Failed to send OTP');
         }
       } catch (error) {
-        console.error('Login failed:', error)
+        console.error('Login failed:', error);
+        alert('Network error. Please try again.');
       }
     }
   };

@@ -7,8 +7,6 @@ const VerifyMobile = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const mobileNumber = location.state?.mobileNumber || "XXXXXXXXX";
-  const customerId = location.state?.customerId;
-  const expectedOtp = location.state?.otp;
   
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resendTimer, setResendTimer] = useState(30);
@@ -38,25 +36,47 @@ const VerifyMobile = () => {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (otp.every(digit => digit !== "")) {
-      const enteredOtp = otp.join('')
-      if (enteredOtp === expectedOtp) {
-        const isExistingUser = location.state?.isExistingUser
-        const customer = location.state?.customer
+      const enteredOtp = otp.join('');
+      const phone = `+91${mobileNumber}`;
+      
+      try {
+        const response = await fetch('http://localhost:3000/api/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, code: enteredOtp, role: 'customer' })
+        });
+        const data = await response.json();
         
-        localStorage.setItem('customerId', customerId)
-        localStorage.setItem('userName', customer.name)
-        localStorage.setItem('customerMobile', mobileNumber)
-        window.dispatchEvent(new Event('userNameChanged'))
-        
-        if (isExistingUser) {
-          navigate("/home")
+        if (data.success) {
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('customerMobile', mobileNumber);
+          
+          const checkResponse = await fetch('http://localhost:3000/api/mobile/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile: mobileNumber })
+          });
+          const checkData = await checkResponse.json();
+          
+          if (checkData.success) {
+            localStorage.setItem('customerId', checkData.data.customerId);
+            localStorage.setItem('userName', checkData.data.customer?.name || '');
+            window.dispatchEvent(new Event('userNameChanged'));
+            
+            if (checkData.data.isExistingUser) {
+              navigate("/home");
+            } else {
+              navigate("/create-profile", { state: { customerId: checkData.data.customerId, mobileNumber } });
+            }
+          }
         } else {
-          navigate("/create-profile", { state: { customerId, mobileNumber } })
+          alert(data.error || 'Invalid OTP');
         }
-      } else {
-        alert('Invalid OTP')
+      } catch (error) {
+        console.error('Verification failed:', error);
+        alert('Verification failed. Please try again.');
       }
     }
   };
@@ -102,7 +122,26 @@ const VerifyMobile = () => {
           {resendTimer > 0 ? (
             <p className="text-blue-500">Resend in {resendTimer}s</p>
           ) : (
-            <button className="font-semibold text-blue-500 hover:underline">
+            <button 
+              onClick={async () => {
+                try {
+                  const phone = `+91${mobileNumber}`;
+                  const response = await fetch('http://localhost:3000/api/auth/send-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                  });
+                  const data = await response.json();
+                  if (data.success) {
+                    setResendTimer(30);
+                    alert('OTP resent successfully');
+                  }
+                } catch (error) {
+                  alert('Failed to resend OTP');
+                }
+              }}
+              className="font-semibold text-blue-500 hover:underline"
+            >
               Resend OTP
             </button>
           )}

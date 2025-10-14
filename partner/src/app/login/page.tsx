@@ -17,22 +17,20 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3000/api/mobile/partners", {
+      const phone = `+91${mobile}`;
+      const response = await fetch("http://localhost:3000/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, name: "Partner" })
+        body: JSON.stringify({ phone })
       });
 
       const data = await response.json();
       
       if (data.success) {
-        localStorage.setItem("partnerId", data.data.partnerId || data.data._id);
         localStorage.setItem("partnerMobile", mobile);
-        localStorage.setItem("partnerOTP", data.data.otp);
-        console.log("OTP generated:", data.data.otp);
         router.push("/verify");
       } else {
-        alert(data.error || "Login failed");
+        alert(data.error || "Failed to send OTP");
       }
     } catch (error) {
       alert("Network error. Please try again.");

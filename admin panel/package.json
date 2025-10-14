@@ -10,19 +10,20 @@
     "seed:admin": "node scripts/seed-admin.js"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.0",
     "next": "^15.1.0",
     "react": "^18",
     "react-dom": "^18",
-    "mongoose": "^8.0.0",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "twilio": "^5.10.2"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.5",
     "eslint": "^8",
     "eslint-config-next": "^15.1.0",
     "typescript": "^5"
