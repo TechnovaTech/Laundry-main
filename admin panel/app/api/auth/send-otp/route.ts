@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
+import admin from 'firebase-admin';
 
-const otpStore = new Map<string, string>();
+if (!admin.apps.length) {
+  const serviceAccount = require('@/firebase-service-account.json');
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
 
 export async function POST(request: Request) {
   try {
@@ -10,18 +16,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Phone number is required' }, { status: 400 });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(phone, otp);
-    
     console.log('\n========================================');
-    console.log('📱 OTP GENERATED');
+    console.log('📱 Firebase OTP Request');
     console.log('Phone:', phone);
-    console.log('OTP:', otp);
+    console.log('SMS will be sent via Firebase');
     console.log('========================================\n');
 
     return NextResponse.json({
       success: true,
-      message: 'OTP sent successfully'
+      message: 'OTP sent successfully via Firebase'
     });
   } catch (error: any) {
     console.error('Send OTP error:', error);

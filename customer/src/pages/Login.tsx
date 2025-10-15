@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import loginPersonImg from "@/assets/LOGIN.png";
+import { auth } from "@/lib/firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,21 +14,23 @@ const Login = () => {
     if (mobileNumber.length === 10) {
       try {
         const phone = `+91${mobileNumber}`;
-        const response = await fetch('http://localhost:3000/api/auth/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone })
-        });
-        const data = await response.json();
-        if (data.success) {
-          localStorage.setItem('userMobile', mobileNumber);
-          navigate("/verify-mobile", { state: { mobileNumber } });
-        } else {
-          alert(data.error || 'Failed to send OTP');
+        
+        if (!(window as any).recaptchaVerifier) {
+          (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible'
+          });
         }
-      } catch (error) {
+        
+        const appVerifier = (window as any).recaptchaVerifier;
+        const confirmationResult = await signInWithPhoneNumber(auth, phone, appVerifier);
+        (window as any).confirmationResult = confirmationResult;
+        
+        localStorage.setItem('userMobile', mobileNumber);
+        localStorage.setItem('userPhone', phone);
+        navigate("/verify-mobile", { state: { mobileNumber } });
+      } catch (error: any) {
         console.error('Login failed:', error);
-        alert('Network error. Please try again.');
+        alert(error.message || 'Failed to send OTP. Please try again.');
       }
     }
   };
@@ -72,6 +76,7 @@ const Login = () => {
           </Button>
         </div>
       </div>
+      <div id="recaptcha-container"></div>
     </div>
   );
 };

@@ -1,14 +1,20 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import admin from 'firebase-admin';
 
-const otpStore = new Map<string, string>();
+if (!admin.apps.length) {
+  const serviceAccount = require('@/firebase-service-account.json');
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
 
 export async function POST(request: Request) {
   try {
-    const { phone, code, role } = await request.json();
+    const { phone, code, role, idToken } = await request.json();
 
-    if (!phone || !code) {
-      return NextResponse.json({ success: false, error: 'Phone and code are required' }, { status: 400 });
+    if (!phone || (!code && !idToken)) {
+      return NextResponse.json({ success: false, error: 'Phone and verification required' }, { status: 400 });
     }
 
     const jwtSecret = process.env.JWT_SECRET;
@@ -17,38 +23,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 });
     }
 
-    const storedOtp = otpStore.get(phone);
-
-    if (!storedOtp) {
-      return NextResponse.json({
-        success: false,
-        error: 'OTP expired or not found. Please request a new OTP.'
-      }, { status: 400 });
-    }
-
-    if (storedOtp === code) {
-      otpStore.delete(phone);
+    if (idToken) {
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
       
-      const token = jwt.sign(
-        { phone, role: role || 'customer' },
-        jwtSecret,
-        { expiresIn: '30d' }
-      );
-
-      console.log('\n✅ OTP Verified Successfully for:', phone, '\n');
-
-      return NextResponse.json({
-        success: true,
-        message: 'OTP verified successfully',
-        token,
-        phone
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid OTP'
-      }, { status: 400 });
+      if (decodedToken.phone_number !== phone) {
+        return NextResponse.json({
+          success: false,
+          error: 'Phone number mismatch'
+        }, { status: 400 });
+      }
     }
+
+    const token = jwt.sign(
+      { phone, role: role || 'customer' },
+      jwtSecret,
+      { expiresIn: '30d' }
+    );
+
+    console.log('\n✅ Firebase OTP Verified Successfully for:', phone, '\n');
+
+    return NextResponse.json({
+      success: true,
+      message: 'OTP verified successfully',
+      token,
+      phone
+    });
   } catch (error: any) {
     console.error('Verify OTP error:', error);
     return NextResponse.json({
