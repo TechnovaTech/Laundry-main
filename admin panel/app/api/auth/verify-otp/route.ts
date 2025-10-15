@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
-const twilio = require('twilio');
+const otpStore = new Map<string, string>();
 
 export async function POST(request: Request) {
   try {
@@ -11,27 +11,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Phone and code are required' }, { status: 400 });
     }
 
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const verifySid = process.env.TWILIO_VERIFY_SERVICE_SID;
     const jwtSecret = process.env.JWT_SECRET;
 
-    if (!accountSid || !authToken || !verifySid || !jwtSecret) {
+    if (!jwtSecret) {
       return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 });
     }
 
-    const client = twilio(accountSid, authToken);
+    const storedOtp = otpStore.get(phone);
 
-    const verificationCheck = await client.verify.v2
-      .services(verifySid)
-      .verificationChecks.create({ to: phone, code });
+    if (!storedOtp) {
+      return NextResponse.json({
+        success: false,
+        error: 'OTP expired or not found. Please request a new OTP.'
+      }, { status: 400 });
+    }
 
-    if (verificationCheck.status === 'approved') {
+    if (storedOtp === code) {
+      otpStore.delete(phone);
+      
       const token = jwt.sign(
         { phone, role: role || 'customer' },
         jwtSecret,
         { expiresIn: '30d' }
       );
+
+      console.log('\n✅ OTP Verified Successfully for:', phone, '\n');
 
       return NextResponse.json({
         success: true,
@@ -42,20 +46,14 @@ export async function POST(request: Request) {
     } else {
       return NextResponse.json({
         success: false,
-        error: 'Invalid or expired OTP'
+        error: 'Invalid OTP'
       }, { status: 400 });
     }
   } catch (error: any) {
-    console.error('Twilio verify OTP error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status
-    });
+    console.error('Verify OTP error:', error);
     return NextResponse.json({
       success: false,
-      error: error.message || 'Failed to verify OTP',
-      details: error.code ? `Error code: ${error.code}` : undefined
+      error: error.message || 'Failed to verify OTP'
     }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const twilio = require('twilio');
+const otpStore = new Map<string, string>();
 
 export async function POST(request: Request) {
   try {
@@ -10,36 +10,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Phone number is required' }, { status: 400 });
     }
 
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const verifySid = process.env.TWILIO_VERIFY_SERVICE_SID;
-
-    if (!accountSid || !authToken || !verifySid) {
-      return NextResponse.json({ success: false, error: 'Twilio credentials not configured' }, { status: 500 });
-    }
-
-    const client = twilio(accountSid, authToken);
-
-    const verification = await client.verify.v2
-      .services(verifySid)
-      .verifications.create({ to: phone, channel: 'sms' });
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore.set(phone, otp);
+    
+    console.log('\n========================================');
+    console.log('📱 OTP GENERATED');
+    console.log('Phone:', phone);
+    console.log('OTP:', otp);
+    console.log('========================================\n');
 
     return NextResponse.json({
       success: true,
-      message: 'OTP sent successfully',
-      status: verification.status
+      message: 'OTP sent successfully'
     });
   } catch (error: any) {
-    console.error('Twilio send OTP error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status
-    });
+    console.error('Send OTP error:', error);
     return NextResponse.json({
       success: false,
-      error: error.message || 'Failed to send OTP',
-      details: error.code ? `Error code: ${error.code}` : undefined
+      error: error.message || 'Failed to send OTP'
     }, { status: 500 });
   }
 }
