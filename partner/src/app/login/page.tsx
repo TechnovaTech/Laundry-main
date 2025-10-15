@@ -50,8 +50,7 @@ export default function Login() {
       </header>
 
       <div className="px-4 pt-6 flex flex-col items-center" suppressHydrationWarning>
-        <Image src="/scooter.svg" alt="Scooter" width={220} height={140} />
-        <p className="mt-4 text-sm text-gray-500">Sign in to your account.</p>
+        <Image src="/LOGIN.png" alt="Login" width={320} height={320} className="object-contain" />
       </div>
 
       <div className="px-4 mt-10" suppressHydrationWarning>

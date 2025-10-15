@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function CheckAvailability() {
   const [pincode, setPincode] = useState("");
@@ -33,7 +34,7 @@ export default function CheckAvailability() {
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="text-6xl mb-6">📍</div>
+        <Image src="/Pincode availablity screen.png" alt="Check Availability" width={288} height={288} className="mb-6" />
         <p className="text-center text-gray-600 font-medium mb-8">
           Enter your area pincode to check<br />service availability
         </p>

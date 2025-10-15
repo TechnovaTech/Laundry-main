@@ -1,12 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function Congrats() {
   const router = useRouter();
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
-      <div className="text-8xl mb-6">🎉</div>
+      <Image src="/Congrats we are available.png" alt="Congrats" width={288} height={288} className="mb-6" />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Congratulations!</h1>
       <p className="text-center text-gray-600 mb-8">
         We are available in your area.<br />Let&apos;s get you started!
