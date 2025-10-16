@@ -1,10 +1,13 @@
 import jsPDF from 'jspdf';
+import acsLogo from '@/assets/ACS Logo.jpg';
+import usLogo from '@/assets/US Logo.jpg';
 
 export const generateInvoicePDF = async (order: any) => {
   if (!order) return;
 
-  const doc = new jsPDF();
+  const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   
   let hubAddress = {
     name: 'Urban Steam',
@@ -33,75 +36,93 @@ export const generateInvoicePDF = async (order: any) => {
   }
   
   doc.setFillColor(245, 245, 245);
-  doc.rect(0, 0, pageWidth, 297, 'F');
+  doc.rect(0, 0, pageWidth, pageHeight, 'F');
   doc.setFillColor(255, 255, 255);
-  doc.rect(15, 15, pageWidth - 30, 267, 'F');
+  doc.rect(10, 10, pageWidth - 20, pageHeight - 20, 'F');
   
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 140, 0);
-  doc.text('ACS Group', 20, 25);
-  doc.setTextColor(0, 120, 215);
-  doc.text('Urban Steam', pageWidth - 55, 25);
+  // Add logos with better quality
+  doc.addImage(acsLogo, 'JPEG', 15, 15, 35, 15);
+  doc.addImage(usLogo, 'JPEG', pageWidth - 55, 15, 40, 15);
   doc.setTextColor(0, 0, 0);
+  
+  // Invoice header section with border
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.rect(15, 35, pageWidth - 30, 25);
   
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('ORIGINAL FOR RECIPIENT', 20, 38);
+  doc.text('ORIGINAL FOR RECIPIENT', 17, 41);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('TAX INVOICE', 20, 48);
+  doc.text('TAX INVOICE', 17, 51);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text(`#${order.orderId || 'N/A'}`, 20, 54);
+  doc.text(`#${order.orderId || 'N/A'}`, 17, 57);
   doc.setTextColor(0, 0, 0);
+  
+  // Date, Billed to, From section with borders
+  const sectionY = 65;
+  const sectionHeight = 45;
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.rect(15, sectionY, 50, sectionHeight);
+  doc.rect(70, sectionY, 65, sectionHeight);
+  doc.rect(140, sectionY, pageWidth - 155, sectionHeight);
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('Issued', 20, 70);
+  doc.text('Issued', 17, sectionY + 7);
   doc.setFont('helvetica', 'normal');
-  doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 20, 76);
+  doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, sectionY + 13);
   doc.setFont('helvetica', 'bold');
-  doc.text('Due', 20, 88);
+  doc.text('Due', 17, sectionY + 23);
   doc.setFont('helvetica', 'normal');
-  doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 20, 94);
+  doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, sectionY + 29);
   
   doc.setFont('helvetica', 'bold');
-  doc.text('Billed to', 75, 70);
+  doc.text('Billed to', 72, sectionY + 7);
   doc.setFont('helvetica', 'normal');
-  doc.text(order.customer?.name || 'Customer Name', 75, 76);
+  doc.text(order.customer?.name || 'Customer Name', 72, sectionY + 13);
   doc.setTextColor(100, 100, 100);
-  doc.text(order.pickupAddress?.street || 'Customer address', 75, 81);
-  doc.text(`${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'Country'} - ${order.pickupAddress?.pincode || '000000'}`, 75, 86);
+  doc.setFontSize(8);
+  const address = doc.splitTextToSize(order.pickupAddress?.street || 'Customer address', 60);
+  doc.text(address, 72, sectionY + 18);
+  doc.text(`${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'Country'} - ${order.pickupAddress?.pincode || '000000'}`, 72, sectionY + 23);
   doc.setTextColor(0, 0, 0);
-  doc.text('Contact Number', 75, 96);
-  doc.text('Order Id', 75, 101);
+  doc.setFontSize(9);
+  doc.text('Contact Number', 72, sectionY + 33);
+  doc.text('Order Id', 72, sectionY + 38);
   
   doc.setFont('helvetica', 'bold');
-  doc.text('From', 140, 70);
+  doc.text('From', 142, sectionY + 7);
   doc.setFont('helvetica', 'normal');
-  doc.text(hubAddress.name, 140, 76);
+  doc.text(hubAddress.name, 142, sectionY + 13);
   doc.setTextColor(100, 100, 100);
-  doc.text('Address', 140, 81);
-  doc.text(hubAddress.address, 140, 86);
-  doc.text(hubAddress.address2, 140, 91);
-  doc.text(hubAddress.address3, 140, 96);
-  doc.text(`Email Id :${hubAddress.email}`, 140, 101);
-  doc.text(`GST No: ${hubAddress.gst}`, 140, 106);
+  doc.setFontSize(8);
+  doc.text('Address', 142, sectionY + 18);
+  const hubAddr = doc.splitTextToSize(`${hubAddress.address} ${hubAddress.address2} ${hubAddress.address3}`, 55);
+  doc.text(hubAddr, 142, sectionY + 22);
+  doc.setFontSize(9);
+  doc.text(`Email Id :${hubAddress.email}`, 142, sectionY + 34);
+  doc.text(`GST No: ${hubAddress.gst}`, 142, sectionY + 39);
   doc.setTextColor(0, 0, 0);
   
-  let yPos = 120;
+  let yPos = 115;
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
   doc.setFillColor(240, 240, 240);
-  doc.rect(20, yPos - 5, pageWidth - 40, 8, 'F');
+  doc.rect(15, yPos, pageWidth - 30, 8, 'FD');
+  yPos += 6;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('Service', 22, yPos);
+  doc.text('Service', 17, yPos);
   doc.text('Qty', 130, yPos);
   doc.text('Rate', 155, yPos);
   doc.text('Total', 180, yPos);
   
-  yPos += 10;
+  yPos += 8;
   doc.setFont('helvetica', 'normal');
   let subtotal = 0;
   
@@ -110,11 +131,11 @@ export const generateInvoicePDF = async (order: any) => {
       const itemTotal = (item.quantity || 0) * (item.price || 0);
       subtotal += itemTotal;
       doc.setFont('helvetica', 'bold');
-      doc.text(item.name || 'Service name', 22, yPos);
+      doc.text(item.name || 'Service name', 17, yPos);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
       doc.setFontSize(8);
-      doc.text(item.description || 'Description', 22, yPos + 4);
+      doc.text(item.description || 'Description', 17, yPos + 4);
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(9);
       doc.text(String(item.quantity || 0), 130, yPos);
@@ -124,27 +145,31 @@ export const generateInvoicePDF = async (order: any) => {
     });
   }
   
-  yPos += 10;
+  yPos += 15;
   doc.setFontSize(9);
-  doc.text('Subtotal', 155, yPos);
-  doc.text(`Rs${subtotal.toFixed(2)}`, 180, yPos);
-  yPos += 8;
-  doc.text('Tax (0%)', 155, yPos);
-  doc.text('Rs0.00', 180, yPos);
-  yPos += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.text('Subtotal', 140, yPos);
+  doc.text(`Rs${subtotal.toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
+  yPos += 7;
+  doc.text('Tax (0%)', 140, yPos);
+  doc.text('Rs0.00', pageWidth - 20, yPos, { align: 'right' });
+  yPos += 7;
   const discountPercent = order.discount || 0;
-  doc.text('Discount/Coupon code', 155, yPos);
-  doc.text(discountPercent > 0 ? `${discountPercent}%` : '0%', 180, yPos);
-  yPos += 12;
+  if (discountPercent > 0) {
+    doc.text('Discount/Coupon code', 140, yPos);
+    doc.text(`${discountPercent}%`, pageWidth - 20, yPos, { align: 'right' });
+    yPos += 7;
+  }
+  yPos += 5;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
-  doc.text('Total', 155, yPos);
-  doc.text(`Rs${(order.totalAmount || subtotal).toFixed(2)}`, 180, yPos);
+  doc.text('Total', 140, yPos);
+  doc.text(`Rs${(order.totalAmount || subtotal).toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
   yPos += 10;
   doc.setFontSize(11);
   doc.setTextColor(0, 0, 200);
-  doc.text('Amount due', 155, yPos);
-  doc.text(`Rs${(order.totalAmount || subtotal).toFixed(2)}`, 180, yPos);
+  doc.text('Amount due', 140, yPos);
+  doc.text(`Rs${(order.totalAmount || subtotal).toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
   doc.setTextColor(0, 0, 0);
   
   yPos += 20;
