@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Phone, Shirt, Clock, Package, Truck, CheckCircle2, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { generateInvoicePDF } from "@/utils/generateInvoice";
 
 const OrderDetails = () => {
   const navigate = useNavigate();
@@ -257,11 +258,12 @@ const OrderDetails = () => {
         )}
 
         <Button 
+          onClick={() => generateInvoicePDF(order)}
           className="w-full h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base text-white shadow-lg"
           style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
         >
           <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-          Download Invoice ⚙
+          Download Invoice
         </Button>
           </>
         )}
