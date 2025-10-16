@@ -56,14 +56,10 @@ export default function Verify() {
     const phone = `+91${mobile}`;
     
     try {
-      const confirmationResult = (window as any).confirmationResult;
-      const result = await confirmationResult.confirm(otpString);
-      const idToken = await result.user.getIdToken();
-      
       const response = await fetch("http://localhost:3000/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, idToken, role: 'partner' })
+        body: JSON.stringify({ phone, code: otpString, role: 'partner' })
       });
       const data = await response.json();
       

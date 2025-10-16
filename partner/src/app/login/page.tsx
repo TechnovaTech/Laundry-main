@@ -1,23 +1,13 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { auth } from "@/lib/firebase";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 export default function Login() {
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible'
-      });
-    }
-  }, []);
 
   const handleLogin = async () => {
     if (!mobile || mobile.length !== 10) {
@@ -28,16 +18,22 @@ export default function Login() {
     setLoading(true);
     try {
       const phone = `+91${mobile}`;
-      const appVerifier = (window as any).recaptchaVerifier;
-      const confirmationResult = await signInWithPhoneNumber(auth, phone, appVerifier);
-      (window as any).confirmationResult = confirmationResult;
+      const response = await fetch("http://localhost:3000/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone })
+      });
+
+      const data = await response.json();
       
-      localStorage.setItem("partnerMobile", mobile);
-      localStorage.setItem("partnerPhone", phone);
-      router.push("/verify");
-    } catch (error: any) {
-      console.error('Login error:', error);
-      alert(error.message || "Failed to send OTP. Please try again.");
+      if (data.success) {
+        localStorage.setItem("partnerMobile", mobile);
+        router.push("/verify");
+      } else {
+        alert(data.error || "Failed to send OTP");
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -79,7 +75,6 @@ export default function Login() {
         >
           {loading ? "Logging in..." : "Login"}
         </button>
-        <div id="recaptcha-container"></div>
       </div>
     </div>
   );

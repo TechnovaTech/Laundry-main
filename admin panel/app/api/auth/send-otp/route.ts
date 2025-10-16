@@ -1,12 +1,5 @@
 import { NextResponse } from 'next/server';
-import admin from 'firebase-admin';
-
-if (!admin.apps.length) {
-  const serviceAccount = require('@/firebase-service-account.json');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
+import otpStore from '@/lib/otpStore';
 
 export async function POST(request: Request) {
   try {
@@ -16,15 +9,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Phone number is required' }, { status: 400 });
     }
 
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore.set(phone, otp);
+    
     console.log('\n========================================');
-    console.log('📱 Firebase OTP Request');
+    console.log('📱 OTP GENERATED');
     console.log('Phone:', phone);
-    console.log('SMS will be sent via Firebase');
+    console.log('OTP:', otp);
     console.log('========================================\n');
 
     return NextResponse.json({
       success: true,
-      message: 'OTP sent successfully via Firebase'
+      message: 'OTP sent successfully'
     });
   } catch (error: any) {
     console.error('Send OTP error:', error);
@@ -34,3 +30,5 @@ export async function POST(request: Request) {
     }, { status: 500 });
   }
 }
+
+

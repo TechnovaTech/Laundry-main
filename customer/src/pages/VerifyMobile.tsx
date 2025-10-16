@@ -42,14 +42,10 @@ const VerifyMobile = () => {
       const phone = `+91${mobileNumber}`;
       
       try {
-        const confirmationResult = (window as any).confirmationResult;
-        const result = await confirmationResult.confirm(enteredOtp);
-        const idToken = await result.user.getIdToken();
-        
         const response = await fetch('http://localhost:3000/api/auth/verify-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, idToken, role: 'customer' })
+          body: JSON.stringify({ phone, code: enteredOtp, role: 'customer' })
         });
         const data = await response.json();
         
