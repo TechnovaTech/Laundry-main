@@ -178,13 +178,15 @@ export default function AddOnPage() {
   const handleStateChange = (e: any) => {
     const stateCode = e.target.value
     setSelectedState(stateCode)
-    setCities([])
-    setPincodes([])
-    setSelectedCity('')
-    setSelectedPincode('')
-    setSelectedArea('')
-    if (stateCode) {
-      fetchCities(stateCode)
+    if (e.target.tagName === 'SELECT') {
+      setCities([])
+      setPincodes([])
+      setSelectedCity('')
+      setSelectedPincode('')
+      setSelectedArea('')
+      if (stateCode) {
+        fetchCities(stateCode)
+      }
     }
   }
 
@@ -576,62 +578,119 @@ export default function AddOnPage() {
         <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Pincode Management</h3>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
-            <select 
-              value={selectedState} 
-              onChange={handleStateChange}
-              style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none', fontSize: '0.9rem' }}
-            >
-              <option value="">Select State</option>
-              {states.map((state: any) => (
-                <option key={state.code} value={state.code}>{state.name}</option>
-              ))}
-            </select>
-            
-            <select 
-              value={selectedCity} 
-              onChange={handleCityChange}
-              disabled={!selectedState}
-              style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none', fontSize: '0.9rem' }}
-            >
-              <option value="">Select City</option>
-              {cities.map((city: string) => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-            
-            <select 
-              value={selectedPincode ? JSON.stringify({pincode: selectedPincode, area: selectedArea}) : ''} 
-              onChange={handlePincodeChange}
-              disabled={!selectedCity}
-              style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none', fontSize: '0.9rem' }}
-            >
-              <option value="">Select Pincode</option>
-              {pincodes.map((pincode: any) => (
-                <option key={pincode.pincode} value={JSON.stringify(pincode)}>
-                  {pincode.pincode} - {pincode.area}
-                </option>
-              ))}
-            </select>
-            
-            <button 
-              onClick={addServiceableArea}
-              disabled={!selectedPincode}
-              style={{ 
-                padding: '0.75rem', 
-                backgroundColor: selectedPincode ? '#2563eb' : '#9ca3af', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '8px', 
-                fontSize: '0.9rem', 
-                fontWeight: '500',
-                cursor: selectedPincode ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Add Area
-            </button>
+          {/* Auto-Fetch Section */}
+          <div style={{ backgroundColor: '#f0f9ff', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: '600', color: '#0369a1', marginBottom: '0.75rem', margin: '0 0 0.75rem 0' }}>🔄 Auto-Fetch from API</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+              <select 
+                value={selectedState} 
+                onChange={handleStateChange}
+                style={{ padding: '0.75rem', border: '1px solid #0ea5e9', borderRadius: '8px', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
+              >
+                <option value="">Select State</option>
+                {states.map((state: any) => (
+                  <option key={state.code} value={state.code}>{state.name}</option>
+                ))}
+              </select>
+              
+              <select 
+                value={selectedCity} 
+                onChange={handleCityChange}
+                disabled={!selectedState}
+                style={{ padding: '0.75rem', border: '1px solid #0ea5e9', borderRadius: '8px', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
+              >
+                <option value="">Select City</option>
+                {cities.map((city: string) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+              
+              <select 
+                value={selectedPincode ? JSON.stringify({pincode: selectedPincode, area: selectedArea}) : ''} 
+                onChange={handlePincodeChange}
+                disabled={!selectedCity}
+                style={{ padding: '0.75rem', border: '1px solid #0ea5e9', borderRadius: '8px', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
+              >
+                <option value="">Select Pincode</option>
+                {pincodes.map((pincode: any) => (
+                  <option key={pincode.pincode} value={JSON.stringify(pincode)}>
+                    {pincode.pincode} - {pincode.area}
+                  </option>
+                ))}
+              </select>
+              
+              <button 
+                onClick={addServiceableArea}
+                disabled={!selectedPincode}
+                style={{ 
+                  padding: '0.75rem', 
+                  backgroundColor: selectedPincode ? '#0ea5e9' : '#9ca3af', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '500',
+                  cursor: selectedPincode ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Add Area
+              </button>
+            </div>
+          </div>
+
+          {/* Manual Entry Section */}
+          <div style={{ backgroundColor: '#fef3c7', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: '600', color: '#92400e', marginBottom: '0.75rem', margin: '0 0 0.75rem 0' }}>✍️ Manual Entry</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
+              <input 
+                type="text" 
+                placeholder="State Code (e.g., WB)"
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value.toUpperCase())}
+                style={{ padding: '0.75rem', border: '1px solid #f59e0b', borderRadius: '8px', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
+              />
+              <input 
+                type="text" 
+                placeholder="City Name"
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                style={{ padding: '0.75rem', border: '1px solid #f59e0b', borderRadius: '8px', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
+              />
+              <input 
+                type="text" 
+                placeholder="Pincode"
+                value={selectedPincode}
+                onChange={(e) => setSelectedPincode(e.target.value.replace(/\D/g, ''))}
+                maxLength={6}
+                style={{ padding: '0.75rem', border: '1px solid #f59e0b', borderRadius: '8px', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
+              />
+              <input 
+                type="text" 
+                placeholder="Area Name"
+                value={selectedArea}
+                onChange={(e) => setSelectedArea(e.target.value)}
+                style={{ padding: '0.75rem', border: '1px solid #f59e0b', borderRadius: '8px', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
+              />
+              <button 
+                onClick={addServiceableArea}
+                disabled={!selectedState || !selectedCity || !selectedPincode || !selectedArea}
+                style={{ 
+                  padding: '0.75rem', 
+                  backgroundColor: (selectedState && selectedCity && selectedPincode && selectedArea) ? '#f59e0b' : '#9ca3af', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '500',
+                  cursor: (selectedState && selectedCity && selectedPincode && selectedArea) ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Add Manually
+              </button>
+            </div>
           </div>
           
+          <h4 style={{ fontSize: '0.95rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.75rem', margin: '0 0 0.75rem 0' }}>📍 Serviceable Areas ({serviceableAreas.length})</h4>
           <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '0.5rem' }}>
             {serviceableAreas.length === 0 ? (
               <p style={{ textAlign: 'center', color: '#6b7280', padding: '1rem' }}>No serviceable areas added yet</p>
