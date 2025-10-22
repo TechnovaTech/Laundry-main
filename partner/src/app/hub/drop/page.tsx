@@ -38,7 +38,7 @@ export default function DropToHub() {
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
           <h2 className="text-lg font-semibold text-black">Drop To Hub</h2>
-          <span className="text-blue-600">🔔</span>
+          <span style={{ color: '#452D9B' }}>🔔</span>
         </div>
       </header>
 
@@ -56,7 +56,7 @@ export default function DropToHub() {
           />
           <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
             <p className="text-sm font-semibold text-black">{hub.name}</p>
-            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hub.address.street}, ${hub.address.city}`)}`} target="_blank" className="text-xs text-blue-600">Open in Google Maps</a>
+            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hub.address.street}, ${hub.address.city}`)}`} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>
           </div>
         </div>
       )}
@@ -79,12 +79,13 @@ export default function DropToHub() {
                         setSelectedOrders(selectedOrders.filter(id => id !== order._id));
                       }
                     }}
-                    className="mt-1 w-4 h-4 accent-blue-600"
+                    className="mt-1 w-4 h-4"
+                    style={{ accentColor: '#452D9B' }}
                   />
                   <div>
                     <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
                     <p className="text-xs text-black mt-1">{order.items?.length || 0} items</p>
-                    <span className="mt-1 text-xs text-blue-600">Picked Up</span>
+                    <span className="mt-1 text-xs" style={{ color: '#452D9B' }}>Picked Up</span>
                   </div>
                 </div>
                 <span className="text-sm text-black">{order.customerId?.name}</span>

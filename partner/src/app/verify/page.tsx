@@ -110,15 +110,14 @@ export default function Verify() {
       <div className="px-4 pt-6">
         <p className="text-center text-gray-500">We’ve sent an OTP to</p>
         <p className="mt-1 text-center text-black font-semibold">+91 {mobile.replace(/(\d{5})(\d{5})/, '$1XXXXX')}</p>
-        <p className="mt-1 text-center text-blue-600">Change number</p>
+        <p className="mt-1 text-center" style={{ color: '#452D9B' }}>Change number</p>
 
         <div className="mt-4 flex items-center justify-center gap-3">
           {otp.map((val, i) => (
             <div
               key={i}
-              className={`h-14 w-14 rounded-2xl border-2 flex items-center justify-center text-lg font-bold text-black ${
-                i === nextEmptyIndex ? "border-blue-600" : "border-gray-300"
-              }`}
+              className="h-14 w-14 rounded-2xl border-2 flex items-center justify-center text-lg font-bold text-black border-gray-300"
+              style={i === nextEmptyIndex ? { borderColor: '#452D9B' } : {}}
             >
               {val}
             </div>
@@ -126,7 +125,7 @@ export default function Verify() {
         </div>
 
         <p className="mt-4 text-center text-gray-500">Didn’t get OTP?</p>
-        <p className="text-center text-blue-600">
+        <p className="text-center" style={{ color: '#452D9B' }}>
           {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
         </p>
 

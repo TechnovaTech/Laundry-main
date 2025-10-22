@@ -7,7 +7,7 @@ function Icon({ src, active, showCheck }: { src: string; active: boolean; showCh
   if (src === "profile") {
     return (
       <div className="relative">
-        <svg className={`h-6 w-6 ${active ? "text-blue-600" : "text-gray-500"}`} fill="currentColor" viewBox="0 0 24 24">
+        <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" style={{ color: active ? '#452D9B' : '#6b7280' }}>
           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
         </svg>
       </div>
@@ -16,8 +16,9 @@ function Icon({ src, active, showCheck }: { src: string; active: boolean; showCh
   return (
     <div className="relative">
       <div
-        className={active ? "h-6 w-6 bg-blue-600" : "h-6 w-6 bg-gray-500"}
+        className="h-6 w-6"
         style={{
+          backgroundColor: active ? '#452D9B' : '#6b7280',
           WebkitMaskImage: `url(${src})`,
           maskImage: `url(${src})`,
           WebkitMaskSize: "contain",
@@ -29,7 +30,7 @@ function Icon({ src, active, showCheck }: { src: string; active: boolean; showCh
         }}
       />
       {active && showCheck && (
-        <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-blue-600 text-white text-[10px] leading-4 flex items-center justify-center">✓</span>
+        <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full text-white text-[10px] leading-4 flex items-center justify-center" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>✓</span>
       )}
     </div>
   );
@@ -75,7 +76,7 @@ export default function BottomNav() {
             <li key={it.href} className="flex flex-col items-center text-center">
               <Link href={it.href} className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl hover:bg-gray-50 transition-colors">
                 <Icon src={it.icon} active={it.active} showCheck={it.check} />
-                <span className={it.active ? "text-blue-600 font-bold text-[10px]" : "text-gray-500 text-[10px]"}>{it.label}</span>
+                <span className="text-[10px]" style={{ color: it.active ? '#452D9B' : '#6b7280', fontWeight: it.active ? 'bold' : 'normal' }}>{it.label}</span>
               </Link>
             </li>
           ))}

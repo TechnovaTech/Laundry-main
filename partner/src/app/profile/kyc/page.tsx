@@ -109,8 +109,8 @@ export default function KYCVerification() {
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">KYC Under Review</h2>
           <p className="text-gray-600 mb-6">Your KYC documents have been submitted successfully. Our admin team will review and approve within 24-48 hours.</p>
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800 font-medium">Status: {partner?.kycStatus?.toUpperCase() || 'PENDING'}</p>
+          <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: '#f0ebf8' }}>
+            <p className="text-sm font-medium" style={{ color: '#452D9B' }}>Status: {partner?.kycStatus?.toUpperCase() || 'PENDING'}</p>
           </div>
           <button 
             onClick={() => router.push('/')}
@@ -139,7 +139,10 @@ export default function KYCVerification() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Type *</label>
           <select
-            className="w-full rounded-xl border-2 border-blue-400 px-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border-2 px-3 py-3 text-base text-black outline-none"
+            style={{ borderColor: '#b8a7d9' }}
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             value={formData.vehicleType}
             onChange={(e) => setFormData(prev => ({ ...prev, vehicleType: e.target.value }))}
           >
@@ -154,7 +157,10 @@ export default function KYCVerification() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Number *</label>
           <input
-            className="w-full rounded-xl border-2 border-blue-400 px-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border-2 px-3 py-3 text-base text-black outline-none"
+            style={{ borderColor: '#b8a7d9' }}
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             placeholder="Enter vehicle number"
             type="text"
             value={formData.vehicleNumber}
@@ -166,7 +172,10 @@ export default function KYCVerification() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Aadhar Number *</label>
           <input
-            className="w-full rounded-xl border-2 border-blue-400 px-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border-2 px-3 py-3 text-base text-black outline-none"
+            style={{ borderColor: '#b8a7d9' }}
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             placeholder="Enter 12-digit Aadhar number"
             type="text"
             maxLength="12"
@@ -187,12 +196,15 @@ export default function KYCVerification() {
           />
           <label
             htmlFor="aadhar-upload"
-            className="w-full h-32 border-2 border-dashed border-blue-400 rounded-xl flex items-center justify-center cursor-pointer hover:bg-blue-50"
+            className="w-full h-32 border-2 border-dashed rounded-xl flex items-center justify-center cursor-pointer"
+            style={{ borderColor: '#b8a7d9' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0ebf8'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             {formData.aadharImage ? (
               <img src={formData.aadharImage} alt="Aadhar" className="h-28 object-contain" />
             ) : (
-              <span className="text-blue-600">+ Upload Aadhar Card</span>
+              <span style={{ color: '#452D9B' }}>+ Upload Aadhar Card</span>
             )}
           </label>
         </div>
@@ -201,7 +213,10 @@ export default function KYCVerification() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Driving License Number *</label>
           <input
-            className="w-full rounded-xl border-2 border-blue-400 px-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border-2 px-3 py-3 text-base text-black outline-none"
+            style={{ borderColor: '#b8a7d9' }}
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             placeholder="Enter driving license number"
             type="text"
             value={formData.drivingLicenseNumber}
@@ -221,12 +236,15 @@ export default function KYCVerification() {
           />
           <label
             htmlFor="license-upload"
-            className="w-full h-32 border-2 border-dashed border-blue-400 rounded-xl flex items-center justify-center cursor-pointer hover:bg-blue-50"
+            className="w-full h-32 border-2 border-dashed rounded-xl flex items-center justify-center cursor-pointer"
+            style={{ borderColor: '#b8a7d9' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0ebf8'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             {formData.drivingLicenseImage ? (
               <img src={formData.drivingLicenseImage} alt="License" className="h-28 object-contain" />
             ) : (
-              <span className="text-blue-600">+ Upload Driving License</span>
+              <span style={{ color: '#452D9B' }}>+ Upload Driving License</span>
             )}
           </label>
         </div>

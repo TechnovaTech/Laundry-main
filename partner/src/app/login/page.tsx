@@ -57,9 +57,12 @@ export default function Login() {
       <div className="px-4 mt-10" suppressHydrationWarning>
         <label className="block text-lg font-medium text-black">Please enter your mobile no :</label>
         <div className="mt-3 relative" suppressHydrationWarning>
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600">👤</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#452D9B' }}>👤</span>
           <input
-            className="w-full rounded-xl border border-blue-300 pl-9 pr-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border pl-9 pr-3 py-3 text-base text-black outline-none focus:ring-2"
+            style={{ borderColor: '#b8a7d9' }}
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             placeholder="Enter your phone no"
             type="tel"
             value={mobile}

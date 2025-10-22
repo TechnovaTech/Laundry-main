@@ -89,7 +89,7 @@ export default function BankDetailsPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: '#e0d4f7', borderTopColor: 'transparent' }}></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -111,7 +111,8 @@ export default function BankDetailsPage() {
             <button
               onClick={() => isEditing ? handleSave() : setIsEditing(true)}
               disabled={saving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:bg-gray-400"
+              className="px-4 py-2 text-white rounded-lg text-sm font-medium disabled:bg-gray-400"
+              style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
             >
               {saving ? "Saving..." : isEditing ? "Save" : "Edit"}
             </button>

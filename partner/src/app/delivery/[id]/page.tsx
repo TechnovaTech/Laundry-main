@@ -40,7 +40,7 @@ export default function DeliveryDetails() {
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/delivery/pick" className="text-2xl leading-none text-black">←</Link>
           <h2 className="text-lg font-semibold text-black">Delivery Details</h2>
-          <span className="text-blue-600">🔔</span>
+          <span style={{ color: '#452D9B' }}>🔔</span>
         </div>
       </header>
 
@@ -48,7 +48,7 @@ export default function DeliveryDetails() {
       <div className="mt-3 mx-4 rounded-xl border border-gray-200 bg-white shadow-sm p-4">
         <div className="flex items-start justify-between">
           <p className="text-sm font-semibold text-black">Order #{order.orderId}</p>
-          <span className="rounded-lg bg-blue-600 text-white px-3 py-1 text-xs font-semibold">
+          <span className="rounded-lg text-white px-3 py-1 text-xs font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             {order.status === 'process_completed' ? 'Ready for Delivery' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
           </span>
         </div>
@@ -56,14 +56,15 @@ export default function DeliveryDetails() {
           <p className="text-sm text-black">{order.customerId?.name || 'Customer'}</p>
           <div className="flex items-center gap-2">
             <p className="text-sm text-black">{order.customerId?.mobile}</p>
-            <a href={`tel:${order.customerId?.mobile}`} className="h-8 w-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">📞</a>
+            <a href={`tel:${order.customerId?.mobile}`} className="h-8 w-8 rounded-lg text-white flex items-center justify-center" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>📞</a>
           </div>
         </div>
         <p className="mt-2 text-sm text-black">📍 {order.deliveryAddress?.street || order.pickupAddress?.street}, {order.deliveryAddress?.city || order.pickupAddress?.city}</p>
         <a 
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.deliveryAddress?.street || order.pickupAddress?.street}, ${order.deliveryAddress?.city || order.pickupAddress?.city}`)}`} 
           target="_blank" 
-          className="mt-2 text-sm text-blue-600"
+          className="mt-2 text-sm"
+          style={{ color: '#452D9B' }}
         >
           Open in Maps
         </a>
@@ -93,7 +94,7 @@ export default function DeliveryDetails() {
             </div>
           ))}
         </div>
-        <p className="mt-3 text-sm font-semibold text-blue-600">Total Price: ₹{order.totalAmount}</p>
+        <p className="mt-3 text-sm font-semibold" style={{ color: '#452D9B' }}>Total Price: ₹{order.totalAmount}</p>
       </div>
 
       {/* CTA */}

@@ -39,18 +39,20 @@ export default function DeliveryHistory() {
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/delivery/pick" className="text-2xl leading-none text-black">←</Link>
           <h2 className="text-lg font-semibold text-black">Delivery History</h2>
-          <span className="text-blue-600">🔽</span>
+          <span style={{ color: '#452D9B' }}>🔽</span>
         </div>
       </header>
 
       {/* Search */}
       <div className="px-4 pt-3">
         <input
-          className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm outline-none"
+          onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+          onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none'; }}
           placeholder="Search by Order ID or Customer"
         />
         <div className="mt-3 flex items-center gap-2">
-          <button className="rounded-lg bg-blue-600 text-white px-3 py-1 text-xs font-semibold">This Week</button>
+          <button className="rounded-lg text-white px-3 py-1 text-xs font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>This Week</button>
           <button className="rounded-lg bg-gray-200 text-black px-3 py-1 text-xs font-semibold">Last Week</button>
           <button className="rounded-lg bg-gray-200 text-black px-3 py-1 text-xs font-semibold">This Month</button>
           <button className="rounded-lg bg-gray-200 text-black px-3 py-1 text-xs font-semibold">Custom</button>

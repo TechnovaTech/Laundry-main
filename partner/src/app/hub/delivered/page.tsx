@@ -38,7 +38,7 @@ export default function DeliveredToHub() {
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/hub/drop" className="text-2xl leading-none text-black">←</Link>
           <h2 className="text-lg font-semibold text-black">Delivered to Hub</h2>
-          <span className="text-blue-600">🔽</span>
+          <span style={{ color: '#452D9B' }}>🔽</span>
         </div>
       </header>
 
@@ -46,10 +46,12 @@ export default function DeliveredToHub() {
       <div className="px-4 pt-3">
         <div className="flex items-center gap-2">
           <input
-            className="flex-1 rounded-xl border border-gray-300 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 rounded-xl border border-gray-300 px-3 py-3 text-sm outline-none"
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none'; }}
             placeholder="Search by Order ID / Customer"
           />
-          <button className="h-10 w-10 rounded-xl border border-gray-300 flex items-center justify-center text-blue-600">🔽</button>
+          <button className="h-10 w-10 rounded-xl border border-gray-300 flex items-center justify-center" style={{ color: '#452D9B' }}>🔽</button>
         </div>
       </div>
 

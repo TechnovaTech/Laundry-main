@@ -86,9 +86,9 @@ export default function PickupConfirm() {
             <p className="mt-2 text-sm text-black">Customer: {order.customerId?.name || 'Customer'}</p>
             <p className="text-sm text-black">Phone: {order.customerId?.mobile}</p>
             <p className="mt-2 text-sm text-black">📍 {order.pickupAddress.street}, {order.pickupAddress.city}</p>
-            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="mt-3 inline-flex items-center rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">Open in Maps</a>
+            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="mt-3 inline-flex items-center rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>Open in Maps</a>
           </div>
-          <span className="rounded-lg border-2 border-blue-400 text-blue-600 px-3 py-1 text-sm font-semibold">
+          <span className="rounded-lg border-2 px-3 py-1 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
             {order.status === 'reached_location' ? 'Reached Location' : order.status === 'picked_up' ? 'Picked Up' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
           </span>
         </div>
@@ -110,7 +110,7 @@ export default function PickupConfirm() {
             </div>
           ))}
           <label className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center cursor-pointer relative overflow-hidden">
-            <span className="text-blue-600">📷</span>
+            <span style={{ color: '#452D9B' }}>📷</span>
             <input
               type="file"
               accept="image/*"
@@ -159,7 +159,9 @@ export default function PickupConfirm() {
         </button>
 
         <input
-          className="mt-4 w-full rounded-xl border border-gray-300 px-3 py-3 text-base text-black placeholder:text-gray-600 outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-4 w-full rounded-xl border border-gray-300 px-3 py-3 text-base text-black placeholder:text-gray-600 outline-none"
+          onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+          onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none'; }}
           placeholder="Add Notes (optional)…"
           type="text"
           value={notes}
@@ -171,7 +173,7 @@ export default function PickupConfirm() {
       {/* Checkbox and CTA */}
       <div className="mx-4 mt-3">
         <label className="flex items-center gap-2 text-base text-black">
-          <input type="checkbox" className="h-4 w-4 accent-blue-600" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+          <input type="checkbox" className="h-4 w-4" style={{ accentColor: '#452D9B' }} checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
           I have collected all items from customer.
         </label>
         <button

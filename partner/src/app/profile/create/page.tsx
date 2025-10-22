@@ -67,7 +67,8 @@ export default function CreateProfile() {
           <button 
             onClick={handleSave}
             disabled={loading}
-            className="text-blue-600 font-semibold disabled:text-gray-400"
+            className="font-semibold disabled:text-gray-400"
+            style={{ color: '#452D9B' }}
           >
             {loading ? "Saving..." : "Save"}
           </button>
@@ -101,7 +102,7 @@ export default function CreateProfile() {
           {profileImage ? (
             <img src={profileImage} alt="Profile" className="size-28 rounded-full object-cover" />
           ) : (
-            <span className="text-3xl text-blue-600">+</span>
+            <span className="text-3xl" style={{ color: '#452D9B' }}>+</span>
           )}
         </label>
         <p className="mt-3 text-sm text-gray-600">Add Profile Photo</p>
@@ -111,9 +112,12 @@ export default function CreateProfile() {
       <form className="px-4 mt-6 flex flex-col gap-4">
         {/* Full Name */}
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600">👤</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#452D9B' }}>👤</span>
           <input
-            className="w-full rounded-xl border-2 border-blue-400 pl-9 pr-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border-2 pl-9 pr-3 py-3 text-base text-black outline-none"
+            style={{ borderColor: '#b8a7d9' }}
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             placeholder="Full Name"
             type="text"
             value={formData.name}
@@ -123,9 +127,12 @@ export default function CreateProfile() {
 
         {/* Email Address */}
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600">✉️</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#452D9B' }}>✉️</span>
           <input
-            className="w-full rounded-xl border-2 border-blue-400 pl-9 pr-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border-2 pl-9 pr-3 py-3 text-base text-black outline-none"
+            style={{ borderColor: '#b8a7d9' }}
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             placeholder="Email Address"
             type="email"
             value={formData.email}
@@ -135,9 +142,12 @@ export default function CreateProfile() {
 
         {/* Mobile Number */}
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600">📞</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#452D9B' }}>📞</span>
           <input
-            className="w-full rounded-xl border-2 border-blue-400 pl-9 pr-3 py-3 text-base text-black outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border-2 pl-9 pr-3 py-3 text-base text-black outline-none"
+            style={{ borderColor: '#b8a7d9' }}
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             placeholder="123-456-7890"
             type="tel"
             value={formData.mobile}
@@ -147,9 +157,12 @@ export default function CreateProfile() {
 
         {/* Pincode */}
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600">📍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#452D9B' }}>📍</span>
           <input
-            className="w-full rounded-xl border-2 border-blue-400 pl-9 pr-3 py-3 text-sm text-black outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border-2 pl-9 pr-3 py-3 text-sm text-black outline-none"
+            style={{ borderColor: '#b8a7d9' }}
+            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             placeholder="Pincode - Use same as availability check"
             type="text"
             value={formData.address.pincode}

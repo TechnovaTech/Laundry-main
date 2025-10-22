@@ -56,7 +56,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center" suppressHydrationWarning>
         <div className="text-center" suppressHydrationWarning>
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" suppressHydrationWarning></div>
+          <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: '#e0d4f7', borderTopColor: 'transparent' }} suppressHydrationWarning></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -76,9 +76,9 @@ export default function ProfilePage() {
         <div className="bg-white rounded-lg shadow p-6 mb-4">
           <div className="flex items-center gap-4">
             {partnerData.profileImage ? (
-              <img src={partnerData.profileImage} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-blue-600" />
+              <img src={partnerData.profileImage} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2" style={{ borderColor: '#452D9B' }} />
             ) : (
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-3xl font-bold">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold" style={{ backgroundColor: '#f0ebf8', color: '#452D9B' }}>
                 {partnerData.name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -94,8 +94,8 @@ export default function ProfilePage() {
           onClick={() => router.push("/profile/personal")}
           className="bg-white rounded-lg shadow p-6 flex items-center gap-4 cursor-pointer hover:shadow-lg transition"
         >
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#452D9B' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>

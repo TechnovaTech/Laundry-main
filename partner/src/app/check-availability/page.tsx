@@ -45,7 +45,10 @@ export default function CheckAvailability() {
             placeholder="Pincode"
             value={pincode}
             onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
-            className="w-full rounded-xl border border-gray-300 px-4 py-4 text-center text-lg text-black placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-gray-300 px-4 py-4 text-center text-lg text-black placeholder:text-gray-400 outline-none focus:ring-2"
+            style={{ outlineColor: '#452D9B' }}
+            onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px #452D9B'}
+            onBlur={(e) => e.target.style.boxShadow = 'none'}
             maxLength={6}
           />
           

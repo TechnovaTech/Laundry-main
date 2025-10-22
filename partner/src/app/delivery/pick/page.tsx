@@ -57,9 +57,9 @@ export default function PickForDelivery() {
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
           <h2 className="text-lg font-semibold text-black">Pick for Delivery</h2>
-          <span className="text-blue-600">🔔</span>
+          <span style={{ color: '#452D9B' }}>🔔</span>
         </div>
-        <div className="bg-blue-600 text-white text-center py-2 text-sm font-semibold">Orders ready at Main Processing Hub</div>
+        <div className="text-white text-center py-2 text-sm font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>Orders ready at Main Processing Hub</div>
       </header>
 
       {/* Section title */}
@@ -87,13 +87,12 @@ export default function PickForDelivery() {
                     <button
                       aria-label={isSelected ? "Selected" : "Not selected"}
                       onClick={() => toggle(order._id)}
-                      className={`h-8 w-8 rounded-lg border-2 flex items-center justify-center ${
-                        isSelected ? "border-blue-600 bg-blue-600 text-white" : "border-blue-400"
-                      }`}
+                      className="h-8 w-8 rounded-lg border-2 flex items-center justify-center text-white"
+                      style={isSelected ? { borderColor: '#452D9B', background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { borderColor: '#b8a7d9', background: 'transparent', color: '#000' }}
                     >
                       {isSelected ? "✔" : ""}
                     </button>
-                    <span className="text-blue-600">ℹ️</span>
+                    <span style={{ color: '#452D9B' }}>ℹ️</span>
                   </div>
                 </div>
               </div>

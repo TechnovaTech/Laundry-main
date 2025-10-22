@@ -74,7 +74,7 @@ export default function StartPickup() {
         />
         <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
           <p className="text-sm font-semibold text-black">Pickup Location</p>
-          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="text-xs text-blue-600">Open in Google Maps</a>
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>
         </div>
       </div>
 
@@ -84,11 +84,11 @@ export default function StartPickup() {
         <p className="text-xs text-black mt-1">{order.customerId?.mobile}</p>
         <p className="text-xs text-black mt-1">📍 {order.pickupAddress.street}, {order.pickupAddress.city}</p>
         <div className="mt-3 flex items-center gap-3">
-          <a href={`tel:${order.customerId?.mobile}`} className="inline-flex items-center gap-2 rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">
+          <a href={`tel:${order.customerId?.mobile}`} className="inline-flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
             <span>📞</span>
             Call Customer
           </a>
-          <a href={`https://wa.me/${order.customerId?.mobile.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">
+          <a href={`https://wa.me/${order.customerId?.mobile.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
             <span>💬</span>
             Message
           </a>
@@ -96,7 +96,7 @@ export default function StartPickup() {
       </div>
 
       {/* Order Details */}
-      <div className="mt-4 mx-4 rounded-xl border-2 border-blue-500 bg-white p-4">
+      <div className="mt-4 mx-4 rounded-xl border-2 bg-white p-4" style={{ borderColor: '#452D9B' }}>
         <p className="text-base font-semibold text-black">Order Details</p>
         <div className="mt-2 text-sm text-black">
           <p>Order ID: {order.orderId}</p>
