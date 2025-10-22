@@ -96,32 +96,37 @@ export default function PickupConfirm() {
 
       {/* Upload section */}
       <div className="mt-4 mx-4">
-        <p className="text-base font-semibold text-black">Upload Clothes Photos (Min 2, Max 6)</p>
+        <p className="text-base font-semibold text-black">Upload Clothes Photos (Min 2)</p>
         <div className="mt-3 grid grid-cols-3 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <label key={i} className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center cursor-pointer relative overflow-hidden">
-              {photos[i] ? (
-                <img src={photos[i]} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-blue-600">📷</span>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file && photos.length < 6) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      setPhotos([...photos, reader.result as string]);
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-              />
-            </label>
+          {photos.map((photo, i) => (
+            <div key={i} className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center relative overflow-hidden">
+              <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+              <button
+                onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+              >
+                ×
+              </button>
+            </div>
           ))}
+          <label className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center cursor-pointer relative overflow-hidden">
+            <span className="text-blue-600">📷</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setPhotos([...photos, reader.result as string]);
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+            />
+          </label>
         </div>
         <p className="mt-2 text-xs text-gray-500">Upload at least 2 photos of the clothes</p>
         
@@ -150,7 +155,7 @@ export default function PickupConfirm() {
           disabled={photos.length < 2}
           className="mt-3 w-full inline-flex justify-center items-center bg-green-600 text-white rounded-xl py-3 text-base font-semibold disabled:bg-gray-400"
         >
-          Upload Images ({photos.length}/6)
+          Upload Images ({photos.length})
         </button>
 
         <input

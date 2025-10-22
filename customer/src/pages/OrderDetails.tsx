@@ -98,7 +98,7 @@ const OrderDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 py-4 flex items-center justify-between z-10 shadow-lg">
+      <header className="sticky top-0 px-4 sm:px-6 py-4 flex items-center justify-between z-10 shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <button onClick={() => navigate(-1)} className="flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>
@@ -122,7 +122,7 @@ const OrderDetails = () => {
         <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0 shadow-md">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                 <Shirt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="min-w-0">
@@ -130,10 +130,10 @@ const OrderDetails = () => {
                 <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {order?.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items'}
                 </p>
-                <p className="text-base sm:text-lg font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">₹{order?.totalAmount || 0}</p>
+                <p className="text-base sm:text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>₹{order?.totalAmount || 0}</p>
               </div>
             </div>
-            <span className="px-2 sm:px-4 py-1 sm:py-1.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0 shadow-md">
+            <span className="px-2 sm:px-4 py-1 sm:py-1.5 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
               {order?.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ') : 'Unknown'}
             </span>
           </div>
@@ -146,12 +146,9 @@ const OrderDetails = () => {
               <div key={index} className="flex items-center gap-3 sm:gap-4">
                 <div
                   className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${
-                    item.completed
-                      ? item.active
-                        ? "bg-gradient-to-r from-blue-500 to-blue-700"
-                        : "bg-gradient-to-r from-blue-400 to-blue-600"
-                      : "bg-muted"
+                    item.completed ? "" : "bg-muted"
                   }`}
+                  style={item.completed ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
                 >
                   <Icon
                     className={`w-4 h-4 sm:w-5 sm:h-5 ${
@@ -162,8 +159,9 @@ const OrderDetails = () => {
                 <div className="flex-1 min-w-0">
                   <p
                     className={`font-semibold text-sm sm:text-base ${
-                      item.active ? "bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent" : item.completed ? "text-foreground" : "text-muted-foreground"
+                      item.completed ? "text-foreground" : "text-muted-foreground"
                     }`}
+                    style={item.active ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' } : {}}
                   >
                     {item.label}
                   </p>
@@ -176,7 +174,7 @@ const OrderDetails = () => {
           })}
         </div>
 
-        <Card className="p-3 sm:p-4 rounded-2xl border-2 bg-gradient-to-br from-blue-50 to-blue-100 shadow-md">
+        <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-md" style={{ background: 'linear-gradient(to bottom right, #f0ebf8, #e0f7fa)' }}>
           <p className="text-xs sm:text-sm text-gray-700 font-medium">
             Pickup Address: {order?.pickupAddress ? `${order.pickupAddress.street}, ${order.pickupAddress.city}` : 'Not specified'}
           </p>
@@ -186,7 +184,7 @@ const OrderDetails = () => {
         </Card>
 
         <div className="flex gap-2 sm:gap-3">
-          <Button variant="outline" className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm border-2 border-blue-500 text-blue-600 hover:bg-blue-50 shadow-md">
+          <Button variant="outline" className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm border-2 shadow-md" style={{ borderColor: '#452D9B', color: '#452D9B' }}>
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
             Contact Partner
           </Button>
@@ -221,7 +219,8 @@ const OrderDetails = () => {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-lg"
+                  className="flex-1 shadow-lg text-white"
+                  style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
                   onClick={async () => {
                     if (!issueText.trim()) {
                       alert('Please describe the issue');

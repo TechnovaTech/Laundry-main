@@ -86,7 +86,15 @@ const ContinueBooking = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 sm:px-6 py-5 flex items-center justify-between shadow-lg">
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{ stopColor: '#452D9B', stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: '#07C8D0', stopOpacity: 1 }} />
+          </linearGradient>
+        </defs>
+      </svg>
+      <header className="text-white px-4 sm:px-6 py-5 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <button onClick={() => navigate(-1)} className="flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
@@ -100,16 +108,16 @@ const ContinueBooking = () => {
         <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0 shadow-md">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                 <Shirt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="min-w-0">
                 <p className="font-bold text-black text-sm sm:text-base">Order #{Math.floor(Math.random() * 90000) + 10000}</p>
                 <p className="text-xs sm:text-sm text-gray-500 truncate">{itemsText}</p>
-                <p className="text-base sm:text-lg font-bold text-blue-500">₹{totalAmount}</p>
+                <p className="text-base sm:text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>₹{totalAmount}</p>
               </div>
             </div>
-            <span className="px-2 sm:px-4 py-1 sm:py-1.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0 shadow-md">
+            <span className="px-2 sm:px-4 py-1 sm:py-1.5 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
               In Progress
             </span>
           </div>
@@ -122,18 +130,18 @@ const ContinueBooking = () => {
             ) : (
               <div className="h-full bg-blue-50 rounded-xl flex items-center justify-center">
                 <div className="text-center p-4">
-                  <MapPin className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-blue-600">No address</p>
-                  <p className="text-xs text-blue-500">Add address to see map</p>
+                  <MapPin className="w-8 h-8 mx-auto mb-2" style={{ stroke: 'url(#gradient)' }} />
+                  <p className="text-xs font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>No address</p>
+                  <p className="text-xs" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Add address to see map</p>
                 </div>
               </div>
             )}
             <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-lg z-10">
-              <p className="text-xs sm:text-sm font-semibold text-blue-500">Arriving in 25 min</p>
+              <p className="text-xs sm:text-sm font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Arriving in 25 min</p>
             </div>
             <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 w-12 h-16 sm:w-16 sm:h-20 bg-white rounded-lg shadow-lg p-1.5 sm:p-2 z-10">
               <div className="w-full h-6 sm:h-8 bg-blue-100 rounded flex items-center justify-center mb-1">
-                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+                <MapPin className="w-3 h-3 sm:w-4 sm:h-4" style={{ stroke: 'url(#gradient)' }} />
               </div>
               <div className="space-y-0.5">
                 <div className="h-1 bg-green-500 rounded"></div>
@@ -157,14 +165,15 @@ const ContinueBooking = () => {
             <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
               <div className="flex items-center justify-between mb-2 gap-3">
                 <p className="font-bold text-black text-sm sm:text-base">Order #{pastOrders[0].orderId}</p>
-                <span className="px-2 sm:px-4 py-1 bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0">
+                <span className="px-2 sm:px-4 py-1 text-white text-xs sm:text-sm font-semibold rounded-full flex-shrink-0" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                   {pastOrders[0].status}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-gray-500 mb-2">{pastOrders[0].items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items'}</p>
               <button 
                 onClick={() => navigate("/order-details", { state: { orderId: pastOrders[0].orderId, order: pastOrders[0] } })}
-                className="text-blue-500 font-semibold text-xs sm:text-sm"
+                className="font-semibold text-xs sm:text-sm"
+                style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
               >
                 View Details
               </button>

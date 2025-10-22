@@ -20,6 +20,7 @@ const Home = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [heroItems, setHeroItems] = useState([]);
   const [currentHero, setCurrentHero] = useState(0);
+  const [videoErrors, setVideoErrors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const savedName = localStorage.getItem('userName');
@@ -187,7 +188,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
       {/* Gradient Header Section */}
-      <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white px-4 sm:px-6 py-6 sm:py-8 shadow-xl">
+      <div className="text-white px-4 sm:px-6 py-6 sm:py-8 shadow-xl" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-1">Hi, {userName} 👋</h1>
@@ -220,7 +221,7 @@ const Home = () => {
                       alt="Hero"
                       className="w-full h-48 sm:h-64 object-cover"
                     />
-                  ) : (
+                  ) : !videoErrors.has(item._id) ? (
                     <video
                       src={item.url}
                       autoPlay
@@ -228,10 +229,12 @@ const Home = () => {
                       muted
                       playsInline
                       className="w-full h-48 sm:h-64 object-cover"
-                      onError={(e) => console.error('Video error:', e)}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                      onError={() => setVideoErrors(prev => new Set(prev).add(item._id))}
+                    />
+                  ) : (
+                    <div className="w-full h-48 sm:h-64 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                      <p className="text-white text-sm">Video unavailable</p>
+                    </div>
                   )}
                   {(item.title || item.description || item.buttonText) && (
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 sm:p-6">
@@ -385,9 +388,17 @@ const Home = () => {
       </div>
 
       {/* Bottom Navigation */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{ stopColor: '#452D9B', stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: '#07C8D0', stopOpacity: 1 }} />
+          </linearGradient>
+        </defs>
+      </svg>
       <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl">
-        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-blue-500 p-1">
-          <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
+        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
+          <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" style={{ stroke: 'url(#gradient)' }} />
         </button>
         <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />

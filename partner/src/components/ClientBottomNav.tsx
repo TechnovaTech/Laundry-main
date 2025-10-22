@@ -16,7 +16,7 @@ export default function ClientBottomNav() {
   }, [pathname]);
 
   // Hide bottom nav on pre-KYC pages
-  const preKycPages = ["/", "/check-availability", "/login", "/verify", "/profile/create", "/profile/kyc"];
+  const preKycPages = ["/", "/check-availability", "/congrats", "/login", "/verify", "/profile/create", "/profile/kyc"];
   if (preKycPages.includes(pathname) || !kycApproved) return null;
 
   return <BottomNav />;

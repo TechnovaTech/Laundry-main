@@ -88,7 +88,7 @@ export default function StartPickup() {
             <span>📞</span>
             Call Customer
           </a>
-          <a href={`sms:${order.customerId?.mobile}`} className="inline-flex items-center gap-2 rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">
+          <a href={`https://wa.me/${order.customerId?.mobile.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border-2 border-blue-400 text-blue-600 px-4 py-2 text-sm font-semibold">
             <span>💬</span>
             Message
           </a>

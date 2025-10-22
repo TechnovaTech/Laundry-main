@@ -22,7 +22,7 @@ const ReferAndEarn = () => {
 
   return (
     <div>
-      <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Refer and Earn</h2>
+      <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Refer and Earn</h2>
       <button 
         onClick={() => navigate("/refer-earn")}
         className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:shadow-xl transition-shadow"
@@ -374,7 +374,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
-      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg">
+      <header className="px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <h1 className="text-lg sm:text-xl font-bold text-white">Profile</h1>
         <button>
           <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -384,7 +384,7 @@ const Profile = () => {
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex items-center gap-3 sm:gap-4 mb-4">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white text-lg sm:text-2xl font-bold flex-shrink-0 shadow-md">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl font-bold flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
               {userProfile.avatar}
             </div>
             <div className="flex-1 min-w-0">
@@ -396,14 +396,15 @@ const Profile = () => {
           </div>
           <button 
             onClick={() => navigate("/create-profile")}
-            className="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-800"
+            className="font-semibold text-xs sm:text-sm"
+            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
           >
             Edit
           </button>
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">My Addresses</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>My Addresses</h2>
           {addresses.map((address) => (
             <div key={address.id} className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 hover:shadow-xl transition-shadow">
               <div className="flex items-start justify-between gap-3">
@@ -433,14 +434,15 @@ const Profile = () => {
           ))}
           <button 
             onClick={() => navigate("/add-address")}
-            className="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-800"
+            className="font-semibold text-xs sm:text-sm"
+            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
           >
             + Add New
           </button>
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Payment Options</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Payment Options</h2>
           {paymentOptions.map((option, index) => {
             const getPaymentIcon = (type) => {
               switch (type) {
@@ -498,7 +500,8 @@ const Profile = () => {
           {!hasAllPaymentTypes() && (
             <button 
               onClick={() => setShowPaymentModal(true)}
-              className="bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-800"
+              className="font-semibold text-xs sm:text-sm"
+              style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
             >
               + Add Payment
             </button>
@@ -658,20 +661,20 @@ const Profile = () => {
         )}
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Wallet</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Wallet</h2>
           <button 
             onClick={() => navigate("/wallet")}
             className="w-full bg-white rounded-2xl p-3 sm:p-4 shadow-lg flex items-center gap-2 sm:gap-3 hover:shadow-xl transition-shadow"
           >
             <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-            <span className="font-semibold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent text-sm sm:text-base">Balance: {walletBalance}</span>
+            <span className="font-semibold text-sm sm:text-base" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Balance: {walletBalance}</span>
           </button>
         </div>
 
         <ReferAndEarn />
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Support</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Support</h2>
           {supportOptions.map((option) => {
             const Icon = option.icon;
             return (
@@ -684,7 +687,7 @@ const Profile = () => {
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">App Settings / Legal</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>App Settings / Legal</h2>
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center justify-between gap-3 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
@@ -711,6 +714,14 @@ const Profile = () => {
 
 
 
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{ stopColor: '#452D9B', stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: '#07C8D0', stopOpacity: 1 }} />
+          </linearGradient>
+        </defs>
+      </svg>
       <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl border-t">
         <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
           <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
@@ -719,7 +730,7 @@ const Profile = () => {
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
          <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow">
+          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
         </button>
@@ -727,7 +738,7 @@ const Profile = () => {
           <RotateCcw className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
         <button className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
-          <User className="w-5 h-5 sm:w-7 sm:h-7 text-blue-500" />
+          <User className="w-5 h-5 sm:w-7 sm:h-7" style={{ stroke: 'url(#gradient)' }} />
         </button>
       </nav>
     </div>

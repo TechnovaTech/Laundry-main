@@ -125,7 +125,7 @@ const RateOrder = () => {
         {/* Order Details */}
         <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
               <Shirt className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -134,7 +134,7 @@ const RateOrder = () => {
               <p className="text-xs sm:text-sm text-gray-500">on {orderData.deliveryDate}</p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="text-lg sm:text-xl font-bold text-blue-500">{orderData.amount}</p>
+              <p className="text-lg sm:text-xl font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{orderData.amount}</p>
             </div>
           </div>
         </div>
@@ -154,8 +154,14 @@ const RateOrder = () => {
                 <Star
                   className={`w-8 h-8 sm:w-10 sm:h-10 ${
                     star <= rating
-                      ? "fill-blue-500 text-blue-500"
-                      : "text-gray-300 hover:text-blue-300"
+                      ? "text-white"
+                      : "text-gray-300"
+                  }`}
+                  style={star <= rating ? { fill: '#452D9B', stroke: '#452D9B' } : {}}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 ${
+                    star <= rating
+                      ? ""
+                      : "hover:text-gray-400"
                   }`}
                 />
               </button>
@@ -175,7 +181,10 @@ const RateOrder = () => {
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Write your feedback (optional)..."
-              className="w-full h-24 sm:h-32 p-4 border-2 border-blue-200 rounded-2xl resize-none focus:outline-none focus:border-blue-500 text-sm sm:text-base"
+              className="w-full h-24 sm:h-32 p-4 border-2 rounded-2xl resize-none focus:outline-none text-sm sm:text-base"
+              style={{ borderColor: '#e0d4f7' }}
+              onFocus={(e) => e.target.style.borderColor = '#452D9B'}
+              onBlur={(e) => e.target.style.borderColor = '#e0d4f7'}
               maxLength={500}
             />
           </div>
@@ -193,7 +202,10 @@ const RateOrder = () => {
             <Button
               onClick={handleSkip}
               variant="ghost"
-              className="w-full h-10 sm:h-12 rounded-2xl font-semibold text-blue-500 hover:bg-blue-50 text-base"
+              className="w-full h-10 sm:h-12 rounded-2xl font-semibold text-base"
+              style={{ color: '#452D9B' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0ebf8'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               Skip
             </Button>

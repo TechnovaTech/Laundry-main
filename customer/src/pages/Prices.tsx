@@ -41,7 +41,7 @@ const Prices = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
-      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg">
+      <header className="px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <button onClick={() => navigate(-1)} className="flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>
@@ -57,7 +57,7 @@ const Prices = () => {
             const Icon = cat === 'Household' ? Bed : Shirt;
             return (
               <div key={cat} className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center mb-2 sm:mb-3 shadow-md">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                   <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <h3 className="font-bold text-sm sm:text-lg mb-1 text-black">{cat}</h3>
@@ -83,7 +83,7 @@ const Prices = () => {
               
               return (
                 <div key={category}>
-                  <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">
+                  <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                     {category}
                   </h2>
                   <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -95,12 +95,12 @@ const Prices = () => {
                         } hover:bg-blue-50 transition-colors`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center shadow-md">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                             <Shirt className="w-5 h-5 text-white" />
                           </div>
                           <span className="font-semibold text-gray-800">{item.name}</span>
                         </div>
-                        <span className="text-lg font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">
+                        <span className="text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                           ₹{item.price}
                         </span>
                       </div>
@@ -112,22 +112,30 @@ const Prices = () => {
           </div>
         )}
 
-        <div className="mt-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-4 shadow-md">
+        <div className="mt-6 rounded-2xl p-4 shadow-md" style={{ background: 'linear-gradient(to bottom right, #f0ebf8, #e0f7f9)' }}>
           <p className="text-center text-xs text-gray-700 font-medium">
             *All services include professional steam ironing as standard.
           </p>
         </div>
       </div>
 
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{ stopColor: '#452D9B', stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: '#07C8D0', stopOpacity: 1 }} />
+          </linearGradient>
+        </defs>
+      </svg>
       <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl border-t">
         <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
           <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
         <button className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
-          <Tag className="w-5 h-5 sm:w-7 sm:h-7 text-blue-500" />
+          <Tag className="w-5 h-5 sm:w-7 sm:h-7" style={{ stroke: 'url(#gradient)' }} />
         </button>
         <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow">
+          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
         </button>

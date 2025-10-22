@@ -14,7 +14,6 @@ const PricingItemSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Men', 'Women', 'Household', 'All'],
     default: 'All'
   },
   isActive: {
@@ -25,4 +24,8 @@ const PricingItemSchema = new mongoose.Schema({
   timestamps: true
 });
 
-export default mongoose.models.PricingItem || mongoose.model('PricingItem', PricingItemSchema);
+if (mongoose.models.PricingItem) {
+  delete mongoose.models.PricingItem;
+}
+
+export default mongoose.model('PricingItem', PricingItemSchema);

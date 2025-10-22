@@ -133,13 +133,21 @@ const Booking = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{ stopColor: '#452D9B', stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: '#07C8D0', stopOpacity: 1 }} />
+          </linearGradient>
+        </defs>
+      </svg>
       <header className="bg-white px-4 sm:px-6 py-4 flex items-center justify-between shadow-sm">
         <button onClick={() => navigate(-1)} className="flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
         </button>
         <h1 className="text-lg sm:text-xl font-bold text-black flex-1 text-center mx-4 truncate">Book Your Order</h1>
         <button className="flex-shrink-0">
-          <Info className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+          <Info className="w-5 h-5 sm:w-6 sm:h-6" style={{ stroke: 'url(#gradient)' }} />
         </button>
       </header>
 
@@ -150,19 +158,20 @@ const Booking = () => {
             {pricingItems.map((item) => (
               <div key={item._id} className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                     <Shirt className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div className="min-w-0">
                     <p className="font-semibold text-black text-sm sm:text-base">
-                      {item.name} <span className="text-blue-500">₹{item.price}</span>
+                      {item.name} <span style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>₹{item.price}</span>
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <button
                     onClick={() => updateQuantity(item._id, false)}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white flex items-center justify-center font-bold touch-manipulation shadow-md"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-white flex items-center justify-center font-bold touch-manipulation shadow-md"
+                    style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
                   >
                     <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
@@ -171,7 +180,8 @@ const Booking = () => {
                   </span>
                   <button
                     onClick={() => updateQuantity(item._id, true)}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white flex items-center justify-center font-bold touch-manipulation shadow-md"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-white flex items-center justify-center font-bold touch-manipulation shadow-md"
+                    style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
                   >
                     <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
@@ -188,9 +198,10 @@ const Booking = () => {
               onClick={() => setPickupType("now")}
               className={`flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base shadow-md ${
                 pickupType === "now" 
-                  ? "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white" 
-                  : "bg-white border border-gray-300 text-blue-500 hover:bg-gray-50"
+                  ? "text-white" 
+                  : "bg-white border border-gray-300 hover:bg-gray-50"
               }`}
+              style={pickupType === "now" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
             >
               Pickup Now
             </Button>
@@ -198,9 +209,10 @@ const Booking = () => {
               onClick={() => setPickupType("later")}
               className={`flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-sm sm:text-base shadow-md ${
                 pickupType === "later" 
-                  ? "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white" 
-                  : "bg-white border border-gray-300 text-blue-500 hover:bg-gray-50"
+                  ? "text-white" 
+                  : "bg-white border border-gray-300 hover:bg-gray-50"
               }`}
+              style={pickupType === "later" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
             >
               Pickup Later
             </Button>
@@ -210,7 +222,7 @@ const Booking = () => {
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Schedule Pickup & Delivery</h2>
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white text-sm sm:text-base px-3 sm:px-4 flex-shrink-0 shadow-md">
+            <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap text-white text-sm sm:text-base px-3 sm:px-4 flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
               {pickupType === "now" ? "Today" : "Tomorrow"}
             </Button>
             {timeSlots.map((slot) => (
@@ -221,15 +233,16 @@ const Booking = () => {
                   isSlotPassed(slot.time) && pickupType === 'now'
                     ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
                     : selectedSlot === slot.time 
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white shadow-md' 
+                      ? 'text-white shadow-md' 
                       : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
                 }`}
+                style={selectedSlot === slot.time && !(isSlotPassed(slot.time) && pickupType === 'now') ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
               >
                 {slot.time}
               </Button>
             ))}
           </div>
-          <p className="text-xs sm:text-sm text-blue-500 mt-2 sm:mt-3">
+          <p className="text-xs sm:text-sm mt-2 sm:mt-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             Next available slot: {pickupType === "now" ? "Today" : "Tomorrow"}, {selectedSlot || 'No slots available'}
           </p>
         </div>
@@ -239,7 +252,7 @@ const Booking = () => {
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" style={{ stroke: 'url(#gradient)' }} />
                 <div className="min-w-0">
                   {customerAddress ? (
                     <>
@@ -256,7 +269,8 @@ const Booking = () => {
               </div>
               <button 
                 onClick={() => savedAddresses.length > 0 ? setShowAddressModal(true) : navigate("/add-address")}
-                className="text-blue-500 font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
+                className="font-semibold text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
+                style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
               >
                 {savedAddresses.length > 0 ? 'Change' : 'Add'}
               </button>
@@ -277,16 +291,15 @@ const Booking = () => {
                         setCustomerAddress(addr);
                         setShowAddressModal(false);
                       }}
-                      className={`p-4 rounded-2xl border-2 cursor-pointer ${
-                        customerAddress?.street === addr.street && customerAddress?.city === addr.city ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                      }`}
+                      className="p-4 rounded-2xl border-2 cursor-pointer"
+                      style={customerAddress?.street === addr.street && customerAddress?.city === addr.city ? { borderColor: '#452D9B', backgroundColor: '#f0ebf8' } : { borderColor: '#e5e7eb' }}
                     >
                       <div className="flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ stroke: 'url(#gradient)' }} />
                         <div className="flex-1">
                           <p className="font-semibold text-black text-sm">{addr.street}</p>
                           <p className="text-gray-600 text-xs">{addr.city}, {addr.state} - {addr.pincode}</p>
-                          {addr.isDefault && <span className="text-blue-500 text-xs font-medium">Primary</span>}
+                          {addr.isDefault && <span className="text-xs font-medium" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Primary</span>}
                         </div>
                       </div>
                     </div>
@@ -296,7 +309,8 @@ const Booking = () => {
                       setShowAddressModal(false);
                       navigate("/add-address");
                     }}
-                    className="w-full py-3 border-2 border-dashed border-blue-300 rounded-2xl text-blue-500 font-semibold"
+                    className="w-full py-3 border-2 border-dashed rounded-2xl font-semibold"
+                    style={{ borderColor: '#9b7dd4', background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
                   >
                     + Add New Address
                   </button>
@@ -315,7 +329,7 @@ const Booking = () => {
             <p className="text-xs sm:text-sm text-black">Service: Steam Iron</p>
             <p className="text-xs sm:text-sm text-black font-semibold">Minimum Order Value: ₹500</p>
             <div className="border-t pt-2 sm:pt-3">
-              <p className="text-base sm:text-lg font-bold text-blue-500">Estimated Total: ₹{calculateTotal()}</p>
+              <p className="text-base sm:text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Estimated Total: ₹{calculateTotal()}</p>
               {calculateTotal() < 500 && (
                 <p className="text-xs text-red-500 mt-1 sm:mt-2 font-semibold">⚠ Minimum order value of ₹500 required</p>
               )}
@@ -374,7 +388,7 @@ const Booking = () => {
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
         <button className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-blue-500 flex items-center justify-center border-2 border-white shadow-lg">
+          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
         </button>
