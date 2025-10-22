@@ -18,6 +18,8 @@ const Home = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [claimedVouchers, setClaimedVouchers] = useState<string[]>([]);
   const [recentOrders, setRecentOrders] = useState([]);
+  const [heroItems, setHeroItems] = useState([]);
+  const [currentHero, setCurrentHero] = useState(0);
 
   useEffect(() => {
     const savedName = localStorage.getItem('userName');
@@ -38,6 +40,7 @@ const Home = () => {
     fetchVouchers();
     fetchCustomerAddress();
     fetchRecentOrders();
+    fetchHeroItems();
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -91,6 +94,27 @@ const Home = () => {
       console.error('Error fetching recent orders:', error);
     }
   };
+  
+  const fetchHeroItems = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/hero-section');
+      const data = await response.json();
+      if (data.success) {
+        setHeroItems(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching hero items:', error);
+    }
+  };
+  
+  // Auto-scroll hero items
+  useEffect(() => {
+    if (heroItems.length === 0) return;
+    const interval = setInterval(() => {
+      setCurrentHero(prev => (prev + 1) % heroItems.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [heroItems.length]);
   
   // Auto-scroll vouchers only if not manually controlled
   useEffect(() => {
@@ -177,32 +201,67 @@ const Home = () => {
 
       {/* White Content Section */}
       <div className="px-4 sm:px-6 py-4 sm:py-6">
-        {/* Service Card */}
-        <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl p-4 sm:p-6 flex items-center gap-3 sm:gap-4 text-black mb-4 sm:mb-6 shadow-xl border border-blue-100">
-          <div className="flex-shrink-0">
-            <img 
-              src={homeScreenImage}
-              alt="Service Features" 
-              className="w-56 h-56 sm:w-72 sm:h-72 object-contain"
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="space-y-3 sm:space-y-4">
-              <div className="flex items-center gap-2 text-blue-600">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="text-sm sm:text-base font-semibold">Doorstep Pickup & Delivery</span>
-              </div>
-              <div className="flex items-center gap-2 text-blue-600">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="text-sm sm:text-base font-semibold">Professional Steam Ironing</span>
-              </div>
-              <div className="flex items-center gap-2 text-blue-600">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="text-sm sm:text-base font-semibold">100% Quality Assured</span>
-              </div>
+        {/* Hero Carousel */}
+        {heroItems.length > 0 && (
+          <div className="mb-4 sm:mb-6">
+            <div className="relative rounded-3xl overflow-hidden shadow-xl">
+              {heroItems.map((item: any, index) => (
+                <div
+                  key={item._id}
+                  className="transition-opacity duration-500 relative"
+                  style={{
+                    display: index === currentHero ? 'block' : 'none',
+                    opacity: index === currentHero ? 1 : 0
+                  }}
+                >
+                  {item.type === 'image' ? (
+                    <img
+                      src={item.url}
+                      alt="Hero"
+                      className="w-full h-48 sm:h-64 object-cover"
+                    />
+                  ) : (
+                    <video
+                      src={item.url}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-48 sm:h-64 object-cover"
+                      onError={(e) => console.error('Video error:', e)}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                  {(item.title || item.description || item.buttonText) && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 sm:p-6">
+                      {item.title && <h3 className="text-white text-lg sm:text-xl font-bold mb-1">{item.title}</h3>}
+                      {item.description && <p className="text-white/90 text-sm sm:text-base mb-2">{item.description}</p>}
+                      {item.buttonText && item.buttonLink && (
+                        <button
+                          onClick={() => navigate(item.buttonLink)}
+                          className="bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white px-4 py-2 rounded-xl text-sm font-semibold"
+                        >
+                          {item.buttonText}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-center gap-2 mt-3">
+              {heroItems.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === currentHero ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
+                />
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Book Order Button */}
         <Button

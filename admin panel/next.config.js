@@ -11,6 +11,12 @@ const nextConfig = {
           { key: 'Access-Control-Max-Age', value: '86400' },
         ],
       },
+      {
+        source: '/uploads/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+        ],
+      },
     ]
   },
 }

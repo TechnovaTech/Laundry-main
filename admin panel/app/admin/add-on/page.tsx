@@ -50,6 +50,11 @@ export default function AddOnPage() {
   const [hubPincodes, setHubPincodes] = useState<any[]>([])
   const [selectedServicePincodes, setSelectedServicePincodes] = useState<string[]>([])
   const [toast, setToast] = useState({ show: false, message: '', type: '' })
+  const [heroItems, setHeroItems] = useState<any[]>([])
+  const [heroUrl, setHeroUrl] = useState('')
+  const [heroType, setHeroType] = useState('image')
+  const [heroFile, setHeroFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     fetchStates()
@@ -58,12 +63,54 @@ export default function AddOnPage() {
     fetchTimeSlots()
     fetchWalletSettings()
     fetchHubs()
+    fetchHeroItems()
   }, [])
 
   const fetchHubs = async () => {
     const response = await fetch('/api/hubs')
     const data = await response.json()
     if (data.success) setHubs(data.data)
+  }
+
+  const fetchHeroItems = async () => {
+    const response = await fetch('/api/hero-section')
+    const data = await response.json()
+    if (data.success) setHeroItems(data.data)
+  }
+
+  const addHeroItem = async () => {
+    if (!heroUrl && !heroFile) return
+    setUploading(true)
+    
+    let finalUrl = heroUrl
+    if (heroFile) {
+      const formData = new FormData()
+      formData.append('file', heroFile)
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+      const uploadData = await uploadRes.json()
+      if (uploadData.success) finalUrl = uploadData.url
+    }
+    
+    const response = await fetch('/api/hero-section', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        type: heroType, 
+        url: finalUrl, 
+        order: heroItems.length 
+      })
+    })
+    if (response.ok) {
+      setHeroUrl('')
+      setHeroFile(null)
+      fetchHeroItems()
+    }
+    setUploading(false)
+  }
+
+  const removeHeroItem = async (id: string) => {
+    const response = await fetch(`/api/hero-section?id=${id}`, { method: 'DELETE' })
+    if (response.ok) fetchHeroItems()
   }
 
   const handleHubStateChange = (stateCode: string) => {
@@ -570,6 +617,24 @@ export default function AddOnPage() {
             }}
           >
             Hub
+          </button>
+          <button 
+            onClick={() => {
+              setActiveSection('Hero')
+              window.location.hash = 'Hero'
+            }}
+            style={{ 
+              padding: '0.75rem 1.5rem', 
+              backgroundColor: activeSection === 'Hero' ? '#2563eb' : 'white', 
+              color: activeSection === 'Hero' ? 'white' : '#2563eb', 
+              border: activeSection === 'Hero' ? 'none' : '1px solid #2563eb', 
+              borderRadius: '8px', 
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
+          >
+            Hero Section
           </button>
         </div>
 
@@ -1121,6 +1186,107 @@ export default function AddOnPage() {
                 {hub.contactPerson && <p style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '0.25rem' }}>Contact: {hub.contactPerson} - {hub.contactNumber}</p>}
               </div>
             ))}
+          </div>
+        </div>
+        )}
+
+        {/* Hero Section Management */}
+        {activeSection === 'Hero' && (
+        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Hero Section Management</h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: '500' }}>Upload File</label>
+              <input 
+                type="file" 
+                accept="image/*,video/*"
+                onChange={(e) => setHeroFile(e.target.files?.[0] || null)}
+                style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.9rem', width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: '500' }}>Or Enter URL</label>
+              <input 
+                type="text" 
+                placeholder="Image/Video URL"
+                value={heroUrl}
+                onChange={(e) => setHeroUrl(e.target.value)}
+                style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.9rem', width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: '500' }}>Type</label>
+              <select 
+                value={heroType}
+                onChange={(e) => setHeroType(e.target.value)}
+                style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.9rem', width: '100%' }}
+              >
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: '500' }}>&nbsp;</label>
+              <button 
+                onClick={addHeroItem}
+                disabled={(!heroUrl && !heroFile) || uploading}
+                style={{ 
+                  padding: '0.75rem', 
+                  backgroundColor: (heroUrl || heroFile) && !uploading ? '#2563eb' : '#9ca3af', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '500',
+                  cursor: (heroUrl || heroFile) && !uploading ? 'pointer' : 'not-allowed',
+                  width: '100%'
+                }}
+              >
+                {uploading ? 'Uploading...' : 'Add Item'}
+              </button>
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {heroItems.length === 0 ? (
+              <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No hero items added yet</p>
+            ) : (
+              heroItems.map((item: any) => (
+                <div key={item._id} style={{ 
+                  backgroundColor: '#f8fafc', 
+                  padding: '1rem', 
+                  borderRadius: '8px', 
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem' }}>
+                    {item.type === 'image' ? (
+                      <img src={item.url} alt="Hero" style={{ width: '150px', height: '90px', objectFit: 'cover', borderRadius: '6px' }} />
+                    ) : (
+                      <video src={item.url} style={{ width: '150px', height: '90px', objectFit: 'cover', borderRadius: '6px' }} />
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>Type: {item.type}</p>
+                    </div>
+                    <button 
+                      onClick={() => removeHeroItem(item._id)}
+                      style={{ 
+                        padding: '0.5rem 1rem', 
+                        backgroundColor: '#ef4444', 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '6px', 
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        height: 'fit-content'
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
         )}
