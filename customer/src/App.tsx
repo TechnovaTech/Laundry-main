@@ -29,6 +29,8 @@ import AddAddress from "./pages/AddAddress";
 import Wallet from "./pages/Wallet";
 import ReferEarn from "./pages/ReferEarn";
 import RateOrder from "./pages/RateOrder";
+import TermsConditions from "./pages/TermsConditions";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,6 +77,8 @@ const AppContent = () => {
       <Route path="/wallet" element={<Wallet />} />
       <Route path="/refer-earn" element={<ReferEarn />} />
       <Route path="/rate-order/:orderId" element={<RateOrder />} />
+      <Route path="/terms-conditions" element={<TermsConditions />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

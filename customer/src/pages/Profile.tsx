@@ -696,7 +696,14 @@ const Profile = () => {
             <Switch checked={notificationEnabled} onCheckedChange={setNotificationEnabled} className="flex-shrink-0" />
           </div>
           {legalOptions.map((option) => (
-            <div key={option.id} className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:shadow-xl transition-shadow">
+            <div 
+              key={option.id} 
+              onClick={() => {
+                if (option.title === "Terms & Conditions") navigate("/terms-conditions");
+                if (option.title === "Privacy Policy") navigate("/privacy-policy");
+              }}
+              className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:shadow-xl transition-shadow"
+            >
               <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
               <span className="font-medium text-black text-sm sm:text-base">{option.title}</span>
             </div>
