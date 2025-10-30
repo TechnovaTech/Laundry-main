@@ -3,9 +3,37 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const city = searchParams.get('city')
+  const pincode = searchParams.get('pincode')
   
+  // Handle pincode lookup
+  if (pincode) {
+    try {
+      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch location')
+      }
+      
+      const data = await response.json()
+      
+      if (data[0]?.Status === 'Success' && data[0]?.PostOffice?.[0]) {
+        const office = data[0].PostOffice[0]
+        return NextResponse.json([{
+          city: office.District,
+          state: office.State,
+          pincode: office.Pincode
+        }])
+      }
+      
+      throw new Error('No data found')
+    } catch (error) {
+      return NextResponse.json([{ city: '', state: '', pincode }])
+    }
+  }
+  
+  // Handle city lookup
   if (!city) {
-    return NextResponse.json({ error: 'City is required' }, { status: 400 })
+    return NextResponse.json({ error: 'City or pincode is required' }, { status: 400 })
   }
   
   try {

@@ -34,7 +34,7 @@ const ReferAndEarn = () => {
   );
 };
 import { useNavigate, useLocation } from "react-router-dom";
-import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, Phone as PhoneIcon, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2 } from "lucide-react";
+import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, MessageCircle, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 
@@ -172,8 +172,15 @@ const Profile = () => {
   const supportOptions = [
     { id: 1, title: "FAQ", icon: HelpCircle },
     { id: 2, title: "Mail", icon: Mail },
-    { id: 3, title: "Call Support", icon: PhoneIcon }
+    { id: 3, title: "WhatsApp Support", icon: MessageCircle }
   ];
+  
+  const handleSupportClick = (optionId: number) => {
+    if (optionId === 3) {
+      // Open WhatsApp chat
+      window.open('https://wa.me/919036754813', '_blank');
+    }
+  };
 
   const legalOptions = [
     { id: 1, title: "Privacy Policy" },
@@ -684,7 +691,11 @@ const Profile = () => {
           {supportOptions.map((option) => {
             const Icon = option.icon;
             return (
-              <div key={option.id} className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:shadow-xl transition-shadow">
+              <div 
+                key={option.id} 
+                onClick={() => handleSupportClick(option.id)}
+                className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:shadow-xl transition-shadow"
+              >
                 <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
                 <span className="font-medium text-black text-sm sm:text-base">{option.title}</span>
               </div>
