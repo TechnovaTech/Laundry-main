@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import Toast from "@/components/Toast";
 
 interface Order {
   _id: string;
@@ -28,6 +29,7 @@ export default function StartPickup() {
   const params = useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   useEffect(() => {
     fetchOrder();
@@ -76,6 +78,7 @@ export default function StartPickup() {
   }
   return (
     <div className="pb-6">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -152,7 +155,7 @@ export default function StartPickup() {
             if (response.ok) {
               window.location.href = `/pickups/confirm/${order._id}`;
             } else {
-              alert('Failed to update order');
+              setToast({ message: 'Failed to update order', type: 'error' });
             }
           }}
           className="mt-5 w-full inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"

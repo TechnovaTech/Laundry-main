@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import Toast from "@/components/Toast";
 
 interface Order {
   _id: string;
@@ -44,6 +45,7 @@ export default function PickupConfirm() {
   const [confirmed, setConfirmed] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [hub, setHub] = useState<Hub | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   useEffect(() => {
     fetchOrder();
@@ -69,6 +71,7 @@ export default function PickupConfirm() {
   if (!order) return <div className="p-8 text-center">Order not found</div>;
   return (
     <div className="pb-6">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -133,7 +136,7 @@ export default function PickupConfirm() {
         <button
           onClick={async () => {
             if (photos.length < 2) {
-              alert('Please upload at least 2 photos');
+              setToast({ message: 'Please upload at least 2 photos', type: 'warning' });
               return;
             }
             try {
@@ -143,13 +146,13 @@ export default function PickupConfirm() {
                 body: JSON.stringify({ pickupPhotos: photos })
               });
               if (response.ok) {
-                alert('Images uploaded successfully!');
+                setToast({ message: 'Images uploaded successfully!', type: 'success' });
               } else {
-                alert('Failed to upload images');
+                setToast({ message: 'Failed to upload images', type: 'error' });
               }
             } catch (error) {
               console.error('Failed to upload images:', error);
-              alert('Failed to upload images');
+              setToast({ message: 'Failed to upload images', type: 'error' });
             }
           }}
           disabled={photos.length < 2}
@@ -179,7 +182,7 @@ export default function PickupConfirm() {
         <button
           onClick={async () => {
             if (!confirmed) {
-              alert('Please confirm you have collected all items');
+              setToast({ message: 'Please confirm you have collected all items', type: 'warning' });
               return;
             }
             try {

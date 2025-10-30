@@ -5,6 +5,7 @@ import Image from "next/image";
 import BottomNav from "@/components/BottomNav";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Toast from "@/components/Toast";
 
 export default function DeliveryDetails() {
   const params = useParams();
@@ -16,6 +17,7 @@ export default function DeliveryDetails() {
     incorrectAddress: false,
     refusalToAccept: false
   });
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   useEffect(() => {
     fetchOrder();
@@ -41,6 +43,7 @@ export default function DeliveryDetails() {
 
   return (
     <div className="pb-24">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -121,7 +124,7 @@ export default function DeliveryDetails() {
               if (response.ok) {
                 fetchOrder();
               } else {
-                alert('Failed to start delivery');
+                setToast({ message: 'Failed to start delivery', type: 'error' });
               }
             }}
             className="mt-5 w-full inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"
@@ -142,10 +145,10 @@ export default function DeliveryDetails() {
                   })
                 });
                 if (response.ok) {
-                  alert('Order delivered successfully!');
-                  window.location.href = '/delivery/pick';
+                  setToast({ message: 'Order delivered successfully!', type: 'success' });
+                  setTimeout(() => window.location.href = '/delivery/pick', 1500);
                 } else {
-                  alert('Failed to mark as delivered');
+                  setToast({ message: 'Failed to mark as delivered', type: 'error' });
                 }
               }}
               className="flex-1 inline-flex justify-center items-center bg-green-600 text-white rounded-xl py-3 text-base font-semibold"
@@ -237,7 +240,7 @@ export default function DeliveryDetails() {
                   if (failureReasons.refusalToAccept) selectedReasons.push('Refusal to Accept');
 
                   if (selectedReasons.length === 0) {
-                    alert('Please select at least one reason');
+                    setToast({ message: 'Please select at least one reason', type: 'warning' });
                     return;
                   }
 
@@ -255,10 +258,11 @@ export default function DeliveryDetails() {
                   });
 
                   if (response.ok) {
-                    alert('Order marked as delivery failed. Customer will be charged ₹' + deliveryFee);
-                    window.location.href = '/delivery/pick';
+                    setShowFailureModal(false);
+                    setToast({ message: `Order marked as delivery failed. Customer will be charged ₹${deliveryFee}`, type: 'success' });
+                    setTimeout(() => window.location.href = '/delivery/pick', 2000);
                   } else {
-                    alert('Failed to update order');
+                    setToast({ message: 'Failed to update order', type: 'error' });
                   }
                 }}
                 className="flex-1 py-2.5 rounded-lg font-semibold text-white"
