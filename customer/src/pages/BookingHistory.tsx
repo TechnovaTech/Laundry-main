@@ -108,7 +108,13 @@ const BookingHistory = () => {
                 </div>
                 <span
                   className="px-2 sm:px-3 py-1 text-xs font-semibold rounded-full flex-shrink-0 shadow-md text-white"
-                  style={order.status === "Delivered" ? { background: 'linear-gradient(to right, #10b981, #059669)' } : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                  style={
+                    order.status === "Delivered" 
+                      ? { background: 'linear-gradient(to right, #10b981, #059669)' } 
+                      : order.status === "Cancelled" 
+                      ? { background: 'linear-gradient(to right, #ef4444, #dc2626)' }
+                      : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }
+                  }
                 >
                   {order.status}
                 </span>

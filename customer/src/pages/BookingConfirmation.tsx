@@ -1,12 +1,17 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, MapPin, Share2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, MapPin, Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Toast, ConfirmDialog } from "@/components/Toast";
 
 const BookingConfirmation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const orderData = location.state || {};
+  const [showCancellationModal, setShowCancellationModal] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'warning' }>({ show: false, message: '', type: 'success' });
   
   const orderId = orderData.orderId || 12345;
   const items = orderData.items || '3 Shirts, 1 Bedsheet';
@@ -88,17 +93,117 @@ const BookingConfirmation = () => {
         <Button
           onClick={() => navigate("/home")}
           variant="outline"
-          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 border-2"
+          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-3 border-2"
           style={{ borderColor: '#452D9B', color: '#452D9B' }}
         >
           Back to Home
+        </Button>
+
+        <Button
+          onClick={() => setShowConfirmDialog(true)}
+          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 text-white shadow-lg"
+          style={{ background: 'linear-gradient(to right, #ef4444, #dc2626)' }}
+        >
+          Cancel Order
         </Button>
 
         <button className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-primary transition px-4 text-center">
           <span>Invite friends & get 20% off your next order.</span>
           <Share2 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
         </button>
+
+        <button 
+          onClick={() => setShowCancellationModal(true)}
+          className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 underline mt-4"
+        >
+          View Cancellation Policy
+        </button>
       </div>
+
+      {/* Cancellation Policy Modal */}
+      {showCancellationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg sm:text-xl font-bold">Cancellation Fees Terms</h2>
+              <button onClick={() => setShowCancellationModal(false)} className="p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-4 sm:p-6 text-xs sm:text-sm space-y-4">
+              <section>
+                <h3 className="font-bold mb-2">1. Order Cancellation Before Pickup Assignment</h3>
+                <p>If a customer cancels the order before a pickup executive has been assigned, <strong>No cancellation Fee</strong> of the total invoice amount will be charged.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">2. Order Cancellation After Pickup Assignment</h3>
+                <p>Once a pickup executive has been assigned, and the customer cancels the order thereafter, a <strong>20% cancellation fee</strong> of the total invoice amount will be charged.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">3. Delivery Attempts</h3>
+                <p className="mb-2">Urban Steam will make two (2) delivery attempts — one physical attempt and one attempt via phone call — to deliver the order to the customer.</p>
+                <p className="mb-2">If both delivery attempts fail due to customer unavailability, incorrect address details, or refusal to accept the order, the customer will be charged additional delivery fees as follows:</p>
+                <ul className="list-disc pl-6 space-y-1">
+                  <li><strong>Minimum:</strong> ₹100</li>
+                  <li><strong>Maximum:</strong> ₹250</li>
+                  <li>Applicable within a <strong>5 km radius</strong> of the original delivery address, beyond this radius, delivery charges may vary.</li>
+                </ul>
+              </section>
+            </div>
+            <div className="p-4 border-t">
+              <Button
+                onClick={() => setShowCancellationModal(false)}
+                className="w-full h-10 sm:h-12 rounded-xl text-white"
+                style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Dialog */}
+      {showConfirmDialog && (
+        <ConfirmDialog
+          title="Cancel Order"
+          message="Are you sure you want to cancel this order? Cancellation charges may apply."
+          confirmText="Yes, Cancel"
+          cancelText="No, Keep Order"
+          onConfirm={async () => {
+            setShowConfirmDialog(false);
+            try {
+              const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'cancelled' })
+              });
+              
+              if (response.ok) {
+                setToast({ show: true, message: 'Order cancelled successfully', type: 'success' });
+                setTimeout(() => navigate('/home'), 2000);
+              } else {
+                setToast({ show: true, message: 'Failed to cancel order. Please try again.', type: 'error' });
+              }
+            } catch (error) {
+              console.error('Error cancelling order:', error);
+              setToast({ show: true, message: 'Failed to cancel order. Please try again.', type: 'error' });
+            }
+          }}
+          onCancel={() => setShowConfirmDialog(false)}
+        />
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ show: false, message: '', type: 'success' })}
+        />
+      )}
     </div>
   );
 };

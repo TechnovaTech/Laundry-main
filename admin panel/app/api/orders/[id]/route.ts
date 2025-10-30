@@ -50,7 +50,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     console.log('PATCH request - Order ID:', params.id)
     console.log('PATCH request - Update data:', updateData)
     
-    const currentOrder = await Order.findById(params.id).populate('customerId')
+    // Try to find by orderId first, then by _id
+    let currentOrder = await Order.findOne({ orderId: params.id }).populate('customerId')
+    if (!currentOrder) {
+      currentOrder = await Order.findById(params.id).populate('customerId')
+    }
     
     // If status is being updated, add to status history
     if (updateData.status) {
@@ -100,8 +104,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       })
     }
     
+    // Update using the found order's _id
     const order = await Order.findByIdAndUpdate(
-      params.id,
+      currentOrder._id,
       { $set: { ...updateData, updatedAt: new Date() } },
       { new: true, runValidators: false }
     ).populate('partnerId', 'name mobile')
