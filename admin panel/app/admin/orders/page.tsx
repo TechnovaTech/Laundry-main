@@ -22,6 +22,7 @@ export default function OrdersPage() {
     { label: 'At Hub', value: 'delivered_to_hub' },
     { label: 'Out for Delivery', value: 'out_for_delivery' },
     { label: 'Delivered', value: 'delivered' },
+    { label: 'Delivery Failed', value: 'delivery_failed' },
     { label: 'Cancelled', value: 'cancelled' }
   ]
 
@@ -324,9 +325,11 @@ export default function OrdersPage() {
                     fontWeight: '500',
                     backgroundColor: 
                       order.status === 'Delivered' ? '#dcfce7' :
+                      order.status === 'Delivery Failed' ? '#fee2e2' :
                       order.status === 'Pending' ? '#fef3c7' : '#fee2e2',
                     color: 
                       order.status === 'Delivered' ? '#166534' :
+                      order.status === 'Delivery Failed' ? '#dc2626' :
                       order.status === 'Pending' ? '#92400e' : '#dc2626'
                   }}>
                     {order.status}

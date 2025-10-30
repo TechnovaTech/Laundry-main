@@ -10,6 +10,12 @@ export default function DeliveryDetails() {
   const params = useParams();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showFailureModal, setShowFailureModal] = useState(false);
+  const [failureReasons, setFailureReasons] = useState({
+    customerUnavailable: false,
+    incorrectAddress: false,
+    refusalToAccept: false
+  });
 
   useEffect(() => {
     fetchOrder();
@@ -98,7 +104,7 @@ export default function DeliveryDetails() {
       </div>
 
       {/* CTA */}
-      <div className="mx-4">
+      <div className="mx-4 mb-6">
         {order.status === 'process_completed' ? (
           <button
             onClick={async () => {
@@ -124,27 +130,35 @@ export default function DeliveryDetails() {
             Start Delivery
           </button>
         ) : order.status === 'out_for_delivery' ? (
-          <button
-            onClick={async () => {
-              const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  status: 'delivered',
-                  deliveredAt: new Date().toISOString()
-                })
-              });
-              if (response.ok) {
-                alert('Order delivered successfully!');
-                window.location.href = '/delivery/pick';
-              } else {
-                alert('Failed to mark as delivered');
-              }
-            }}
-            className="mt-5 w-full inline-flex justify-center items-center bg-green-600 text-white rounded-xl py-3 text-base font-semibold"
-          >
-            Order Delivered
-          </button>
+          <div className="mt-5 flex gap-3">
+            <button
+              onClick={async () => {
+                const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ 
+                    status: 'delivered',
+                    deliveredAt: new Date().toISOString()
+                  })
+                });
+                if (response.ok) {
+                  alert('Order delivered successfully!');
+                  window.location.href = '/delivery/pick';
+                } else {
+                  alert('Failed to mark as delivered');
+                }
+              }}
+              className="flex-1 inline-flex justify-center items-center bg-green-600 text-white rounded-xl py-3 text-base font-semibold"
+            >
+              Order Delivered
+            </button>
+            <button
+              onClick={() => setShowFailureModal(true)}
+              className="flex-1 inline-flex justify-center items-center bg-red-600 text-white rounded-xl py-3 text-base font-semibold"
+            >
+              Not Delivered
+            </button>
+          </div>
         ) : (
           <div className="mt-5 w-full inline-flex justify-center items-center bg-gray-400 text-white rounded-xl py-3 text-base font-semibold">
             {order.status === 'delivered' ? 'Delivered' : 'Completed'}
@@ -153,6 +167,109 @@ export default function DeliveryDetails() {
       </div>
 
       <BottomNav />
+
+      {/* Failure Reason Modal */}
+      {showFailureModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(255, 255, 255, 0.3)' }}>
+          <div className="bg-white rounded-xl w-full max-w-md">
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-bold text-black">Delivery Failure Reason</h3>
+              <p className="text-sm text-gray-600 mt-1">Select reason(s) for failed delivery</p>
+            </div>
+            <div className="p-4 space-y-3">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={failureReasons.customerUnavailable}
+                  onChange={(e) => setFailureReasons({...failureReasons, customerUnavailable: e.target.checked})}
+                  className="mt-1 w-5 h-5"
+                />
+                <div>
+                  <p className="font-semibold text-black">Customer Unavailable</p>
+                  <p className="text-sm text-gray-600">Customer not present at delivery location</p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={failureReasons.incorrectAddress}
+                  onChange={(e) => setFailureReasons({...failureReasons, incorrectAddress: e.target.checked})}
+                  className="mt-1 w-5 h-5"
+                />
+                <div>
+                  <p className="font-semibold text-black">Incorrect Address</p>
+                  <p className="text-sm text-gray-600">Address details are wrong or incomplete</p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={failureReasons.refusalToAccept}
+                  onChange={(e) => setFailureReasons({...failureReasons, refusalToAccept: e.target.checked})}
+                  className="mt-1 w-5 h-5"
+                />
+                <div>
+                  <p className="font-semibold text-black">Refusal to Accept</p>
+                  <p className="text-sm text-gray-600">Customer refused to accept the order</p>
+                </div>
+              </label>
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  <strong>Note:</strong> Customer will be charged ₹100-₹250 delivery fee for failed delivery attempts.
+                </p>
+              </div>
+            </div>
+            <div className="p-4 border-t flex gap-3">
+              <button
+                onClick={() => {
+                  setShowFailureModal(false);
+                  setFailureReasons({ customerUnavailable: false, incorrectAddress: false, refusalToAccept: false });
+                }}
+                className="flex-1 py-2.5 rounded-lg border-2 border-gray-300 font-semibold text-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const selectedReasons = [];
+                  if (failureReasons.customerUnavailable) selectedReasons.push('Customer Unavailable');
+                  if (failureReasons.incorrectAddress) selectedReasons.push('Incorrect Address');
+                  if (failureReasons.refusalToAccept) selectedReasons.push('Refusal to Accept');
+
+                  if (selectedReasons.length === 0) {
+                    alert('Please select at least one reason');
+                    return;
+                  }
+
+                  const deliveryFee = 150; // Default ₹150 (between ₹100-₹250)
+                  const failureReason = selectedReasons.join(', ');
+
+                  const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                      status: 'delivery_failed',
+                      deliveryFailureReason: failureReason,
+                      deliveryFailureFee: deliveryFee
+                    })
+                  });
+
+                  if (response.ok) {
+                    alert('Order marked as delivery failed. Customer will be charged ₹' + deliveryFee);
+                    window.location.href = '/delivery/pick';
+                  } else {
+                    alert('Failed to update order');
+                  }
+                }}
+                className="flex-1 py-2.5 rounded-lg font-semibold text-white"
+                style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

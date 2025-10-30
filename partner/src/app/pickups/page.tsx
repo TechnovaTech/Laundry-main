@@ -40,7 +40,7 @@ export default function Pickups() {
       
       if (data.success) {
         const pendingPickups = data.data.filter((order: any) => 
-          order.status !== 'delivered' && order.status !== 'cancelled'
+          order.status !== 'delivered' && order.status !== 'cancelled' && order.status !== 'delivery_failed'
         );
         setPickups(pendingPickups);
       }

@@ -16,8 +16,14 @@ export async function GET(request: NextRequest) {
     if (!customer) {
       return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })
     }
+    
+    // Ensure dueAmount is included
+    const customerData = {
+      ...customer,
+      dueAmount: customer.dueAmount || 0
+    }
 
-    return NextResponse.json({ success: true, data: customer })
+    return NextResponse.json({ success: true, data: customerData })
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to fetch profile' }, { status: 500 })
   }

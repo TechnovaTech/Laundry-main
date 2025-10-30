@@ -35,7 +35,13 @@ const Wallet = () => {
       
       if (data.success && data.data) {
         console.log('Customer data:', data.data);
+        console.log('Due Amount from API:', data.data.dueAmount);
         setWalletData({
+          availableBalance: data.data.walletBalance || 0,
+          points: data.data.loyaltyPoints || 0,
+          dueAmount: data.data.dueAmount || 0
+        });
+        console.log('Wallet Data Set:', {
           availableBalance: data.data.walletBalance || 0,
           points: data.data.loyaltyPoints || 0,
           dueAmount: data.data.dueAmount || 0
@@ -200,10 +206,7 @@ const Wallet = () => {
             <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Available Balance:</span>
           </div>
           <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent mb-2">₹{walletData.availableBalance}</p>
-          <p className="text-gray-700 mb-2 text-sm sm:text-base font-medium">You have {walletData.points} points ({pointsPerRupee} points = ₹1)</p>
-          {walletData.dueAmount > 0 && (
-            <p className="text-red-600 mb-4 text-sm sm:text-base font-bold">Pending Due: ₹{walletData.dueAmount}</p>
-          )}
+          <p className="text-gray-700 mb-4 text-sm sm:text-base font-medium">You have {walletData.points} points ({pointsPerRupee} points = ₹1)</p>
           <Button 
             onClick={handleUsePoints}
             disabled={walletData.points < minRedeemPoints}
@@ -213,6 +216,20 @@ const Wallet = () => {
             Use {minRedeemPoints} Points {walletData.points < minRedeemPoints ? `(Need ${minRedeemPoints - walletData.points} more)` : ''}
           </Button>
         </div>
+
+        {/* Debug: Due Amount = {walletData.dueAmount} */}
+        {walletData.dueAmount > 0 && (
+          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 sm:p-8 shadow-lg text-center border-2 border-red-200">
+            <div className="mb-2">
+              <span className="text-4xl">⚠️</span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-bold text-red-600 mb-2">Pending Due Amount</h3>
+            <p className="text-3xl sm:text-4xl font-bold text-red-600 mb-2">₹{walletData.dueAmount}</p>
+            <p className="text-sm sm:text-base text-gray-700 font-medium">
+              This amount will be added to your next order payment
+            </p>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-shadow">
           <h2 className="text-lg sm:text-xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Redeem Points</h2>

@@ -5,19 +5,20 @@ import Partner from '@/models/Partner'
 import Customer from '@/models/Customer'
 import WalletSettings from '@/models/WalletSettings'
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect()
+    const { id } = await params
     Partner // Ensure Partner model is registered
     Customer // Ensure Customer model is registered
     
     // Try to find by orderId first, then by _id
-    let order = await Order.findOne({ orderId: params.id })
+    let order = await Order.findOne({ orderId: id })
       .populate('customerId', 'name mobile email address')
       .populate('partnerId', 'name mobile email')
     
     if (!order) {
-      order = await Order.findById(params.id)
+      order = await Order.findById(id)
         .populate('customerId', 'name mobile email address')
         .populate('partnerId', 'name mobile email')
     }
@@ -43,17 +44,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect()
+    const { id } = await params
     const updateData = await request.json()
-    console.log('PATCH request - Order ID:', params.id)
+    console.log('PATCH request - Order ID:', id)
     console.log('PATCH request - Update data:', updateData)
     
     // Try to find by orderId first, then by _id (without population for cancellation check)
-    let currentOrder = await Order.findOne({ orderId: params.id })
+    let currentOrder = await Order.findOne({ orderId: id })
     if (!currentOrder) {
-      currentOrder = await Order.findById(params.id)
+      currentOrder = await Order.findById(id)
     }
     
     if (!currentOrder) {
@@ -100,16 +102,19 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         const customer = await Customer.findById(currentOrder.customerId)
         console.log('Customer found:', customer ? 'Yes' : 'No')
         if (customer) {
+          // Ensure dueAmount field exists
+          if (customer.dueAmount === undefined || customer.dueAmount === null) {
+            customer.dueAmount = 0
+          }
           console.log('Customer wallet balance:', customer.walletBalance)
           console.log('Customer due amount before:', customer.dueAmount)
           
           if (customer.walletBalance >= cancellationFee) {
             // Deduct from wallet
             console.log('Deducting', cancellationFee, 'from wallet')
-            await Customer.findByIdAndUpdate(customer._id, {
-              $inc: { walletBalance: -cancellationFee }
-            })
-            console.log('New wallet balance:', customer.walletBalance - cancellationFee)
+            customer.walletBalance -= cancellationFee
+            await customer.save()
+            console.log('New wallet balance:', customer.walletBalance)
             
             // Create wallet transaction
             await fetch(`http://localhost:3000/api/customers/${customer._id}/adjust`, {
@@ -126,15 +131,25 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             // Create due amount
             const remainingDue = cancellationFee - customer.walletBalance
             const deductedFromWallet = customer.walletBalance
+            const newDueAmount = (customer.dueAmount || 0) + remainingDue
             console.log('Insufficient wallet balance')
             console.log('Deducting', deductedFromWallet, 'from wallet')
             console.log('Adding', remainingDue, 'to due amount')
-            await Customer.findByIdAndUpdate(customer._id, {
-              walletBalance: 0,
-              $inc: { dueAmount: remainingDue }
-            })
-            console.log('New wallet balance: 0')
-            console.log('New due amount:', (customer.dueAmount || 0) + remainingDue)
+            console.log('Current due amount:', customer.dueAmount || 0)
+            console.log('New due amount will be:', newDueAmount)
+            
+            customer.walletBalance = 0
+            customer.dueAmount = newDueAmount
+            const savedCustomer = await customer.save()
+            console.log('Saved customer with wallet: 0, due:', newDueAmount)
+            console.log('Customer dueAmount after save:', savedCustomer.dueAmount)
+            console.log('Customer walletBalance after save:', savedCustomer.walletBalance)
+            
+            // Verify by re-fetching from database
+            const verifyCustomer = await Customer.findById(customer._id)
+            console.log('VERIFICATION - Re-fetched from DB:')
+            console.log('  walletBalance:', verifyCustomer?.walletBalance)
+            console.log('  dueAmount:', verifyCustomer?.dueAmount)
             
             // Create wallet transaction for deducted amount
             if (deductedFromWallet > 0) {
@@ -153,6 +168,77 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         }
       }
       console.log('=== END CANCELLATION FEE CALCULATION ===')
+    }
+    
+    // Handle delivery failure fee logic
+    if (updateData.status === 'delivery_failed' && currentOrder) {
+      const deliveryFee = updateData.deliveryFailureFee || 150
+      
+      console.log('=== DELIVERY FAILURE FEE CALCULATION ===')
+      console.log('Order ID:', currentOrder.orderId)
+      console.log('Delivery failure fee:', deliveryFee)
+      console.log('Failure reason:', updateData.deliveryFailureReason)
+      
+      updateData.deliveryFailedAt = new Date()
+      
+      // Deduct from wallet or create due
+      const customer = await Customer.findById(currentOrder.customerId)
+      if (customer) {
+        // Ensure dueAmount field exists
+        if (customer.dueAmount === undefined || customer.dueAmount === null) {
+          customer.dueAmount = 0
+        }
+        
+        console.log('Customer wallet balance:', customer.walletBalance)
+        console.log('Customer due amount before:', customer.dueAmount)
+        
+        if (customer.walletBalance >= deliveryFee) {
+          // Deduct from wallet
+          customer.walletBalance -= deliveryFee
+          await customer.save()
+          console.log('Deducted', deliveryFee, 'from wallet')
+          
+          // Create wallet transaction
+          await fetch(`http://localhost:3000/api/customers/${customer._id}/adjust`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'balance',
+              action: 'decrease',
+              amount: deliveryFee,
+              reason: `Delivery failure fee for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason}`
+            })
+          })
+        } else {
+          // Create due amount
+          const remainingDue = deliveryFee - customer.walletBalance
+          const deductedFromWallet = customer.walletBalance
+          const newDueAmount = (customer.dueAmount || 0) + remainingDue
+          
+          customer.walletBalance = 0
+          customer.dueAmount = newDueAmount
+          await customer.save()
+          
+          console.log('Deducted', deductedFromWallet, 'from wallet')
+          console.log('Added', remainingDue, 'to due amount')
+          console.log('New due amount:', newDueAmount)
+          
+          // Create wallet transaction for deducted amount
+          if (deductedFromWallet > 0) {
+            await fetch(`http://localhost:3000/api/customers/${customer._id}/adjust`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'balance',
+                action: 'decrease',
+                amount: deductedFromWallet,
+                reason: `Delivery failure fee (partial) for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason}`
+              })
+            })
+          }
+        }
+      }
+      console.log('=== END DELIVERY FAILURE FEE CALCULATION ===')
     }
     
     // If status is being updated, add to status history
@@ -247,11 +333,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect()
+    const { id } = await params
     
-    const order = await Order.findByIdAndDelete(params.id)
+    const order = await Order.findByIdAndDelete(id)
     
     if (!order) {
       return NextResponse.json({

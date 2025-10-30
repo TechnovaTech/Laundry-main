@@ -342,6 +342,27 @@ export default function OrderDetails() {
             </div>
           )}
 
+          {/* Delivery Failure */}
+          {order?.status === 'delivery_failed' && (
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              border: '2px solid #ef4444'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0', color: '#ef4444' }}>⚠ Delivery Failed</h3>
+              <div style={{ padding: '0.75rem', backgroundColor: '#fef2f2', borderRadius: '8px', marginBottom: '0.5rem' }}>
+                <p style={{ color: '#374151' }}><strong>Reason:</strong> {order.deliveryFailureReason || 'Not specified'}</p>
+                <p style={{ color: '#374151', marginTop: '0.5rem' }}><strong>Delivery Fee Charged:</strong> ₹{order.deliveryFailureFee || 0}</p>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                Failed on: {order.deliveryFailedAt ? new Date(order.deliveryFailedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveryFailedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
+              </p>
+            </div>
+          )}
+
           {/* Reported Issue */}
           {order?.issue && (
             <div style={{

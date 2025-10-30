@@ -20,7 +20,7 @@ export default function DeliveredToHub() {
       
       if (data.success) {
         const filteredOrders = data.data.filter((order: any) => 
-          (order.status === 'delivered_to_hub' || order.status === 'ready') && (order.partnerId?._id === partnerId || order.partnerId === partnerId)
+          (order.status === 'delivered_to_hub' || order.status === 'ready' || order.status === 'delivered') && (order.partnerId?._id === partnerId || order.partnerId === partnerId)
         );
         setDelivered(filteredOrders);
       }

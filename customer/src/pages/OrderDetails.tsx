@@ -62,7 +62,8 @@ const OrderDetails = () => {
       'process_completed': 6,
       'ready': 4,
       'out_for_delivery': 7,
-      'delivered': 8
+      'delivered': 8,
+      'delivery_failed': 8
     };
     
     const currentStep = statusMap[order.status] || 0;
@@ -81,6 +82,11 @@ const OrderDetails = () => {
     const ironingTime = order.ironingAt ? formatDateTime(order.ironingAt) : 'Pending';
     const processCompletedTime = order.processCompletedAt ? formatDateTime(order.processCompletedAt) : 'Pending';
     
+    const finalStepLabel = order.status === 'delivery_failed' ? 'Undelivered' : 'Delivered';
+    const finalStepTime = order.status === 'delivery_failed' 
+      ? (order.deliveryFailedAt ? formatDateTime(order.deliveryFailedAt) : 'Failed')
+      : (order.deliveredAt ? formatDateTime(order.deliveredAt) : 'Pending');
+    
     return [
       { icon: Clock, label: 'Order Placed', time: placedTime, completed: currentStep >= 0, active: currentStep === 0 },
       { icon: Package, label: 'Reached Location', time: reachedLocationTime, completed: currentStep >= 1, active: currentStep === 1 },
@@ -90,7 +96,7 @@ const OrderDetails = () => {
       { icon: Shirt, label: 'Ironing', time: ironingTime, completed: currentStep >= 5, active: currentStep === 5 },
       { icon: CheckCircle2, label: 'Process Completed', time: processCompletedTime, completed: currentStep >= 6, active: currentStep === 6 },
       { icon: Truck, label: 'Out for Delivery', time: order.outForDeliveryAt ? formatDateTime(order.outForDeliveryAt) : 'Pending', completed: currentStep >= 7, active: currentStep === 7 },
-      { icon: CheckCircle2, label: 'Delivered', time: order.deliveredAt ? formatDateTime(order.deliveredAt) : 'Pending', completed: currentStep >= 8, active: currentStep === 8 },
+      { icon: order.status === 'delivery_failed' ? X : CheckCircle2, label: finalStepLabel, time: finalStepTime, completed: currentStep >= 8, active: currentStep === 8, failed: order.status === 'delivery_failed' },
     ];
   };
   
@@ -148,7 +154,7 @@ const OrderDetails = () => {
                   className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${
                     item.completed ? "" : "bg-muted"
                   }`}
-                  style={item.completed ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
+                  style={item.completed ? (item.failed ? { background: 'linear-gradient(to right, #ef4444, #dc2626)' } : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }) : {}}
                 >
                   <Icon
                     className={`w-4 h-4 sm:w-5 sm:h-5 ${
@@ -173,6 +179,23 @@ const OrderDetails = () => {
             );
           })}
         </div>
+
+        {order?.status === 'delivery_failed' && (
+          <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fee2e2, #fecaca)', borderColor: '#ef4444' }}>
+            <div className="flex items-start gap-2">
+              <span className="text-2xl">⚠️</span>
+              <div className="flex-1">
+                <p className="text-sm sm:text-base font-bold text-red-700 mb-1">Delivery Failed</p>
+                <p className="text-xs sm:text-sm text-red-600 font-medium">
+                  <strong>Reason:</strong> {order.deliveryFailureReason || 'Not specified'}
+                </p>
+                <p className="text-xs sm:text-sm text-red-600 font-medium mt-1">
+                  <strong>Delivery Fee Charged:</strong> ₹{order.deliveryFailureFee || 0}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-md" style={{ background: 'linear-gradient(to bottom right, #f0ebf8, #e0f7fa)' }}>
           <p className="text-xs sm:text-sm text-gray-700 font-medium">
