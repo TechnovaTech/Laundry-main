@@ -8,13 +8,11 @@ export default function KYCDetails() {
   const router = useRouter();
 
   useEffect(() => {
-    const partnerData = localStorage.getItem("partner");
-    if (!partnerData) {
+    const partnerId = localStorage.getItem("partnerId");
+    if (!partnerId) {
       router.push("/login");
       return;
     }
-    const data = JSON.parse(partnerData);
-    const partnerId = data._id || data.id;
     fetchPartnerStatus(partnerId);
   }, []);
 

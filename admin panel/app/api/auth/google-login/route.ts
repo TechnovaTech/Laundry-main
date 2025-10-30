@@ -82,9 +82,11 @@ export async function POST(request: NextRequest) {
         token,
       });
     } else if (role === 'partner') {
-      let partner = await Partner.findOne({ email });
+      let partner = await Partner.findOne({ $or: [{ email }, { googleId }] });
+      let isNewUser = false;
 
       if (!partner) {
+        console.log('Creating NEW partner with Google login');
         partner = await Partner.create({
           name,
           email,
@@ -94,6 +96,13 @@ export async function POST(request: NextRequest) {
           kycStatus: 'pending',
           isActive: true,
         });
+        isNewUser = true;
+        console.log('New partner created, isNewUser set to TRUE');
+      } else {
+        console.log('Existing partner found, mobile:', partner.mobile);
+        // Check if profile is incomplete (mobile still has google_ placeholder)
+        isNewUser = partner.mobile?.startsWith('google_');
+        console.log('isNewUser based on mobile:', isNewUser);
       }
 
       const token = jwt.sign(
@@ -101,6 +110,8 @@ export async function POST(request: NextRequest) {
         process.env.JWT_SECRET || 'your-secret-key',
         { expiresIn: '30d' }
       );
+
+      console.log('FINAL - Partner Google login - mobile:', partner.mobile, 'isNewUser:', isNewUser);
 
       return NextResponse.json({
         success: true,
@@ -110,6 +121,7 @@ export async function POST(request: NextRequest) {
           name: partner.name,
           email: partner.email,
           kycStatus: partner.kycStatus,
+          isNewUser: isNewUser,
         },
         token,
       });

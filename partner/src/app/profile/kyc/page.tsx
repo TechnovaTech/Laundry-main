@@ -17,36 +17,33 @@ export default function KYCVerification() {
   const router = useRouter();
 
   useEffect(() => {
-    const partnerData = localStorage.getItem("partner");
-    if (!partnerData) {
-      router.push("/login");
-      return;
-    }
-    const data = JSON.parse(partnerData);
-    setPartner(data);
-    
-    // Check if KYC is already submitted
-    if (data.kycStatus && data.kycStatus !== 'pending') {
-      setIsSubmitted(true);
-    }
+    const fetchPartner = async () => {
+      const partnerId = localStorage.getItem("partnerId");
+      if (!partnerId) {
+        router.push("/login");
+        return;
+      }
 
-    // Poll for KYC status updates every 5 seconds
-    const interval = setInterval(async () => {
       try {
-        const partnerId = data._id || data.id;
         const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
         const result = await response.json();
         if (result.success) {
           setPartner(result.data);
-          localStorage.setItem("partner", JSON.stringify(result.data));
+          if (result.data.kycStatus && result.data.kycStatus !== 'pending') {
+            setIsSubmitted(true);
+          }
         }
       } catch (error) {
-        console.error('Failed to fetch partner status:', error);
+        console.error('Failed to fetch partner:', error);
       }
-    }, 5000);
+    };
 
+    fetchPartner();
+
+    // Poll for KYC status updates every 5 seconds
+    const interval = setInterval(fetchPartner, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [router]);
 
   const handleImageUpload = (field, file) => {
     if (!file) return;
@@ -76,10 +73,14 @@ export default function KYCVerification() {
       const data = await response.json();
       
       if (data.success) {
-        const updatedPartner = { ...partner, ...formData, kycStatus: 'pending' };
-        localStorage.setItem("partner", JSON.stringify(updatedPartner));
-        setPartner(updatedPartner);
         setIsSubmitted(true);
+        // Refresh partner data
+        const partnerId = localStorage.getItem("partnerId");
+        const refreshResponse = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+        const refreshData = await refreshResponse.json();
+        if (refreshData.success) {
+          setPartner(refreshData.data);
+        }
       } else {
         alert(data.error || "Failed to submit KYC");
       }

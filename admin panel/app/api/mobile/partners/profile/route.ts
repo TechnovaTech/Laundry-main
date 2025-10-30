@@ -28,11 +28,18 @@ export async function POST(request: NextRequest) {
     await dbConnect()
     const body = await request.json()
 
-    const existingPartner = await Partner.findOne({ mobile: body.mobile })
+    // Find existing partner by mobile, email, or Google placeholder
+    const existingPartner = await Partner.findOne({
+      $or: [
+        { mobile: body.mobile },
+        { email: body.email },
+        { mobile: { $regex: /^google_/ } }
+      ]
+    })
     
     if (existingPartner) {
-      const updatedPartner = await Partner.findOneAndUpdate(
-        { mobile: body.mobile },
+      const updatedPartner = await Partner.findByIdAndUpdate(
+        existingPartner._id,
         { ...body, updatedAt: new Date() },
         { new: true }
       )

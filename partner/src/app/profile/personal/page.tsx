@@ -22,13 +22,11 @@ export default function PersonalDetailsPage() {
 
   const fetchPartnerData = async () => {
     try {
-      const partner = localStorage.getItem("partner");
-      if (!partner) {
+      const partnerId = localStorage.getItem("partnerId");
+      if (!partnerId) {
         router.push("/login");
         return;
       }
-      const localData = JSON.parse(partner);
-      const partnerId = localData._id || localData.id;
 
       const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
       const result = await response.json();
@@ -59,9 +57,7 @@ export default function PersonalDetailsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const partner = localStorage.getItem("partner");
-      const localData = JSON.parse(partner);
-      const partnerId = localData._id || localData.id;
+      const partnerId = localStorage.getItem("partnerId");
 
       const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`, {
         method: "PATCH",

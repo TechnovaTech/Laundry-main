@@ -76,10 +76,7 @@ export default function Verify() {
         if (partnerData.success) {
           localStorage.setItem("partnerId", partnerData.data.partnerId || partnerData.data._id);
           
-          const checkResponse = await fetch(`http://localhost:3000/api/mobile/partners?partnerId=${partnerData.data.partnerId || partnerData.data._id}`);
-          const checkData = await checkResponse.json();
-          
-          if (checkData.success && checkData.data.email) {
+          if (partnerData.data.isExistingUser && partnerData.data.partner?.email) {
             router.push("/pickups");
           } else {
             router.push("/profile/create");

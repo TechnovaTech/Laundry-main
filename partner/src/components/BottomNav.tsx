@@ -41,10 +41,16 @@ export default function BottomNav() {
   const [kycApproved, setKycApproved] = useState(false);
 
   useEffect(() => {
-    const partner = localStorage.getItem("partner");
-    if (partner) {
-      const data = JSON.parse(partner);
-      setKycApproved(data.kycStatus === "approved");
+    const partnerId = localStorage.getItem("partnerId");
+    if (partnerId) {
+      fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            setKycApproved(result.data.kycStatus === "approved");
+          }
+        })
+        .catch(err => console.error("Failed to fetch partner:", err));
     }
   }, []);
 

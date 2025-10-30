@@ -23,14 +23,19 @@ export default function Login() {
         })
       });
       const data = await response.json();
+      console.log('Google login response:', data);
       if (data.success) {
+        console.log('isNewUser:', data.data.isNewUser);
         localStorage.setItem('partnerId', data.data.partnerId);
-        localStorage.setItem('partner', JSON.stringify(data.data));
         localStorage.setItem('authToken', data.token);
-        if (data.data.email) {
-          router.push('/pickups');
+        
+        // Redirect based on isNewUser flag
+        if (data.data.isNewUser === true) {
+          console.log('NEW USER - Redirecting to profile/create');
+          window.location.href = '/profile/create';
         } else {
-          router.push('/profile/create');
+          console.log('EXISTING USER - Redirecting to pickups');
+          window.location.href = '/pickups';
         }
       } else {
         alert(data.error || 'Google login failed');
@@ -53,14 +58,19 @@ export default function Login() {
         })
       });
       const data = await response.json();
+      console.log('Google login mobile response:', data);
       if (data.success) {
+        console.log('isNewUser:', data.data.isNewUser);
         localStorage.setItem('partnerId', data.data.partnerId);
-        localStorage.setItem('partner', JSON.stringify(data.data));
         localStorage.setItem('authToken', data.token);
-        if (data.data.email) {
-          router.push('/pickups');
+        
+        // Redirect based on isNewUser flag
+        if (data.data.isNewUser === true) {
+          console.log('NEW USER - Redirecting to profile/create');
+          window.location.href = '/profile/create';
         } else {
-          router.push('/profile/create');
+          console.log('EXISTING USER - Redirecting to pickups');
+          window.location.href = '/pickups';
         }
       }
     } catch (error) {

@@ -23,11 +23,45 @@ export default function CreateProfile() {
   const router = useRouter();
 
   useEffect(() => {
-    const partnerMobile = localStorage.getItem("partnerMobile");
-    if (partnerMobile) {
-      setFormData(prev => ({ ...prev, mobile: partnerMobile }));
-    }
-  }, []);
+    const fetchPartnerData = async () => {
+      const partnerId = localStorage.getItem("partnerId");
+      if (!partnerId) {
+        router.push("/login");
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/mobile/partners?partnerId=${partnerId}`);
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          const partner = data.data;
+          const isGoogleUser = partner.mobile?.startsWith('google_');
+          setFormData({
+            name: partner.name || "",
+            email: partner.email || "",
+            mobile: isGoogleUser ? "" : (partner.mobile || ""),
+            profileImage: partner.profileImage || "",
+            address: partner.address || {
+              street: "",
+              city: "",
+              state: "",
+              pincode: ""
+            },
+            vehicleType: partner.vehicleType || "",
+            vehicleNumber: partner.vehicleNumber || ""
+          });
+          if (partner.profileImage) {
+            setProfileImage(partner.profileImage);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch partner data:", error);
+      }
+    };
+
+    fetchPartnerData();
+  }, [router]);
 
   const handleSave = async () => {
     if (!formData.name || !formData.mobile) {
@@ -37,8 +71,9 @@ export default function CreateProfile() {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/mobile/partners/profile`, {
-        method: "POST",
+      const partnerId = localStorage.getItem("partnerId");
+      const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
       });
@@ -46,7 +81,6 @@ export default function CreateProfile() {
       const data = await response.json();
       
       if (data.success) {
-        localStorage.setItem("partner", JSON.stringify(data.data));
         router.push("/profile/kyc");
       } else {
         alert(data.error || "Failed to save profile");
@@ -150,8 +184,12 @@ export default function CreateProfile() {
             onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
             placeholder="123-456-7890"
             type="tel"
+            maxLength={10}
             value={formData.mobile}
-            readOnly
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '');
+              setFormData(prev => ({ ...prev, mobile: value }));
+            }}
           />
         </div>
 
