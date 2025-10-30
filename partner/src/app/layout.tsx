@@ -3,6 +3,7 @@ import { Montserrat, Manrope } from "next/font/google";
 import "./globals.css";
 import ClientBottomNav from "@/components/ClientBottomNav";
 import CapacitorInit from "@/components/CapacitorInit";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -35,11 +36,13 @@ export default function RootLayout({
         className={`${montserrat.variable} ${manrope.variable} antialiased bg-white`}
         suppressHydrationWarning={true}
       >
-        <div className="mx-auto w-full max-w-sm min-h-screen flex flex-col bg-white safe-area" suppressHydrationWarning>
-          <CapacitorInit />
-          <main className="flex-1">{children}</main>
-          <ClientBottomNav />
-        </div>
+        <GoogleOAuthProvider clientId="514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com">
+          <div className="mx-auto w-full max-w-sm min-h-screen flex flex-col bg-white safe-area" suppressHydrationWarning>
+            <CapacitorInit />
+            <main className="flex-1">{children}</main>
+            <ClientBottomNav />
+          </div>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

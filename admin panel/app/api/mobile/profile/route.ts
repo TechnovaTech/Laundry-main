@@ -32,22 +32,40 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log('Profile creation data:', body)
 
-    // Check if customer with this mobile already exists
-    const existingCustomer = await Customer.findOne({ mobile: body.mobile })
+    // Check if customer with this mobile or email already exists
+    const existingCustomer = await Customer.findOne({ 
+      $or: [
+        { mobile: body.mobile },
+        { email: body.email },
+        { mobile: { $regex: /^google_/ } }
+      ]
+    })
     
     if (existingCustomer) {
       // Update existing customer
-      const updatedCustomer = await Customer.findOneAndUpdate(
-        { mobile: body.mobile },
-        { ...body, updatedAt: new Date() },
+      const updatedCustomer = await Customer.findByIdAndUpdate(
+        existingCustomer._id,
+        { 
+          name: body.name,
+          email: body.email,
+          mobile: body.mobile,
+          referredBy: body.referralCode || existingCustomer.referredBy,
+          updatedAt: new Date() 
+        },
         { new: true }
       )
       console.log('Updated existing customer:', updatedCustomer)
-      return NextResponse.json({ success: true, data: updatedCustomer })
+      return NextResponse.json({ success: true, data: { customerId: updatedCustomer._id, ...updatedCustomer.toObject() } })
     } else {
       // Create new customer
       const customerData: any = {
-        ...body,
+        name: body.name,
+        email: body.email,
+        mobile: body.mobile,
+        address: [],
+        paymentMethods: [],
+        walletBalance: 0,
+        loyaltyPoints: 0,
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -60,7 +78,7 @@ export async function POST(request: NextRequest) {
       const customer = new Customer(customerData)
       const savedCustomer = await customer.save()
       console.log('Created new customer:', savedCustomer)
-      return NextResponse.json({ success: true, data: savedCustomer })
+      return NextResponse.json({ success: true, data: { customerId: savedCustomer._id, ...savedCustomer.toObject() } })
     }
   } catch (error) {
     console.error('Profile creation error:', error)

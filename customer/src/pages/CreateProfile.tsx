@@ -19,7 +19,6 @@ const CreateProfile = () => {
 
   useEffect(() => {
     const storedCustomerId = localStorage.getItem('customerId')
-    const storedMobile = localStorage.getItem('userMobile')
     
     if (!customerId && !storedCustomerId) {
       navigate('/login')
@@ -27,13 +26,8 @@ const CreateProfile = () => {
     }
     
     const actualCustomerId = customerId || storedCustomerId
-    const actualMobile = mobileNumber || storedMobile
     
-    if (actualMobile) {
-      setFormData(prev => ({ ...prev, phone: actualMobile }))
-    }
-    
-    // Fetch existing customer data
+    // Fetch existing customer data from database
     const fetchCustomerData = async () => {
       try {
         const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${actualCustomerId}`)
@@ -44,7 +38,8 @@ const CreateProfile = () => {
           setFormData({
             fullName: customer.name || '',
             email: customer.email || '',
-            phone: customer.mobile || actualMobile || ''
+            phone: customer.mobile?.startsWith('google_') ? '' : customer.mobile || '',
+            referralCode: ''
           })
         }
       } catch (error) {
@@ -87,7 +82,8 @@ const CreateProfile = () => {
       const data = await response.json()
       
       if (data.success) {
-        localStorage.setItem('customerId', customerId)
+        const actualCustomerId = data.data?.customerId || customerId || localStorage.getItem('customerId')
+        localStorage.setItem('customerId', actualCustomerId)
         localStorage.setItem('userName', formData.fullName)
         window.dispatchEvent(new Event('userNameChanged'))
         navigate("/home")
@@ -162,7 +158,9 @@ const CreateProfile = () => {
               type="tel"
               placeholder="Mobile Number"
               value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
+              onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, ''))}
+              maxLength={10}
+              inputMode="numeric"
               className="pl-10 sm:pl-12 h-10 sm:h-12 rounded-xl border-2 border-blue-500 text-sm sm:text-base"
             />
           </div>
