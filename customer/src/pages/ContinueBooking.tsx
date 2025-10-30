@@ -25,7 +25,8 @@ const ContinueBooking = () => {
   
   const itemsText = orderData.items ? orderData.items.map((item: any) => `${item.quantity} ${item.name}`).join(', ') : '3 Shirts, 1 Bedsheet';
   const totalAmount = orderData.total || 120;
-  const finalAmount = totalAmount - discount;
+  const dueAmount = customerInfo?.dueAmount || 0;
+  const finalAmount = totalAmount - discount + dueAmount;
   
   useEffect(() => {
     fetchCustomerInfo();
@@ -242,6 +243,12 @@ const ContinueBooking = () => {
                 <div className="flex justify-between text-green-600">
                   <span>Discount Added:</span>
                   <span>-₹{discount}</span>
+                </div>
+              )}
+              {dueAmount > 0 && (
+                <div className="flex justify-between text-red-600">
+                  <span>Pending Due:</span>
+                  <span>+₹{dueAmount}</span>
                 </div>
               )}
               <div className="flex justify-between text-base sm:text-lg font-bold text-black">

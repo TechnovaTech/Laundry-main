@@ -51,6 +51,13 @@ export async function POST(request: NextRequest) {
     
     const savedOrder = await newOrder.save()
     
+    // Clear due amount if payment is successful
+    if (orderData.paymentStatus === 'paid') {
+      await Customer.findByIdAndUpdate(orderData.customerId, {
+        dueAmount: 0
+      })
+    }
+    
     // Award points to customer and handle referral
     try {
       const settings = await WalletSettings.findOne()

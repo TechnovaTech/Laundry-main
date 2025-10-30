@@ -12,7 +12,8 @@ const Wallet = () => {
 
   const [walletData, setWalletData] = useState({
     availableBalance: 0,
-    points: 0
+    points: 0,
+    dueAmount: 0
   });
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -36,7 +37,8 @@ const Wallet = () => {
         console.log('Customer data:', data.data);
         setWalletData({
           availableBalance: data.data.walletBalance || 0,
-          points: data.data.loyaltyPoints || 0
+          points: data.data.loyaltyPoints || 0,
+          dueAmount: data.data.dueAmount || 0
         });
         
         console.log('lastAdjustmentReason:', data.data.lastAdjustmentReason);
@@ -198,7 +200,10 @@ const Wallet = () => {
             <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent">Available Balance:</span>
           </div>
           <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-500 to-blue-700 bg-clip-text text-transparent mb-2">₹{walletData.availableBalance}</p>
-          <p className="text-gray-700 mb-4 text-sm sm:text-base font-medium">You have {walletData.points} points ({pointsPerRupee} points = ₹1)</p>
+          <p className="text-gray-700 mb-2 text-sm sm:text-base font-medium">You have {walletData.points} points ({pointsPerRupee} points = ₹1)</p>
+          {walletData.dueAmount > 0 && (
+            <p className="text-red-600 mb-4 text-sm sm:text-base font-bold">Pending Due: ₹{walletData.dueAmount}</p>
+          )}
           <Button 
             onClick={handleUsePoints}
             disabled={walletData.points < minRedeemPoints}

@@ -175,15 +175,20 @@ const BookingConfirmation = () => {
           onConfirm={async () => {
             setShowConfirmDialog(false);
             try {
+              console.log('Cancelling order:', orderId);
               const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'cancelled' })
               });
               
+              const result = await response.json();
+              console.log('Cancellation response:', result);
+              
               if (response.ok) {
-                setToast({ show: true, message: 'Order cancelled successfully', type: 'success' });
-                setTimeout(() => navigate('/home'), 2000);
+                const message = result.message || 'Order cancelled successfully';
+                setToast({ show: true, message, type: 'success' });
+                setTimeout(() => navigate('/home'), 3000);
               } else {
                 setToast({ show: true, message: 'Failed to cancel order. Please try again.', type: 'error' });
               }

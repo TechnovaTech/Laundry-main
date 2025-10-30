@@ -50,10 +50,109 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     console.log('PATCH request - Order ID:', params.id)
     console.log('PATCH request - Update data:', updateData)
     
-    // Try to find by orderId first, then by _id
-    let currentOrder = await Order.findOne({ orderId: params.id }).populate('customerId')
+    // Try to find by orderId first, then by _id (without population for cancellation check)
+    let currentOrder = await Order.findOne({ orderId: params.id })
     if (!currentOrder) {
-      currentOrder = await Order.findById(params.id).populate('customerId')
+      currentOrder = await Order.findById(params.id)
+    }
+    
+    if (!currentOrder) {
+      return NextResponse.json({
+        success: false,
+        message: 'Order not found'
+      }, { status: 404 })
+    }
+    
+    console.log('=== CURRENT ORDER STATE ===')
+    console.log('Order ID:', currentOrder.orderId)
+    console.log('Order _id:', currentOrder._id)
+    console.log('Partner ID:', currentOrder.partnerId)
+    console.log('Status:', currentOrder.status)
+    console.log('Total Amount:', currentOrder.totalAmount)
+    console.log('===========================')
+    
+    // Handle cancellation fee logic
+    if (updateData.status === 'cancelled' && currentOrder) {
+      let cancellationFee = 0
+      
+      console.log('\n=== CANCELLATION FEE CALCULATION ===')
+      console.log('Order ID:', currentOrder.orderId)
+      console.log('Partner ID exists?:', !!currentOrder.partnerId)
+      console.log('Partner ID value:', currentOrder.partnerId)
+      console.log('Partner ID type:', typeof currentOrder.partnerId)
+      console.log('Total Amount:', currentOrder.totalAmount)
+      
+      // Check if partner is assigned
+      if (currentOrder.partnerId) {
+        // 20% cancellation fee after pickup assignment
+        cancellationFee = Math.round(currentOrder.totalAmount * 0.20)
+        console.log('Partner assigned - 20% cancellation fee:', cancellationFee)
+      } else {
+        console.log('No partner assigned - No cancellation fee')
+      }
+      
+      updateData.cancellationFee = cancellationFee
+      updateData.cancelledAt = new Date()
+      
+      // Deduct from wallet or create due
+      if (cancellationFee > 0) {
+        console.log('Customer ID from order:', currentOrder.customerId)
+        const customer = await Customer.findById(currentOrder.customerId)
+        console.log('Customer found:', customer ? 'Yes' : 'No')
+        if (customer) {
+          console.log('Customer wallet balance:', customer.walletBalance)
+          console.log('Customer due amount before:', customer.dueAmount)
+          
+          if (customer.walletBalance >= cancellationFee) {
+            // Deduct from wallet
+            console.log('Deducting', cancellationFee, 'from wallet')
+            await Customer.findByIdAndUpdate(customer._id, {
+              $inc: { walletBalance: -cancellationFee }
+            })
+            console.log('New wallet balance:', customer.walletBalance - cancellationFee)
+            
+            // Create wallet transaction
+            await fetch(`http://localhost:3000/api/customers/${customer._id}/adjust`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'balance',
+                action: 'decrease',
+                amount: cancellationFee,
+                reason: `Cancellation fee for Order #${currentOrder.orderId}`
+              })
+            })
+          } else {
+            // Create due amount
+            const remainingDue = cancellationFee - customer.walletBalance
+            const deductedFromWallet = customer.walletBalance
+            console.log('Insufficient wallet balance')
+            console.log('Deducting', deductedFromWallet, 'from wallet')
+            console.log('Adding', remainingDue, 'to due amount')
+            await Customer.findByIdAndUpdate(customer._id, {
+              walletBalance: 0,
+              $inc: { dueAmount: remainingDue }
+            })
+            console.log('New wallet balance: 0')
+            console.log('New due amount:', (customer.dueAmount || 0) + remainingDue)
+            
+            // Create wallet transaction for deducted amount
+            if (deductedFromWallet > 0) {
+              await fetch(`http://localhost:3000/api/customers/${customer._id}/adjust`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'balance',
+                  action: 'decrease',
+                  amount: deductedFromWallet,
+                  reason: `Cancellation fee (partial) for Order #${currentOrder.orderId}`
+                })
+              })
+            }
+          }
+        }
+      }
+      console.log('=== END CANCELLATION FEE CALCULATION ===')
     }
     
     // If status is being updated, add to status history
@@ -122,10 +221,21 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     console.log('Order updated successfully:', order)
     console.log('reachedLocationAt in updated order:', order?.reachedLocationAt)
     console.log('pickedUpAt in updated order:', order?.pickedUpAt)
-    return NextResponse.json({
+    
+    // Include cancellation fee info in response
+    const responseData: any = {
       success: true,
       data: order
-    })
+    }
+    
+    if (updateData.status === 'cancelled' && updateData.cancellationFee !== undefined) {
+      responseData.cancellationFee = updateData.cancellationFee
+      responseData.message = updateData.cancellationFee > 0 
+        ? `Order cancelled. Cancellation fee of ₹${updateData.cancellationFee} has been charged.`
+        : 'Order cancelled successfully. No cancellation fee charged.'
+    }
+    
+    return NextResponse.json(responseData)
     
   } catch (error: any) {
     console.error('Error updating order:', error)

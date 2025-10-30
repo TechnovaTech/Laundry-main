@@ -13,6 +13,7 @@ export default function OrdersPage() {
   const [dateFilter, setDateFilter] = useState('')
   const [partnerFilter, setPartnerFilter] = useState('all')
   const [partners, setPartners] = useState<any[]>([])
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([])
 
   const statusFilters = [
     { label: 'All', value: 'all' },
@@ -133,6 +134,44 @@ export default function OrdersPage() {
     <ResponsiveLayout activePage="Orders" title="Orders Management" searchPlaceholder="Search by Order ID / Customer">
         {/* Orders Content */}
         <div style={{ padding: '1.5rem' }}>
+          {/* Bulk Delete Button */}
+          {selectedOrders.length > 0 && (
+            <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                {selectedOrders.length} order(s) selected
+              </span>
+              <button
+                onClick={async () => {
+                  if (confirm(`Are you sure you want to delete ${selectedOrders.length} order(s)?`)) {
+                    try {
+                      await Promise.all(
+                        selectedOrders.map(orderId => 
+                          fetch(`/api/orders/${orderId}`, { method: 'DELETE' })
+                        )
+                      )
+                      setSelectedOrders([])
+                      fetchOrders()
+                    } catch (error) {
+                      console.error('Failed to delete orders:', error)
+                    }
+                  }
+                }}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Delete Selected
+              </button>
+            </div>
+          )}
+
           {/* Filter Buttons */}
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', alignItems: 'center' }}>
             {statusFilters.map((filter, index) => (
@@ -201,11 +240,25 @@ export default function OrdersPage() {
               color: 'white',
               padding: '1rem',
               display: 'grid',
-              gridTemplateColumns: '1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
+              gridTemplateColumns: '50px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
               gap: '1rem',
               fontSize: '0.9rem',
               fontWeight: '600'
             }}>
+              <div>
+                <input
+                  type="checkbox"
+                  checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedOrders(filteredOrders.map((o: any) => o._id))
+                    } else {
+                      setSelectedOrders([])
+                    }
+                  }}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+              </div>
               <div>ORDER ID</div>
               <div>CUSTOMER NAME</div>
               <div>ITEMS</div>
@@ -232,11 +285,10 @@ export default function OrdersPage() {
               return (
               <div
                 key={index}
-                onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}
                 style={{
                   padding: '1rem',
                   display: 'grid',
-                  gridTemplateColumns: '1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
+                  gridTemplateColumns: '50px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
                   gap: '1rem',
                   borderBottom: index < filteredOrders.length - 1 ? '1px solid #f3f4f6' : 'none',
                   fontSize: '0.9rem',
@@ -246,11 +298,25 @@ export default function OrdersPage() {
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
               >
-                <div style={{ fontWeight: '500' }}>{order.id}</div>
-                <div>{order.customer}</div>
-                <div>{order.items}</div>
-                <div>{order.price}</div>
-                <div>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={selectedOrders.includes(dbOrder._id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedOrders([...selectedOrders, dbOrder._id])
+                      } else {
+                        setSelectedOrders(selectedOrders.filter(id => id !== dbOrder._id))
+                      }
+                    }}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                  />
+                </div>
+                <div style={{ fontWeight: '500' }} onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.id}</div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.customer}</div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.items}</div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.price}</div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>
                   <span style={{
                     padding: '0.25rem 0.75rem',
                     borderRadius: '12px',
@@ -266,8 +332,8 @@ export default function OrdersPage() {
                     {order.status}
                   </span>
                 </div>
-                <div>{order.paymentMethod}</div>
-                <div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.paymentMethod}</div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>
                   <span style={{
                     padding: '0.25rem 0.75rem',
                     borderRadius: '12px',
@@ -279,8 +345,8 @@ export default function OrdersPage() {
                     {order.paymentStatus}
                   </span>
                 </div>
-                <div>{order.partner}</div>
-                <div>{order.time}</div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.partner}</div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.time}</div>
                 <div onClick={(e) => e.stopPropagation()}>
                   {dbOrder.status === 'delivered_to_hub' ? (
                     <button

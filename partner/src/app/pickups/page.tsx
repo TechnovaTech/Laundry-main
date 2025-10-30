@@ -40,7 +40,7 @@ export default function Pickups() {
       
       if (data.success) {
         const pendingPickups = data.data.filter((order: any) => 
-          order.status === 'pending' || order.status === 'confirmed'
+          order.status !== 'delivered' && order.status !== 'cancelled'
         );
         setPickups(pendingPickups);
       }
@@ -103,9 +103,22 @@ export default function Pickups() {
                   <span>📞</span>
                   Call
                 </a>
-                <Link href={`/pickups/start/${p._id}`} className="flex-1 inline-flex justify-center items-center text-white rounded-xl py-2.5 text-sm font-bold shadow-md btn-press" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                <button
+                  onClick={async () => {
+                    const partnerId = localStorage.getItem('partnerId');
+                    console.log('Assigning partner to order:', partnerId);
+                    await fetch(`http://localhost:3000/api/orders/${p._id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ partnerId })
+                    });
+                    window.location.href = `/pickups/start/${p._id}`;
+                  }}
+                  className="flex-1 inline-flex justify-center items-center text-white rounded-xl py-2.5 text-sm font-bold shadow-md btn-press"
+                  style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                >
                   Start Pickup →
-                </Link>
+                </button>
               </div>
             </div>
           ))

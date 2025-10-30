@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 interface Order {
   _id: string;
   orderId: string;
+  status: string;
   customerId: {
     name: string;
     mobile: string;
@@ -50,6 +51,29 @@ export default function StartPickup() {
 
   if (loading) return <div className="p-8 text-center">Loading...</div>;
   if (!order) return <div className="p-8 text-center">Order not found</div>;
+  
+  // Check if order is cancelled
+  if (order.status === 'cancelled') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-8 shadow-lg text-center max-w-md w-full">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(to right, #ef4444, #dc2626)' }}>
+            <span className="text-4xl">❌</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Cancelled</h2>
+          <p className="text-gray-600 mb-4">This order has been cancelled by the customer.</p>
+          <p className="text-sm text-gray-500 mb-6">Order ID: {order.orderId}</p>
+          <Link 
+            href="/pickups" 
+            className="inline-block w-full text-center text-white rounded-xl py-3 text-base font-semibold"
+            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+          >
+            Back to Pickups
+          </Link>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="pb-6">
       {/* Header */}
@@ -111,6 +135,7 @@ export default function StartPickup() {
         <button 
           onClick={async () => {
             const partnerId = localStorage.getItem('partnerId');
+            console.log('Partner ID from localStorage:', partnerId);
             const updateData = { 
               status: 'reached_location',
               reachedLocationAt: new Date().toISOString(),
