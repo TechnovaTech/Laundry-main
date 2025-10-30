@@ -176,7 +176,10 @@ const Profile = () => {
   ];
   
   const handleSupportClick = (optionId: number) => {
-    if (optionId === 3) {
+    if (optionId === 2) {
+      // Open Gmail compose
+      window.open('https://mail.google.com/mail/?view=cm&fs=1&to=acsgroup.global@gmail.com', '_blank');
+    } else if (optionId === 3) {
       // Open WhatsApp chat
       window.open('https://wa.me/919036754813', '_blank');
     }
