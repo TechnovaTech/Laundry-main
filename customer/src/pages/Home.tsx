@@ -8,6 +8,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [userName, setUserName] = useState('Sagnik');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [currentVoucher, setCurrentVoucher] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [vouchers, setVouchers] = useState([]);
@@ -42,6 +43,7 @@ const Home = () => {
     fetchCustomerAddress();
     fetchRecentOrders();
     fetchHeroItems();
+    fetchProfileImage();
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -76,6 +78,22 @@ const Home = () => {
       }
     } catch (error) {
       console.error('Error fetching customer address:', error);
+    }
+  };
+  
+  const fetchProfileImage = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data?.profileImage) {
+        setProfileImage(data.data.profileImage);
+      }
+    } catch (error) {
+      console.error('Error fetching profile image:', error);
     }
   };
   
@@ -194,9 +212,13 @@ const Home = () => {
             <h1 className="text-2xl sm:text-3xl font-bold mb-1">Hi, {userName} 👋</h1>
             <p className="text-white/90 text-sm sm:text-base">Let's schedule your order</p>
           </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-            <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </div>
+          {profileImage ? (
+            <img src={profileImage} alt="Profile" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0 border-2 border-white/30" />
+          ) : (
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+          )}
         </div>
       </div>
 

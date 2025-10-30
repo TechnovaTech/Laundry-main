@@ -84,6 +84,7 @@ const Profile = () => {
     phone: "+91 XXXXXXXX",
     email: "example@gmail.com",
     avatar: "L",
+    profileImage: null,
     pincode: "Loading...",
     city: "Loading...",
     state: "Loading..."
@@ -112,6 +113,7 @@ const Profile = () => {
           phone: customer.mobile || "+91 XXXXXXXX",
           email: customer.email || "Not provided",
           avatar: (customer.name || "User").charAt(0).toUpperCase(),
+          profileImage: customer.profileImage || null,
           pincode: customer.address?.[0]?.pincode || "Not provided",
           city: customer.address?.[0]?.city || "Not provided",
           state: customer.address?.[0]?.state || "Not provided"
@@ -384,9 +386,13 @@ const Profile = () => {
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex items-center gap-3 sm:gap-4 mb-4">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl font-bold flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-              {userProfile.avatar}
-            </div>
+            {userProfile.profileImage ? (
+              <img src={userProfile.profileImage} alt="Profile" className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0 shadow-md" />
+            ) : (
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl font-bold flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                {userProfile.avatar}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <h2 className="text-lg sm:text-xl font-bold text-black truncate">{userProfile.name}</h2>
               <p className="text-xs sm:text-sm text-gray-500 truncate">{userProfile.phone}</p>

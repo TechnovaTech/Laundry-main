@@ -43,6 +43,9 @@ const CreateProfile = () => {
             phone: customer.mobile?.startsWith('google_') ? '' : customer.mobile || '',
             referralCode: ''
           })
+          if (customer.profileImage) {
+            setProfileImage(customer.profileImage)
+          }
         }
       } catch (error) {
         console.log('No existing customer data found')
@@ -78,6 +81,7 @@ const CreateProfile = () => {
           name: formData.fullName,
           email: formData.email,
           mobile: formData.phone,
+          profileImage: profileImage || undefined,
           referralCode: formData.referralCode || undefined
         })
       })
