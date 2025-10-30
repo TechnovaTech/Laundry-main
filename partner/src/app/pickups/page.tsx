@@ -123,12 +123,12 @@ export default function Pickups() {
             </div>
           ))
         ) : (
-          <div className="mt-12 px-4 text-center">
-            <div className="bg-white rounded-2xl p-8 card-shadow">
-              <Image src="/scooter.svg" alt="Scooter" width={180} height={130} className="mx-auto opacity-80" />
-              <p className="mt-4 text-lg font-bold text-gray-900">No pickups assigned yet</p>
-              <p className="text-sm text-gray-500 mt-2">Orders will appear here once assigned</p>
+          <div className="mt-20 text-center px-6">
+            <div className="mx-auto w-32 h-32 rounded-full flex items-center justify-center mb-6" style={{ background: 'linear-gradient(135deg, #452D9B 0%, #07C8D0 100%)' }}>
+              <span className="text-6xl">📦</span>
             </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">No Orders Yet</h2>
+            <p className="text-gray-600 text-base">No customers have placed orders in your area. Orders will appear here when customers make bookings.</p>
           </div>
         )}
       </div>
