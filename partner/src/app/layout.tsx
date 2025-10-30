@@ -37,7 +37,7 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <GoogleOAuthProvider clientId="514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com">
-          <div className="mx-auto w-full max-w-sm min-h-screen flex flex-col bg-white safe-area" suppressHydrationWarning>
+          <div className="w-full min-h-screen flex flex-col bg-white safe-area" suppressHydrationWarning>
             <CapacitorInit />
             <main className="flex-1">{children}</main>
             <ClientBottomNav />

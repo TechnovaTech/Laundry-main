@@ -58,8 +58,6 @@ button {
 }
 
 #__next {
-  max-width: 480px;
-  margin: 0 auto;
   background: #ffffff;
   min-height: 100vh;
 }
