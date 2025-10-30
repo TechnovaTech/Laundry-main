@@ -42,6 +42,8 @@ const OrderSchema = new mongoose.Schema({
     default: 'pending'
   },
   paymentMethod: String,
+  razorpayOrderId: String,
+  razorpayPaymentId: String,
   specialInstructions: String,
   pickupPhotos: [String],
   pickupNotes: String,

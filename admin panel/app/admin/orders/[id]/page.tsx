@@ -141,6 +141,48 @@ export default function OrderDetails() {
             </div>
           </div>
 
+          {/* Payment Information */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            padding: '1.5rem',
+            marginBottom: '1.5rem'
+          }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Payment Information</h3>
+            <div style={{ color: '#374151', lineHeight: '1.8' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <strong>Payment Method:</strong>
+                <span>{order?.paymentMethod || 'Cash on Delivery'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <strong>Payment Status:</strong>
+                <span style={{
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: '12px',
+                  fontSize: '0.85rem',
+                  fontWeight: '500',
+                  backgroundColor: order?.paymentStatus === 'paid' ? '#dcfce7' : '#fef3c7',
+                  color: order?.paymentStatus === 'paid' ? '#166534' : '#92400e'
+                }}>
+                  {order?.paymentStatus ? order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) : 'Pending'}
+                </span>
+              </div>
+              {order?.razorpayPaymentId && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <strong>Payment ID:</strong>
+                  <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>{order.razorpayPaymentId}</span>
+                </div>
+              )}
+              {order?.razorpayOrderId && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <strong>Order ID:</strong>
+                  <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>{order.razorpayOrderId}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Assigned Partner */}
           <div style={{
             backgroundColor: 'white',

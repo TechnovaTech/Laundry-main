@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LeafletMap from "@/components/LeafletMap";
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 const ContinueBooking = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,6 +21,7 @@ const ContinueBooking = () => {
   const [couponError, setCouponError] = useState("");
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   const [pastOrders, setPastOrders] = useState<any[]>([]);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   const itemsText = orderData.items ? orderData.items.map((item: any) => `${item.quantity} ${item.name}`).join(', ') : '3 Shirts, 1 Bedsheet';
   const totalAmount = orderData.total || 120;
@@ -23,6 +30,16 @@ const ContinueBooking = () => {
   useEffect(() => {
     fetchCustomerInfo();
     fetchPastOrders();
+    
+    // Load Razorpay script
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
   
   const fetchCustomerInfo = async () => {
@@ -244,52 +261,180 @@ const ContinueBooking = () => {
                 return;
               }
               
-              const orderPayload = {
-                customerId,
-                items: orderData.items || [],
-                totalAmount: finalAmount,
-                pickupAddress: orderData.address,
-                pickupSlot: orderData.selectedSlot,
-                pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
-                paymentMethod: 'Cash on Delivery'
-              };
+              setIsProcessingPayment(true);
               
-              const response = await fetch('http://localhost:3000/api/orders', {
+              // Get selected payment method
+              const paymentMethod = customerInfo?.paymentMethods?.find((pm: any) => pm.isPrimary)?.type || 'Cash';
+              
+              // If payment method is Cash, place order directly
+              if (paymentMethod === 'Cash') {
+                const orderPayload = {
+                  customerId,
+                  items: orderData.items || [],
+                  totalAmount: finalAmount,
+                  pickupAddress: orderData.address,
+                  pickupSlot: orderData.selectedSlot,
+                  pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
+                  paymentMethod: 'Cash on Delivery',
+                  paymentStatus: 'pending'
+                };
+                
+                const response = await fetch('http://localhost:3000/api/orders', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(orderPayload)
+                });
+                
+                const result = await response.json();
+                setIsProcessingPayment(false);
+                
+                if (result.success) {
+                  navigate("/booking-confirmation", { 
+                    state: {
+                      orderId: result.data.orderId,
+                      items: itemsText,
+                      service: 'Steam Iron',
+                      total: finalAmount,
+                      originalTotal: totalAmount,
+                      discount: discount,
+                      appliedVoucher: appliedVoucher,
+                      customerInfo: customerInfo,
+                      status: 'Pending',
+                      pickupType: orderData.pickupType,
+                      selectedSlot: orderData.selectedSlot,
+                      address: orderData.address
+                    }
+                  });
+                } else {
+                  alert('Failed to place order. Please try again.');
+                }
+                return;
+              }
+              
+              // For online payment methods (UPI, Card, Bank Transfer), use Razorpay
+              const orderResponse = await fetch('http://localhost:3000/api/razorpay/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderPayload)
+                body: JSON.stringify({
+                  amount: finalAmount,
+                  currency: 'INR',
+                  receipt: `order_${Date.now()}`
+                })
               });
               
-              const result = await response.json();
+              const orderResult = await orderResponse.json();
               
-              if (result.success) {
-                navigate("/booking-confirmation", { 
-                  state: {
-                    orderId: result.data.orderId,
-                    items: itemsText,
-                    service: 'Steam Iron',
-                    total: finalAmount,
-                    originalTotal: totalAmount,
-                    discount: discount,
-                    appliedVoucher: appliedVoucher,
-                    customerInfo: customerInfo,
-                    status: 'Pending',
-                    pickupType: orderData.pickupType,
-                    selectedSlot: orderData.selectedSlot,
-                    address: orderData.address
-                  }
-                });
-              } else {
-                alert('Failed to place order. Please try again.');
+              if (!orderResult.success) {
+                setIsProcessingPayment(false);
+                alert('Failed to create payment order');
+                return;
               }
+              
+              const options = {
+                key: orderResult.keyId,
+                amount: orderResult.amount,
+                currency: orderResult.currency,
+                name: 'Urban Steam',
+                description: 'Laundry Service Payment',
+                order_id: orderResult.orderId,
+                handler: async function (response: any) {
+                  try {
+                    // Verify payment
+                    const verifyResponse = await fetch('http://localhost:3000/api/razorpay/verify-payment', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature
+                      })
+                    });
+                    
+                    const verifyResult = await verifyResponse.json();
+                    
+                    if (verifyResult.success) {
+                      // Payment successful, place order
+                      const orderPayload = {
+                        customerId,
+                        items: orderData.items || [],
+                        totalAmount: finalAmount,
+                        pickupAddress: orderData.address,
+                        pickupSlot: orderData.selectedSlot,
+                        pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
+                        paymentMethod: paymentMethod,
+                        paymentStatus: 'paid',
+                        razorpayOrderId: response.razorpay_order_id,
+                        razorpayPaymentId: response.razorpay_payment_id
+                      };
+                      
+                      const placeOrderResponse = await fetch('http://localhost:3000/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderPayload)
+                      });
+                      
+                      const placeOrderResult = await placeOrderResponse.json();
+                      setIsProcessingPayment(false);
+                      
+                      if (placeOrderResult.success) {
+                        navigate("/booking-confirmation", { 
+                          state: {
+                            orderId: placeOrderResult.data.orderId,
+                            items: itemsText,
+                            service: 'Steam Iron',
+                            total: finalAmount,
+                            originalTotal: totalAmount,
+                            discount: discount,
+                            appliedVoucher: appliedVoucher,
+                            customerInfo: customerInfo,
+                            status: 'Pending',
+                            pickupType: orderData.pickupType,
+                            selectedSlot: orderData.selectedSlot,
+                            address: orderData.address,
+                            paymentStatus: 'Paid'
+                          }
+                        });
+                      } else {
+                        alert('Payment successful but order placement failed. Please contact support.');
+                      }
+                    } else {
+                      setIsProcessingPayment(false);
+                      alert('Payment verification failed');
+                    }
+                  } catch (error) {
+                    setIsProcessingPayment(false);
+                    console.error('Payment verification error:', error);
+                    alert('Payment verification failed');
+                  }
+                },
+                prefill: {
+                  name: customerInfo?.name || '',
+                  email: customerInfo?.email || '',
+                  contact: customerInfo?.mobile || ''
+                },
+                theme: {
+                  color: '#452D9B'
+                },
+                modal: {
+                  ondismiss: function() {
+                    setIsProcessingPayment(false);
+                  }
+                }
+              };
+              
+              const razorpay = new window.Razorpay(options);
+              razorpay.open();
+              
             } catch (error) {
-              console.error('Error placing order:', error);
-              alert('Failed to place order. Please try again.');
+              setIsProcessingPayment(false);
+              console.error('Error processing payment:', error);
+              alert('Failed to process payment. Please try again.');
             }
           }}
-          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white shadow-lg"
+          disabled={isProcessingPayment}
+          className="w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Continue
+          {isProcessingPayment ? 'Processing...' : 'Continue'}
         </Button>
       </div>
     </div>

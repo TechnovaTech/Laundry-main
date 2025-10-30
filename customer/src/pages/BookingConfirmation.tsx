@@ -63,6 +63,16 @@ const BookingConfirmation = () => {
                 <span className="font-semibold text-green-600 text-sm sm:text-base">-₹{orderData.discount}</span>
               </div>
             )}
+            <div className="flex justify-between items-start gap-3">
+              <span className="text-muted-foreground text-sm sm:text-base">Payment Method:</span>
+              <span className="font-semibold text-sm sm:text-base">{orderData.customerInfo?.paymentMethods?.find((pm: any) => pm.isPrimary)?.type || 'Cash on Delivery'}</span>
+            </div>
+            <div className="flex justify-between items-start gap-3">
+              <span className="text-muted-foreground text-sm sm:text-base">Payment Status:</span>
+              <span className={`font-semibold text-sm sm:text-base ${orderData.paymentStatus === 'Paid' ? 'text-green-600' : 'text-orange-600'}`}>
+                {orderData.paymentStatus || 'Pending'}
+              </span>
+            </div>
           </div>
         </Card>
 

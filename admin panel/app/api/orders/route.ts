@@ -41,6 +41,9 @@ export async function POST(request: NextRequest) {
         timeSlot: orderData.pickupSlot
       },
       paymentMethod: orderData.paymentMethod || 'Cash on Delivery',
+      paymentStatus: orderData.paymentStatus || 'pending',
+      razorpayOrderId: orderData.razorpayOrderId,
+      razorpayPaymentId: orderData.razorpayPaymentId,
       specialInstructions: orderData.specialInstructions || '',
       createdAt: new Date(),
       updatedAt: new Date()

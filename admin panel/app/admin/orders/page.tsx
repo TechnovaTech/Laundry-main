@@ -108,12 +108,22 @@ export default function OrdersPage() {
   }
 
   const formatOrderForDisplay = (order: any) => {
+    const formatStatus = (status: string) => {
+      return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    }
+    
+    const formatPaymentStatus = (status: string) => {
+      return status.charAt(0).toUpperCase() + status.slice(1)
+    }
+    
     return {
       id: order.orderId,
       customer: order.customerId?.name || 'Unknown Customer',
       items: order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
       price: `₹${order.totalAmount}`,
-      status: order.status.charAt(0).toUpperCase() + order.status.slice(1),
+      status: formatStatus(order.status),
+      paymentMethod: order.paymentMethod || 'Cash on Delivery',
+      paymentStatus: formatPaymentStatus(order.paymentStatus || 'pending'),
       partner: order.partnerId?.name || 'Not Assigned',
       time: order.pickupSlot?.timeSlot || 'Not Scheduled'
     }
@@ -191,7 +201,7 @@ export default function OrdersPage() {
               color: 'white',
               padding: '1rem',
               display: 'grid',
-              gridTemplateColumns: '1fr 1.5fr 2fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
+              gridTemplateColumns: '1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
               gap: '1rem',
               fontSize: '0.9rem',
               fontWeight: '600'
@@ -201,6 +211,8 @@ export default function OrdersPage() {
               <div>ITEMS</div>
               <div>PRICE</div>
               <div>STATUS</div>
+              <div>PAYMENT METHOD</div>
+              <div>PAYMENT STATUS</div>
               <div>DELIVERY PARTNER</div>
               <div>PICKUP TIME SLOT</div>
               <div>ACTIONS</div>
@@ -224,7 +236,7 @@ export default function OrdersPage() {
                 style={{
                   padding: '1rem',
                   display: 'grid',
-                  gridTemplateColumns: '1fr 1.5fr 2fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
+                  gridTemplateColumns: '1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
                   gap: '1rem',
                   borderBottom: index < filteredOrders.length - 1 ? '1px solid #f3f4f6' : 'none',
                   fontSize: '0.9rem',
@@ -252,6 +264,19 @@ export default function OrdersPage() {
                       order.status === 'Pending' ? '#92400e' : '#dc2626'
                   }}>
                     {order.status}
+                  </span>
+                </div>
+                <div>{order.paymentMethod}</div>
+                <div>
+                  <span style={{
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '12px',
+                    fontSize: '0.8rem',
+                    fontWeight: '500',
+                    backgroundColor: order.paymentStatus === 'Paid' ? '#dcfce7' : '#fef3c7',
+                    color: order.paymentStatus === 'Paid' ? '#166534' : '#92400e'
+                  }}>
+                    {order.paymentStatus}
                   </span>
                 </div>
                 <div>{order.partner}</div>
