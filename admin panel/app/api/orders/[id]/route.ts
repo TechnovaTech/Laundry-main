@@ -268,7 +268,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     ).populate('partnerId', 'name mobile')
     
     if (!order) {
-      console.log('Order not found with ID:', params.id)
+      console.log('Order not found with ID:', id)
       return NextResponse.json({
         success: false,
         message: 'Order not found'
