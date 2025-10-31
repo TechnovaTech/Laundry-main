@@ -163,6 +163,27 @@ export default function StartPickup() {
         >
           Reached Location
         </button>
+        <button 
+          onClick={async () => {
+            if (confirm('Are you sure you want to stop this pickup? The order will be unassigned and available for other partners.')) {
+              const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ partnerId: null })
+              });
+              if (response.ok) {
+                setToast({ message: 'Pickup stopped. Order unassigned.', type: 'success' });
+                setTimeout(() => window.location.href = '/pickups', 1500);
+              } else {
+                setToast({ message: 'Failed to stop pickup', type: 'error' });
+              }
+            }
+          }}
+          className="mt-3 w-full inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold border-2"
+          style={{ borderColor: '#dc2626', color: '#dc2626', backgroundColor: 'white' }}
+        >
+          Stop Pickup
+        </button>
       </div>
     </div>
   );
