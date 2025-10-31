@@ -35,14 +35,24 @@ export default function Pickups() {
 
   const fetchPickups = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/orders');
-      const data = await response.json();
+      const partnerId = localStorage.getItem('partnerId');
+      const partnerRes = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+      const partnerData = await partnerRes.json();
       
-      if (data.success) {
-        const pendingPickups = data.data.filter((order: any) => 
-          order.status !== 'delivered' && order.status !== 'cancelled' && order.status !== 'delivery_failed'
-        );
-        setPickups(pendingPickups);
+      if (partnerData.success && partnerData.data.address?.pincode) {
+        const partnerPincode = partnerData.data.address.pincode;
+        
+        const response = await fetch('http://localhost:3000/api/orders');
+        const data = await response.json();
+        
+        if (data.success) {
+          const pendingPickups = data.data.filter((order: any) => 
+            order.status === 'pending' &&
+            order.pickupAddress?.pincode === partnerPincode &&
+            !order.partnerId
+          );
+          setPickups(pendingPickups);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch pickups:', error);
