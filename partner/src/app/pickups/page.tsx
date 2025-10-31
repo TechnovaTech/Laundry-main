@@ -116,7 +116,18 @@ export default function Pickups() {
                 <button
                   onClick={async () => {
                     const partnerId = localStorage.getItem('partnerId');
-                    console.log('Assigning partner to order:', partnerId);
+                    
+                    // Check if order is still available
+                    const checkRes = await fetch(`http://localhost:3000/api/orders/${p._id}`);
+                    const checkData = await checkRes.json();
+                    
+                    if (checkData.data?.partnerId) {
+                      alert('This order was just assigned to another partner');
+                      fetchPickups();
+                      return;
+                    }
+                    
+                    // Assign partner
                     await fetch(`http://localhost:3000/api/orders/${p._id}`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
