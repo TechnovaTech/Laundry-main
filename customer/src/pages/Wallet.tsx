@@ -238,21 +238,17 @@ const Wallet = () => {
             
             {dueCharges.length > 0 && (
               <div className="mt-4 pt-4 border-t-2 border-red-200">
-                <h4 className="text-sm font-bold text-red-600 mb-3 text-left">Due Charges Breakdown:</h4>
-                <div className="space-y-2">
-                  {dueCharges.map((charge: any) => (
-                    <div key={charge.id} className="bg-white rounded-lg p-3 shadow-sm">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0 text-left">
-                          <p className="text-xs sm:text-sm text-gray-600 break-words">{charge.subtitle}</p>
-                          <p className="text-xs text-gray-400 mt-1">{charge.date}</p>
-                        </div>
-                        <span className="font-bold text-sm sm:text-base text-red-600 flex-shrink-0">
-                          {charge.amount}
-                        </span>
-                      </div>
+                <h4 className="text-sm font-bold text-red-600 mb-3 text-left">Last Due Charge:</h4>
+                <div className="bg-white rounded-lg p-3 shadow-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-xs sm:text-sm text-gray-600 break-words">{dueCharges[0].subtitle}</p>
+                      <p className="text-xs text-gray-400 mt-1">{dueCharges[0].date}</p>
                     </div>
-                  ))}
+                    <span className="font-bold text-sm sm:text-base text-red-600 flex-shrink-0">
+                      {dueCharges[0].amount}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}

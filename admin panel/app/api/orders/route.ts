@@ -4,6 +4,7 @@ import Order from '@/models/Order'
 import Customer from '@/models/Customer'
 import Partner from '@/models/Partner'
 import WalletSettings from '@/models/WalletSettings'
+import WalletTransaction from '@/models/WalletTransaction'
 import Hub from '@/models/Hub'
 
 export async function POST(request: NextRequest) {
@@ -51,11 +52,29 @@ export async function POST(request: NextRequest) {
     
     const savedOrder = await newOrder.save()
     
-    // Clear due amount if payment is successful
+    // Clear due amount if payment is successful and record transaction
     if (orderData.paymentStatus === 'paid') {
-      await Customer.findByIdAndUpdate(orderData.customerId, {
-        dueAmount: 0
-      })
+      const customer = await Customer.findById(orderData.customerId)
+      if (customer && customer.dueAmount > 0) {
+        const paidDueAmount = customer.dueAmount
+        
+        // Clear due amount
+        await Customer.findByIdAndUpdate(orderData.customerId, {
+          dueAmount: 0
+        })
+        
+        // Record wallet transaction for due payment
+        await WalletTransaction.create({
+          customerId: customer._id,
+          type: 'balance',
+          action: 'increase',
+          amount: 0,
+          reason: `Due amount of ₹${paidDueAmount} paid with Order #${orderId}`,
+          previousValue: customer.dueAmount,
+          newValue: 0,
+          adjustedBy: 'System'
+        })
+      }
     }
     
     // Award points to customer and handle referral

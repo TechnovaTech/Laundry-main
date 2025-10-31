@@ -156,9 +156,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
               customerId: customer._id,
               type: 'balance',
               action: 'decrease',
-              amount: deductedFromWallet,
+              amount: cancellationFee,
               reason: deductedFromWallet > 0 
-                ? `Cancellation fee (partial) for Order #${currentOrder.orderId} - Remaining ₹${remainingDue} added to due`
+                ? `Cancellation fee (partial) for Order #${currentOrder.orderId} - ₹${deductedFromWallet} from wallet, ₹${remainingDue} added to due`
                 : `Cancellation fee for Order #${currentOrder.orderId} - Full amount ₹${cancellationFee} added to due (insufficient wallet balance)`,
               previousValue: previousBalance,
               newValue: 0,
@@ -230,9 +230,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             customerId: customer._id,
             type: 'balance',
             action: 'decrease',
-            amount: deductedFromWallet,
+            amount: deliveryFee,
             reason: deductedFromWallet > 0
-              ? `Delivery failure fee (partial) for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - Remaining ₹${remainingDue} added to due`
+              ? `Delivery failure fee (partial) for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - ₹${deductedFromWallet} from wallet, ₹${remainingDue} added to due`
               : `Delivery failure fee for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - Full amount ₹${deliveryFee} added to due (insufficient wallet balance)`,
             previousValue: previousBalance,
             newValue: 0,
