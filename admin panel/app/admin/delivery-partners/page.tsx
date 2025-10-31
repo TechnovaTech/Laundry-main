@@ -132,6 +132,7 @@ export default function DeliveryPartnersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
+              aria-label="Filter partners by status"
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
@@ -151,6 +152,7 @@ export default function DeliveryPartnersPage() {
             <select
               value={sortFilter}
               onChange={(e) => setSortFilter(e.target.value)}
+              aria-label="Sort partners by criteria"
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',

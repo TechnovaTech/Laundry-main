@@ -198,6 +198,7 @@ export default function OrdersPage() {
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
+              aria-label="Filter orders by date"
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
@@ -210,6 +211,7 @@ export default function OrdersPage() {
             <select
               value={partnerFilter}
               onChange={(e) => setPartnerFilter(e.target.value)}
+              aria-label="Filter orders by partner"
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
@@ -257,6 +259,7 @@ export default function OrdersPage() {
                       setSelectedOrders([])
                     }
                   }}
+                  aria-label="Select all orders"
                   style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                 />
               </div>
@@ -310,6 +313,7 @@ export default function OrdersPage() {
                         setSelectedOrders(selectedOrders.filter(id => id !== dbOrder._id))
                       }
                     }}
+                    aria-label={`Select order ${order.id}`}
                     style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                   />
                 </div>
