@@ -151,19 +151,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             await customer.save()
             console.log('Saved customer with wallet: 0, due:', newDueAmount)
             
-            // Create wallet transaction history for partial deduction
-            if (deductedFromWallet > 0) {
-              await WalletTransaction.create({
-                customerId: customer._id,
-                type: 'balance',
-                action: 'decrease',
-                amount: deductedFromWallet,
-                reason: `Cancellation fee (partial) for Order #${currentOrder.orderId} - Remaining ₹${remainingDue} added to due`,
-                previousValue: previousBalance,
-                newValue: 0,
-                adjustedBy: 'System'
-              })
-            }
+            // Create wallet transaction history
+            await WalletTransaction.create({
+              customerId: customer._id,
+              type: 'balance',
+              action: 'decrease',
+              amount: deductedFromWallet,
+              reason: deductedFromWallet > 0 
+                ? `Cancellation fee (partial) for Order #${currentOrder.orderId} - Remaining ₹${remainingDue} added to due`
+                : `Cancellation fee for Order #${currentOrder.orderId} - Full amount ₹${cancellationFee} added to due (insufficient wallet balance)`,
+              previousValue: previousBalance,
+              newValue: 0,
+              adjustedBy: 'System'
+            })
           }
         }
       }
@@ -225,19 +225,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           console.log('Added', remainingDue, 'to due amount')
           console.log('New due amount:', newDueAmount)
           
-          // Create wallet transaction history for partial deduction
-          if (deductedFromWallet > 0) {
-            await WalletTransaction.create({
-              customerId: customer._id,
-              type: 'balance',
-              action: 'decrease',
-              amount: deductedFromWallet,
-              reason: `Delivery failure fee (partial) for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - Remaining ₹${remainingDue} added to due`,
-              previousValue: previousBalance,
-              newValue: 0,
-              adjustedBy: 'System'
-            })
-          }
+          // Create wallet transaction history
+          await WalletTransaction.create({
+            customerId: customer._id,
+            type: 'balance',
+            action: 'decrease',
+            amount: deductedFromWallet,
+            reason: deductedFromWallet > 0
+              ? `Delivery failure fee (partial) for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - Remaining ₹${remainingDue} added to due`
+              : `Delivery failure fee for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - Full amount ₹${deliveryFee} added to due (insufficient wallet balance)`,
+            previousValue: previousBalance,
+            newValue: 0,
+            adjustedBy: 'System'
+          })
         }
       }
       console.log('=== END DELIVERY FAILURE FEE CALCULATION ===')

@@ -94,6 +94,7 @@ const Wallet = () => {
   };
 
   const [walletHistory, setWalletHistory] = useState([]);
+  const [dueCharges, setDueCharges] = useState([]);
 
   const fetchWalletTransactions = async () => {
     try {
@@ -113,10 +114,17 @@ const Wallet = () => {
           subtitle: t.reason,
           amount: `${t.action === 'increase' ? '+' : '-'}${t.type === 'balance' ? '₹' : ''}${t.amount}${t.type === 'points' ? ' pts' : ''}`,
           type: t.action === 'increase' ? 'credit' : 'debit',
-          date: new Date(t.createdAt).toLocaleDateString()
+          date: new Date(t.createdAt).toLocaleDateString(),
+          rawReason: t.reason
         }));
         console.log('Formatted transactions:', formattedTransactions);
         setWalletHistory(formattedTransactions);
+        
+        // Filter transactions that mention "added to due"
+        const dueTransactions = formattedTransactions.filter((t: any) => 
+          t.rawReason && t.rawReason.toLowerCase().includes('added to due')
+        );
+        setDueCharges(dueTransactions);
       } else {
         console.log('No transactions found or error:', data);
       }
@@ -217,17 +225,37 @@ const Wallet = () => {
           </Button>
         </div>
 
-        {/* Debug: Due Amount = {walletData.dueAmount} */}
         {walletData.dueAmount > 0 && (
-          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 sm:p-8 shadow-lg text-center border-2 border-red-200">
-            <div className="mb-2">
+          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 sm:p-8 shadow-lg border-2 border-red-200">
+            <div className="mb-2 text-center">
               <span className="text-4xl">⚠️</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-red-600 mb-2">Pending Due Amount</h3>
-            <p className="text-3xl sm:text-4xl font-bold text-red-600 mb-2">₹{walletData.dueAmount}</p>
-            <p className="text-sm sm:text-base text-gray-700 font-medium">
+            <h3 className="text-lg sm:text-xl font-bold text-red-600 mb-2 text-center">Pending Due Amount</h3>
+            <p className="text-3xl sm:text-4xl font-bold text-red-600 mb-4 text-center">₹{walletData.dueAmount}</p>
+            <p className="text-sm sm:text-base text-gray-700 font-medium text-center mb-4">
               This amount will be added to your next order payment
             </p>
+            
+            {dueCharges.length > 0 && (
+              <div className="mt-4 pt-4 border-t-2 border-red-200">
+                <h4 className="text-sm font-bold text-red-600 mb-3 text-left">Due Charges Breakdown:</h4>
+                <div className="space-y-2">
+                  {dueCharges.map((charge: any) => (
+                    <div key={charge.id} className="bg-white rounded-lg p-3 shadow-sm">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="text-xs sm:text-sm text-gray-600 break-words">{charge.subtitle}</p>
+                          <p className="text-xs text-gray-400 mt-1">{charge.date}</p>
+                        </div>
+                        <span className="font-bold text-sm sm:text-base text-red-600 flex-shrink-0">
+                          {charge.amount}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
