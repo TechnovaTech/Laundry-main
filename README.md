@@ -209,6 +209,32 @@ laundry-main/
 └── README.md          # This file
 ```
 
+## 📱 Google Auth Setup for Android & iOS
+
+### ✅ What's Been Done:
+- Google Auth initialization added to both apps
+- Capacitor configuration complete
+- Works on Android and iOS
+- Environment variable support ready
+
+### 📚 Documentation:
+1. **SETUP_SUMMARY.md** - Quick overview and what to do next
+2. **GOOGLE_AUTH_SETUP.md** - Complete Google Auth setup guide
+3. **DEPLOYMENT_CHECKLIST.md** - Step-by-step deployment guide
+4. **API_URL_MIGRATION.md** - How to replace localhost URLs
+5. **ARCHITECTURE_FLOW.md** - System architecture and flows
+
+### 🚀 Next Steps:
+1. Create `.env` files with production API URL
+2. Replace all `localhost:3000` with environment variables
+3. Add SHA-1 fingerprint to Firebase (Android)
+4. Get iOS Client ID (iOS only)
+5. Build and test on devices
+
+**See SETUP_SUMMARY.md for complete instructions!**
+
+---
+
 ## For AI Assistants (ChatGPT, etc.)
 
 When working with this codebase:
@@ -220,3 +246,5 @@ When working with this codebase:
 6. Check file paths carefully - "admin panel" has a space in the folder name
 7. Mobile apps use Capacitor for Android builds
 8. Database operations go through the admin panel API
+9. Google Auth is initialized on app startup for native platforms
+10. Use environment variables for API URLs (VITE_API_URL / NEXT_PUBLIC_API_URL)

@@ -9,6 +9,8 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { Keyboard } from '@capacitor/keyboard';
 import { App as CapApp } from '@capacitor/app';
+import type { PluginListenerHandle } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import Welcome from "./pages/Welcome";
 import CheckAvailability from "./pages/CheckAvailability";
 import Congrats from "./pages/Congrats";
@@ -41,16 +43,22 @@ const AppContent = () => {
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      const backButtonListener = CapApp.addListener('backButton', ({ canGoBack }) => {
+      let backButtonListener: PluginListenerHandle | null = null;
+      
+      CapApp.addListener('backButton', ({ canGoBack }) => {
         if (canGoBack) {
           navigate(-1);
         } else {
           CapApp.exitApp();
         }
+      }).then(listener => {
+        backButtonListener = listener;
       });
 
       return () => {
-        backButtonListener.remove();
+        if (backButtonListener) {
+          backButtonListener.remove();
+        }
       };
     }
   }, [navigate]);
@@ -89,6 +97,13 @@ const App = () => {
     const initializeApp = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
+          // Initialize Google Auth for native platforms
+          await GoogleAuth.initialize({
+            clientId: '514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com',
+            scopes: ['profile', 'email'],
+            grantOfflineAccess: true,
+          });
+          
           await SplashScreen.hide();
           await StatusBar.setStyle({ style: Style.Light });
           await StatusBar.setBackgroundColor({ color: '#ffffff' });

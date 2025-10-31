@@ -12,6 +12,14 @@ export default function CapacitorInit() {
         const { Capacitor } = await import("@capacitor/core");
         if (!Capacitor.isNativePlatform()) return;
         
+        // Initialize Google Auth for native platforms
+        const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
+        await GoogleAuth.initialize({
+          clientId: '514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com',
+          scopes: ['profile', 'email'],
+          grantOfflineAccess: true,
+        });
+        
         const { StatusBar, Style } = await import("@capacitor/status-bar");
         await StatusBar.setOverlaysWebView({ overlay: false });
         await StatusBar.setStyle({ style: Style.Dark });
