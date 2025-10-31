@@ -6,7 +6,7 @@ import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function UndeliveredOrdersPage() {
   const router = useRouter()
-  const [orders, setOrders] = useState([])
+  const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showRedeliveryModal, setShowRedeliveryModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
@@ -26,7 +26,7 @@ export default function UndeliveredOrdersPage() {
       const data = await response.json()
       
       if (data.success) {
-        const undelivered = data.data.filter((order: any) => 
+        const undelivered = (data.data as any[]).filter((order: any) => 
           order.status === 'delivery_failed' || 
           (order.status === 'delivered_to_hub' && order.returnToHubApproved === true && order.redeliveryScheduled !== true)
         )

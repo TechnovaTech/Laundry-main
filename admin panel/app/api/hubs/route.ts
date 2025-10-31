@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const pincode = searchParams.get('pincode')
     
-    let query = { isActive: true }
+    let query: any = { isActive: true }
     if (pincode) {
       query = { ...query, pincodes: pincode }
     }

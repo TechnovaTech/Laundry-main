@@ -14,14 +14,15 @@ export async function OPTIONS() {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB()
+    const { id } = await params
     const body = await request.json()
     
     const partner = await Partner.findByIdAndUpdate(
-      params.id,
+      id,
       {
         vehicleType: body.vehicleType,
         vehicleNumber: body.vehicleNumber,
@@ -48,10 +49,11 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB()
+    const { id } = await params
     const { action, reason } = await request.json()
     
     const updateData: any = {}
@@ -67,7 +69,7 @@ export async function PUT(
     }
     
     const partner = await Partner.findByIdAndUpdate(
-      params.id,
+      id,
       updateData,
       { new: true }
     )

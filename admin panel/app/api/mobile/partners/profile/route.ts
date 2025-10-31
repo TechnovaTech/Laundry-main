@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       const savedPartner = await partner.save()
       return NextResponse.json({ success: true, data: savedPartner })
     }
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ success: false, error: 'Failed to create profile: ' + error.message }, { status: 500 })
   }
 }

@@ -14,15 +14,16 @@ export async function OPTIONS() {
   })
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
+    const { id } = await params
     const { customerId, rating, comment } = await request.json()
     
-    console.log('Creating review for order:', params.id, { customerId, rating, comment })
+    console.log('Creating review for order:', id, { customerId, rating, comment })
     
     // Check if order exists
-    const order = await Order.findById(params.id)
+    const order = await Order.findById(id)
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { 
         status: 404,
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
     
     // Check if review already exists
-    const existingReview = await Review.findOne({ orderId: params.id })
+    const existingReview = await Review.findOne({ orderId: id })
     if (existingReview) {
       return NextResponse.json({ error: 'Review already exists for this order' }, { 
         status: 400,
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     
     // Create review
     const review = new Review({
-      orderId: params.id,
+      orderId: id,
       customerId,
       rating: Number(rating),
       comment,
@@ -52,13 +53,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     console.log('Review saved successfully:', savedReview)
     
     // Update order with review reference
-    await Order.findByIdAndUpdate(params.id, { reviewId: savedReview._id })
+    await Order.findByIdAndUpdate(id, { reviewId: savedReview._id })
     
     return NextResponse.json(savedReview, { 
       status: 201,
       headers: { 'Access-Control-Allow-Origin': '*' }
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating review:', error)
     return NextResponse.json({ error: 'Failed to create review', details: error.message }, { 
       status: 500,

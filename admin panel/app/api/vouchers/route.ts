@@ -18,7 +18,7 @@ export async function GET() {
     await dbConnect();
     const vouchers = await Voucher.find({ isActive: true }).sort({ createdAt: -1 });
     return NextResponse.json({ success: true, data: vouchers });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ success: false, error: 'Failed to fetch vouchers' }, { status: 500 });
   }
 }
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         'Access-Control-Allow-Headers': 'Content-Type',
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Voucher creation error:', error);
     return NextResponse.json({ success: false, error: error.message || 'Failed to create voucher' }, { status: 500 });
   }
@@ -61,7 +61,7 @@ export async function PUT(request: NextRequest) {
     
     const voucher = await Voucher.findByIdAndUpdate(id, { code, discount, slogan }, { new: true });
     return NextResponse.json({ success: true, data: voucher });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ success: false, error: 'Failed to update voucher' }, { status: 500 });
   }
 }
@@ -74,7 +74,7 @@ export async function DELETE(request: NextRequest) {
     
     await Voucher.findByIdAndDelete(id);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ success: false, error: 'Failed to delete voucher' }, { status: 500 });
   }
 }

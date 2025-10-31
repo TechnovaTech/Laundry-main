@@ -51,7 +51,7 @@ export default function CustomersPage() {
   const calculateStats = (customerData: any[]) => {
     const total = customerData.length
     const active = customerData.filter(c => c.isActive).length
-    const highValue = customerData.filter(c => (c.totalSpent || 0) > 10000).length
+    const highValue = customerData.filter(c => (c.totalSpend || 0) > 10000).length
     setStats({ totalCustomers: total, activeCustomers: active, highValueCustomers: highValue })
   }
 
@@ -348,7 +348,7 @@ export default function CustomersPage() {
                   <div>{customer.name || 'User'}</div>
                   <div>{customer.mobile}</div>
                   <div>{customer.lastOrderDate ? new Date(customer.lastOrderDate).toLocaleDateString() : 'No orders'}</div>
-                  <div>₹{customer.totalSpent || 0}</div>
+                  <div>₹{customer.totalSpend || 0}</div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button 
                     onClick={() => window.location.href = `/admin/customers/${customer._id}`}

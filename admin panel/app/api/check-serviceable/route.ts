@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       serviceable: !!area,
       area: area ? { city: area.city, state: area.state, area: area.area } : null
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Database error:', error)
     return NextResponse.json({ error: 'Failed to check serviceable area', details: error.message }, { status: 500 })
   }

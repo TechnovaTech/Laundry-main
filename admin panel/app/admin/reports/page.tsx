@@ -4,7 +4,13 @@ import { useState, useEffect } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function ReportsPage() {
-  const [data, setData] = useState({
+  const [data, setData] = useState<{
+    stats: { totalOrders: number; totalRevenue: number; activePartners: number; avgDeliveryTime: string };
+    ordersTrend: any[];
+    revenueByDay: any[];
+    partnerPerformance: any[];
+    loyaltyData: { redemptionRate: number };
+  }>({
     stats: { totalOrders: 0, totalRevenue: 0, activePartners: 0, avgDeliveryTime: '0 mins' },
     ordersTrend: [],
     revenueByDay: [],

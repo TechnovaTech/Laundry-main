@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Customer ID required' }, { status: 400 })
     }
 
-    const customer = await Customer.findById(customerId).lean()
+    const customer: any = await Customer.findById(customerId).lean()
     if (!customer) {
       return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })
     }
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       console.log('Created new customer:', savedCustomer)
       return NextResponse.json({ success: true, data: { customerId: savedCustomer._id, ...savedCustomer.toObject() } })
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Profile creation error:', error)
     return NextResponse.json({ success: false, error: 'Failed to create profile: ' + error.message }, { status: 500 })
   }
@@ -118,7 +118,7 @@ export async function PUT(request: NextRequest) {
     console.log('Updated customer:', customer)
 
     return NextResponse.json({ success: true, data: customer })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Profile update error:', error)
     return NextResponse.json({ success: false, error: 'Failed to update profile: ' + error.message }, { status: 500 })
   }

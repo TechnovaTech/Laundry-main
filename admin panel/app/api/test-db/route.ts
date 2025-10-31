@@ -25,7 +25,7 @@ export async function GET() {
       message: 'Database connected and test data inserted',
       areas: areas
     })
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ 
       success: false, 
       error: error.message 

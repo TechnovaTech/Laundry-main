@@ -6,8 +6,8 @@ import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function OrdersPage() {
   const router = useRouter()
-  const [orders, setOrders] = useState([])
-  const [filteredOrders, setFilteredOrders] = useState([])
+  const [orders, setOrders] = useState<any[]>([])
+  const [filteredOrders, setFilteredOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('')
@@ -95,7 +95,7 @@ export default function OrdersPage() {
 
     // Date filter
     if (dateFilter) {
-      filtered = filtered.filter(order => {
+      filtered = filtered.filter((order: any) => {
         const orderDate = new Date(order.createdAt).toISOString().split('T')[0]
         return orderDate === dateFilter
       })
@@ -103,7 +103,7 @@ export default function OrdersPage() {
 
     // Partner filter
     if (partnerFilter !== 'all') {
-      filtered = filtered.filter(order => order.partnerId?._id === partnerFilter)
+      filtered = filtered.filter((order: any) => order.partnerId?._id === partnerFilter)
     }
 
     setFilteredOrders(filtered)

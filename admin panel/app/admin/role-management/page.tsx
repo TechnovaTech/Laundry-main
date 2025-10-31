@@ -122,7 +122,7 @@ export default function RoleManagement() {
         
         // Update localStorage if editing current user
         const currentUser = localStorage.getItem('adminUser')
-        if (currentUser) {
+        if (currentUser && editingUser) {
           const user = JSON.parse(currentUser)
           if (user.email === editingUser.email) {
             localStorage.setItem('adminUser', JSON.stringify({
