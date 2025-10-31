@@ -5,6 +5,7 @@ import Partner from '@/models/Partner'
 import Customer from '@/models/Customer'
 import WalletSettings from '@/models/WalletSettings'
 import OrderCharges from '@/models/OrderCharges'
+import WalletTransaction from '@/models/WalletTransaction'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -114,12 +115,26 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           console.log('Customer wallet balance:', customer.walletBalance)
           console.log('Customer due amount before:', customer.dueAmount)
           
+          const previousBalance = customer.walletBalance
+          
           if (customer.walletBalance >= cancellationFee) {
             // Deduct from wallet
             console.log('Deducting', cancellationFee, 'from wallet')
             customer.walletBalance -= cancellationFee
             await customer.save()
             console.log('New wallet balance:', customer.walletBalance)
+            
+            // Create wallet transaction history
+            await WalletTransaction.create({
+              customerId: customer._id,
+              type: 'balance',
+              action: 'decrease',
+              amount: cancellationFee,
+              reason: `Cancellation fee for Order #${currentOrder.orderId}`,
+              previousValue: previousBalance,
+              newValue: customer.walletBalance,
+              adjustedBy: 'System'
+            })
           } else {
             // Create due amount
             const remainingDue = cancellationFee - customer.walletBalance
@@ -135,6 +150,20 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             customer.dueAmount = newDueAmount
             await customer.save()
             console.log('Saved customer with wallet: 0, due:', newDueAmount)
+            
+            // Create wallet transaction history for partial deduction
+            if (deductedFromWallet > 0) {
+              await WalletTransaction.create({
+                customerId: customer._id,
+                type: 'balance',
+                action: 'decrease',
+                amount: deductedFromWallet,
+                reason: `Cancellation fee (partial) for Order #${currentOrder.orderId} - Remaining ₹${remainingDue} added to due`,
+                previousValue: previousBalance,
+                newValue: 0,
+                adjustedBy: 'System'
+              })
+            }
           }
         }
       }
@@ -163,22 +192,24 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         console.log('Customer wallet balance:', customer.walletBalance)
         console.log('Customer due amount before:', customer.dueAmount)
         
+        const previousBalance = customer.walletBalance
+        
         if (customer.walletBalance >= deliveryFee) {
           // Deduct from wallet
           customer.walletBalance -= deliveryFee
           await customer.save()
           console.log('Deducted', deliveryFee, 'from wallet')
           
-          // Create wallet transaction
-          await fetch(`http://localhost:3000/api/customers/${customer._id}/adjust`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'balance',
-              action: 'decrease',
-              amount: deliveryFee,
-              reason: `Delivery failure fee for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason}`
-            })
+          // Create wallet transaction history
+          await WalletTransaction.create({
+            customerId: customer._id,
+            type: 'balance',
+            action: 'decrease',
+            amount: deliveryFee,
+            reason: `Delivery failure fee for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason}`,
+            previousValue: previousBalance,
+            newValue: customer.walletBalance,
+            adjustedBy: 'System'
           })
         } else {
           // Create due amount
@@ -194,17 +225,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           console.log('Added', remainingDue, 'to due amount')
           console.log('New due amount:', newDueAmount)
           
-          // Create wallet transaction for deducted amount
+          // Create wallet transaction history for partial deduction
           if (deductedFromWallet > 0) {
-            await fetch(`http://localhost:3000/api/customers/${customer._id}/adjust`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                type: 'balance',
-                action: 'decrease',
-                amount: deductedFromWallet,
-                reason: `Delivery failure fee (partial) for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason}`
-              })
+            await WalletTransaction.create({
+              customerId: customer._id,
+              type: 'balance',
+              action: 'decrease',
+              amount: deductedFromWallet,
+              reason: `Delivery failure fee (partial) for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - Remaining ₹${remainingDue} added to due`,
+              previousValue: previousBalance,
+              newValue: 0,
+              adjustedBy: 'System'
             })
           }
         }
