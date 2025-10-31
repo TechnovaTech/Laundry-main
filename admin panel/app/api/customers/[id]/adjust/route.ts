@@ -13,9 +13,10 @@ export async function OPTIONS() {
   })
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
+    const { id } = await params
     const { type, action, amount, reason } = await request.json()
 
     if (!['balance', 'points'].includes(type)) {
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     })
     }
 
-    const customer = await Customer.findById(params.id)
+    const customer = await Customer.findById(id)
     if (!customer) {
       return NextResponse.json({ success: false, error: 'Customer not found' }, { 
       status: 404,
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     await customer.save()
 
     await WalletTransaction.create({
-      customerId: params.id,
+      customerId: id,
       type,
       action,
       amount,

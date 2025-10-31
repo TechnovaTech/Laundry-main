@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Customer from '@/models/Customer'
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect()
-    const customer = await Customer.findById(params.id)
+    const { id } = await params
+    const customer = await Customer.findById(id)
     
     if (!customer) {
       return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })
@@ -17,13 +18,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect()
+    const { id } = await params
     const updateData = await request.json()
     
     const customer = await Customer.findByIdAndUpdate(
-      params.id,
+      id,
       { $set: updateData },
       { new: true }
     )
@@ -38,11 +40,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect()
+    const { id } = await params
     
-    const customer = await Customer.findByIdAndDelete(params.id)
+    const customer = await Customer.findByIdAndDelete(id)
     
     if (!customer) {
       return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })
