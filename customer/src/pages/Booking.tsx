@@ -142,11 +142,11 @@ const Booking = () => {
         </defs>
       </svg>
       <header className="bg-white px-4 sm:px-6 py-4 flex items-center justify-between shadow-sm">
-        <button onClick={() => navigate(-1)} className="flex-shrink-0">
+        <button onClick={() => navigate(-1)} className="flex-shrink-0" aria-label="Go back">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
         </button>
         <h1 className="text-lg sm:text-xl font-bold text-black flex-1 text-center mx-4 truncate">Book Your Order</h1>
-        <button className="flex-shrink-0">
+        <button className="flex-shrink-0" aria-label="Information">
           <Info className="w-5 h-5 sm:w-6 sm:h-6" style={{ stroke: 'url(#gradient)' }} />
         </button>
       </header>
@@ -172,6 +172,7 @@ const Booking = () => {
                     onClick={() => updateQuantity(item._id, false)}
                     className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-white flex items-center justify-center font-bold touch-manipulation shadow-md"
                     style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                    aria-label="Decrease quantity"
                   >
                     <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
@@ -182,6 +183,7 @@ const Booking = () => {
                     onClick={() => updateQuantity(item._id, true)}
                     className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-white flex items-center justify-center font-bold touch-manipulation shadow-md"
                     style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                    aria-label="Increase quantity"
                   >
                     <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
@@ -381,21 +383,21 @@ const Booking = () => {
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl">
-        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Home">
           <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Prices">
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Shopping cart">
           <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
         </button>
-        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Booking history">
           <RotateCcw className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Profile">
           <User className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
       </nav>

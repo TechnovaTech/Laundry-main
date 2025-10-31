@@ -243,16 +243,32 @@ export default function DeliveryDetails() {
               <button
                 onClick={async () => {
                   const selectedReasons = [];
-                  if (failureReasons.customerUnavailable) selectedReasons.push('Customer Unavailable');
-                  if (failureReasons.incorrectAddress) selectedReasons.push('Incorrect Address');
-                  if (failureReasons.refusalToAccept) selectedReasons.push('Refusal to Accept');
+                  const fees = [];
+                  
+                  // Fetch charge settings
+                  const chargesRes = await fetch('http://localhost:3000/api/order-charges');
+                  const chargesData = await chargesRes.json();
+                  const charges = chargesData.data;
+                  
+                  if (failureReasons.customerUnavailable) {
+                    selectedReasons.push('Customer Unavailable');
+                    fees.push(charges.customerUnavailable);
+                  }
+                  if (failureReasons.incorrectAddress) {
+                    selectedReasons.push('Incorrect Address');
+                    fees.push(charges.incorrectAddress);
+                  }
+                  if (failureReasons.refusalToAccept) {
+                    selectedReasons.push('Refusal to Accept');
+                    fees.push(charges.refusalToAccept);
+                  }
 
                   if (selectedReasons.length === 0) {
                     setToast({ message: 'Please select at least one reason', type: 'warning' });
                     return;
                   }
 
-                  const deliveryFee = 150; // Default ₹150 (between ₹100-₹250)
+                  const deliveryFee = Math.max(...fees); // Highest charge
                   const failureReason = selectedReasons.join(', ');
 
                   const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {

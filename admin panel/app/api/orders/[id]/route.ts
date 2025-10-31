@@ -4,6 +4,7 @@ import Order from '@/models/Order'
 import Partner from '@/models/Partner'
 import Customer from '@/models/Customer'
 import WalletSettings from '@/models/WalletSettings'
+import OrderCharges from '@/models/OrderCharges'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -86,9 +87,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       
       // Check if partner is assigned
       if (currentOrder.partnerId) {
-        // 20% cancellation fee after pickup assignment
-        cancellationFee = Math.round(currentOrder.totalAmount * 0.20)
-        console.log('Partner assigned - 20% cancellation fee:', cancellationFee)
+        // Fetch cancellation percentage from OrderCharges
+        const orderCharges = await OrderCharges.findOne()
+        const cancellationPercentage = orderCharges?.cancellationPercentage || 20
+        console.log('Cancellation percentage from DB:', cancellationPercentage)
+        
+        cancellationFee = Math.round(currentOrder.totalAmount * (cancellationPercentage / 100))
+        console.log(`Partner assigned - ${cancellationPercentage}% cancellation fee:`, cancellationFee)
       } else {
         console.log('No partner assigned - No cancellation fee')
       }
@@ -115,18 +120,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             customer.walletBalance -= cancellationFee
             await customer.save()
             console.log('New wallet balance:', customer.walletBalance)
-            
-            // Create wallet transaction
-            await fetch(`http://localhost:3000/api/customers/${customer._id}/adjust`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                type: 'balance',
-                action: 'decrease',
-                amount: cancellationFee,
-                reason: `Cancellation fee for Order #${currentOrder.orderId}`
-              })
-            })
           } else {
             // Create due amount
             const remainingDue = cancellationFee - customer.walletBalance
@@ -140,30 +133,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             
             customer.walletBalance = 0
             customer.dueAmount = newDueAmount
-            const savedCustomer = await customer.save()
+            await customer.save()
             console.log('Saved customer with wallet: 0, due:', newDueAmount)
-            console.log('Customer dueAmount after save:', savedCustomer.dueAmount)
-            console.log('Customer walletBalance after save:', savedCustomer.walletBalance)
-            
-            // Verify by re-fetching from database
-            const verifyCustomer = await Customer.findById(customer._id)
-            console.log('VERIFICATION - Re-fetched from DB:')
-            console.log('  walletBalance:', verifyCustomer?.walletBalance)
-            console.log('  dueAmount:', verifyCustomer?.dueAmount)
-            
-            // Create wallet transaction for deducted amount
-            if (deductedFromWallet > 0) {
-              await fetch(`http://localhost:3000/api/customers/${customer._id}/adjust`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  type: 'balance',
-                  action: 'decrease',
-                  amount: deductedFromWallet,
-                  reason: `Cancellation fee (partial) for Order #${currentOrder.orderId}`
-                })
-              })
-            }
           }
         }
       }

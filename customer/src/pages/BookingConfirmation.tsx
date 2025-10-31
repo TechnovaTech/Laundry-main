@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, MapPin, Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,29 @@ const BookingConfirmation = () => {
   const [showCancellationModal, setShowCancellationModal] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'warning' }>({ show: false, message: '', type: 'success' });
+  const [cancellationPercentage, setCancellationPercentage] = useState(20);
   
   const orderId = orderData.orderId || 12345;
   const items = orderData.items || '3 Shirts, 1 Bedsheet';
   const service = orderData.service || 'Steam Iron';
   const total = orderData.total || 150;
   const status = orderData.status || 'Scheduled';
+
+  useEffect(() => {
+    fetchCancellationCharges();
+  }, []);
+
+  const fetchCancellationCharges = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/order-charges');
+      const data = await response.json();
+      if (data.success) {
+        setCancellationPercentage(data.data.cancellationPercentage);
+      }
+    } catch (error) {
+      console.error('Error fetching cancellation charges:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -138,7 +155,8 @@ const BookingConfirmation = () => {
 
               <section>
                 <h3 className="font-bold mb-2">2. Order Cancellation After Pickup Assignment</h3>
-                <p>Once a pickup executive has been assigned, and the customer cancels the order thereafter, a <strong>20% cancellation fee</strong> of the total invoice amount will be charged.</p>
+                <p>Once a pickup executive has been assigned, and the customer cancels the order thereafter, a <strong>{cancellationPercentage}% cancellation fee</strong> of the total invoice amount will be charged.</p>
+                <p className="mt-2 text-blue-600 font-semibold">Example: For an order of ₹{total}, the cancellation charge would be ₹{Math.round((total * cancellationPercentage) / 100)}</p>
               </section>
 
               <section>
@@ -175,20 +193,52 @@ const BookingConfirmation = () => {
           onConfirm={async () => {
             setShowConfirmDialog(false);
             try {
-              console.log('Cancelling order:', orderId);
-              const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+              const orderRes = await fetch(`http://localhost:3000/api/orders`);
+              const ordersData = await orderRes.json();
+              const order = ordersData.data.find((o: any) => 
+                o.orderId === `#${orderId}` || 
+                o.orderId === orderId || 
+                o._id === orderId ||
+                o._id === orderData._id
+              );
+              
+              if (!order) {
+                setToast({ show: true, message: 'Order not found', type: 'error' });
+                return;
+              }
+              
+              console.log('Order found:', order._id);
+              console.log('Order status:', order.status);
+              console.log('Order total:', order.totalAmount);
+              console.log('Partner assigned:', order.partnerId);
+              console.log('Cancellation percentage:', cancellationPercentage);
+              
+              let cancellationFee = 0;
+              if (order.partnerId) {
+                cancellationFee = Math.round((order.totalAmount * cancellationPercentage) / 100);
+                console.log('Partner assigned - Calculated fee:', cancellationFee);
+              } else {
+                console.log('No partner assigned - No cancellation fee');
+              }
+              
+              const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'cancelled' })
+                body: JSON.stringify({ 
+                  status: 'cancelled',
+                  cancelledAt: new Date().toISOString(),
+                  cancellationReason: 'Cancelled by customer'
+                })
               });
               
-              const result = await response.json();
-              console.log('Cancellation response:', result);
-              
               if (response.ok) {
-                const message = result.message || 'Order cancelled successfully';
-                setToast({ show: true, message, type: 'success' });
-                setTimeout(() => navigate('/home'), 3000);
+                const result = await response.json();
+                const actualFee = result.cancellationFee || 0;
+                const message = actualFee > 0 
+                  ? `Order cancelled. Cancellation charge of ₹${actualFee} (${cancellationPercentage}% of ₹${order.totalAmount}) has been deducted from your wallet.` 
+                  : 'Order cancelled successfully. No cancellation charge applied.';
+                setToast({ show: true, message, type: actualFee > 0 ? 'warning' : 'success' });
+                setTimeout(() => navigate('/home'), 4000);
               } else {
                 setToast({ show: true, message: 'Failed to cancel order. Please try again.', type: 'error' });
               }
@@ -206,6 +256,7 @@ const BookingConfirmation = () => {
         <Toast
           message={toast.message}
           type={toast.type}
+          duration={5000}
           onClose={() => setToast({ show: false, message: '', type: 'success' })}
         />
       )}

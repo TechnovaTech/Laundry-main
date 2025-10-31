@@ -55,6 +55,12 @@ export default function AddOnPage() {
   const [heroType, setHeroType] = useState('image')
   const [heroFile, setHeroFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [charges, setCharges] = useState({
+    cancellationPercentage: 20,
+    customerUnavailable: 150,
+    incorrectAddress: 150,
+    refusalToAccept: 150
+  })
 
   useEffect(() => {
     fetchStates()
@@ -64,7 +70,14 @@ export default function AddOnPage() {
     fetchWalletSettings()
     fetchHubs()
     fetchHeroItems()
+    fetchCharges()
   }, [])
+
+  const fetchCharges = async () => {
+    const response = await fetch('/api/order-charges')
+    const data = await response.json()
+    if (data.success) setCharges(data.data)
+  }
 
   const fetchHubs = async () => {
     const response = await fetch('/api/hubs')
@@ -635,6 +648,24 @@ export default function AddOnPage() {
             }}
           >
             Hero Section
+          </button>
+          <button 
+            onClick={() => {
+              setActiveSection('Charges')
+              window.location.hash = 'Charges'
+            }}
+            style={{ 
+              padding: '0.75rem 1.5rem', 
+              backgroundColor: activeSection === 'Charges' ? '#2563eb' : 'white', 
+              color: activeSection === 'Charges' ? 'white' : '#2563eb', 
+              border: activeSection === 'Charges' ? 'none' : '1px solid #2563eb', 
+              borderRadius: '8px', 
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
+          >
+            Order Charges
           </button>
         </div>
 
@@ -1288,6 +1319,113 @@ export default function AddOnPage() {
               ))
             )}
           </div>
+        </div>
+        )}
+
+        {/* Order Charges Management Section */}
+        {activeSection === 'Charges' && (
+        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', margin: '0 0 1rem 0' }}>Order Charges Configuration</h3>
+          
+          {/* Cancellation Charge */}
+          <div style={{ backgroundColor: '#fef3c7', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem', border: '2px solid #f59e0b' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#92400e', marginBottom: '1rem', margin: '0 0 1rem 0' }}>📋 Cancellation Charge (After Pickup Started)</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem', alignItems: 'center' }}>
+              <label style={{ fontWeight: '500', color: '#78350f' }}>Charge Percentage:</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <input 
+                  type="number" 
+                  value={charges.cancellationPercentage}
+                  onChange={(e) => setCharges({...charges, cancellationPercentage: Number(e.target.value)})}
+                  min="0"
+                  max="100"
+                  style={{ padding: '0.75rem', border: '2px solid #f59e0b', borderRadius: '8px', fontSize: '0.9rem', width: '120px' }}
+                />
+                <span style={{ fontWeight: '600', color: '#92400e' }}>% of order amount</span>
+              </div>
+            </div>
+            <p style={{ fontSize: '0.85rem', color: '#78350f', marginTop: '0.75rem', backgroundColor: '#fef9c3', padding: '0.5rem', borderRadius: '6px' }}>
+              💡 Example: If order amount is ₹500 and percentage is 20%, customer will be charged ₹100
+            </p>
+          </div>
+
+          {/* Delivery Failure Charges */}
+          <div style={{ backgroundColor: '#fee2e2', padding: '1.5rem', borderRadius: '12px', border: '2px solid #ef4444' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#991b1b', marginBottom: '1rem', margin: '0 0 1rem 0' }}>🚫 Delivery Failure Charges</h4>
+            
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center', backgroundColor: '#fef2f2', padding: '1rem', borderRadius: '8px' }}>
+                <label style={{ fontWeight: '500', color: '#7f1d1d' }}>Customer Unavailable:</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontWeight: '600', color: '#991b1b' }}>₹</span>
+                  <input 
+                    type="number" 
+                    value={charges.customerUnavailable}
+                    onChange={(e) => setCharges({...charges, customerUnavailable: Number(e.target.value)})}
+                    min="0"
+                    style={{ padding: '0.75rem', border: '2px solid #ef4444', borderRadius: '8px', fontSize: '0.9rem', width: '120px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center', backgroundColor: '#fef2f2', padding: '1rem', borderRadius: '8px' }}>
+                <label style={{ fontWeight: '500', color: '#7f1d1d' }}>Incorrect Address:</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontWeight: '600', color: '#991b1b' }}>₹</span>
+                  <input 
+                    type="number" 
+                    value={charges.incorrectAddress}
+                    onChange={(e) => setCharges({...charges, incorrectAddress: Number(e.target.value)})}
+                    min="0"
+                    style={{ padding: '0.75rem', border: '2px solid #ef4444', borderRadius: '8px', fontSize: '0.9rem', width: '120px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center', backgroundColor: '#fef2f2', padding: '1rem', borderRadius: '8px' }}>
+                <label style={{ fontWeight: '500', color: '#7f1d1d' }}>Refusal to Accept:</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontWeight: '600', color: '#991b1b' }}>₹</span>
+                  <input 
+                    type="number" 
+                    value={charges.refusalToAccept}
+                    onChange={(e) => setCharges({...charges, refusalToAccept: Number(e.target.value)})}
+                    min="0"
+                    style={{ padding: '0.75rem', border: '2px solid #ef4444', borderRadius: '8px', fontSize: '0.9rem', width: '120px' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={async () => {
+              const response = await fetch('/api/order-charges', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(charges)
+              });
+              if (response.ok) {
+                await fetchCharges();
+                setToast({ show: true, message: 'Charges saved successfully!', type: 'success' });
+                setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+              }
+            }}
+            style={{ 
+              marginTop: '1.5rem', 
+              padding: '0.75rem 2rem', 
+              backgroundColor: '#2563eb', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '8px', 
+              fontSize: '1rem', 
+              fontWeight: '600', 
+              cursor: 'pointer',
+              width: '100%'
+            }}
+          >
+            Save Charge Settings
+          </button>
         </div>
         )}
 
