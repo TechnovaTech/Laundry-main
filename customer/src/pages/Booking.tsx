@@ -10,16 +10,30 @@ interface PricingItem {
   category: string;
 }
 
+interface TimeSlot {
+  _id: string;
+  time: string;
+  type: string;
+}
+
+interface Address {
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  isDefault?: boolean;
+}
+
 const Booking = () => {
   const navigate = useNavigate();
   const [pickupType, setPickupType] = useState<"now" | "later">("now");
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
   const [quantities, setQuantities] = useState<{[key: string]: number}>({});
-  const [timeSlots, setTimeSlots] = useState<any[]>([]);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [showSlotError, setShowSlotError] = useState(false);
-  const [customerAddress, setCustomerAddress] = useState<any>(null);
-  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [customerAddress, setCustomerAddress] = useState<Address | null>(null);
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   
@@ -87,7 +101,7 @@ const Booking = () => {
     return currentHour >= slotEndHour;
   };
   
-  const getAvailableSlots = (slots: any[]) => {
+  const getAvailableSlots = (slots: TimeSlot[]) => {
     return slots.filter(slot => !isSlotPassed(slot.time));
   };
   
@@ -123,7 +137,7 @@ const Booking = () => {
       
       if (data.success && data.data?.address) {
         setSavedAddresses(data.data.address);
-        const primaryAddress = data.data.address.find((addr: any) => addr.isDefault) || data.data.address[0];
+        const primaryAddress = data.data.address.find((addr: Address) => addr.isDefault) || data.data.address[0];
         setCustomerAddress(primaryAddress);
       }
     } catch (error) {
@@ -389,7 +403,7 @@ const Booking = () => {
         <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Prices">
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Shopping cart">
+        <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Shopping cart">
           <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
@@ -407,7 +421,7 @@ const Booking = () => {
           <div className={`${toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px]`}>
             <AlertCircle className="w-6 h-6 flex-shrink-0" />
             <span className="font-semibold flex-1">{toast.message}</span>
-            <button onClick={() => setToast({ show: false, message: '', type: '' })} className="flex-shrink-0 hover:bg-white/20 rounded-full p-1 transition-colors">
+            <button onClick={() => setToast({ show: false, message: '', type: '' })} className="flex-shrink-0 hover:bg-white/20 rounded-full p-1 transition-colors" aria-label="Close notification">
               <X className="w-5 h-5" />
             </button>
           </div>

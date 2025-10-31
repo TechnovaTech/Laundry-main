@@ -28,9 +28,9 @@ const BookingHistory = () => {
       const data = await response.json();
       
       if (data.success) {
-        const formattedOrders = data.data.map((order: any) => ({
+        const formattedOrders = data.data.map((order: { orderId: string; items?: { quantity: number; name: string }[]; createdAt: string; totalAmount: number; status: string }) => ({
           id: order.orderId,
-          items: order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
+          items: order.items?.map((item: { quantity: number; name: string }) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
           date: new Date(order.createdAt).toLocaleDateString('en-GB', {
             day: '2-digit',
             month: 'short',
@@ -62,7 +62,7 @@ const BookingHistory = () => {
   return (
     <div className="min-h-screen bg-background pb-20 sm:pb-24">
       <header className="sticky top-0 px-4 sm:px-6 py-4 flex items-center z-10 shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-        <button onClick={() => navigate(-1)} className="flex-shrink-0">
+        <button onClick={() => navigate(-1)} className="flex-shrink-0" aria-label="Go back">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>
         <h1 className="text-lg sm:text-xl font-bold ml-3 sm:ml-4 text-white">Booking History</h1>
@@ -180,21 +180,21 @@ const BookingHistory = () => {
         </defs>
       </svg>
       <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl border-t">
-        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
+        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors" aria-label="Home">
           <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
+        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors" aria-label="Prices">
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Book order">
           <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
         </button>
-        <button className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
+        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 p-1" aria-label="Booking history">
           <RotateCcw className="w-5 h-5 sm:w-7 sm:h-7" style={{ stroke: 'url(#gradient)' }} />
         </button>
-        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
+        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors" aria-label="Profile">
           <User className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
       </nav>

@@ -39,7 +39,7 @@ const BookingConfirmation = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 bg-background border-b border-border px-4 sm:px-6 py-4 flex items-center">
-        <button onClick={() => navigate(-1)} className="flex-shrink-0">
+        <button onClick={() => navigate(-1)} className="flex-shrink-0" aria-label="Go back">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
         <h1 className="text-lg sm:text-xl font-bold ml-3 sm:ml-4">Order Confirmed</h1>
@@ -87,7 +87,7 @@ const BookingConfirmation = () => {
             )}
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Payment Method:</span>
-              <span className="font-semibold text-sm sm:text-base">{orderData.customerInfo?.paymentMethods?.find((pm: any) => pm.isPrimary)?.type || 'Cash on Delivery'}</span>
+              <span className="font-semibold text-sm sm:text-base">{orderData.customerInfo?.paymentMethods?.find((pm: { isPrimary?: boolean; type?: string }) => pm.isPrimary)?.type || 'Cash on Delivery'}</span>
             </div>
             <div className="flex justify-between items-start gap-3">
               <span className="text-muted-foreground text-sm sm:text-base">Payment Status:</span>
@@ -143,7 +143,7 @@ const BookingConfirmation = () => {
           <div className="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg sm:text-xl font-bold">Cancellation Fees Terms</h2>
-              <button onClick={() => setShowCancellationModal(false)} className="p-1">
+              <button onClick={() => setShowCancellationModal(false)} className="p-1" aria-label="Close modal">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -195,7 +195,7 @@ const BookingConfirmation = () => {
             try {
               const orderRes = await fetch(`http://localhost:3000/api/orders`);
               const ordersData = await orderRes.json();
-              const order = ordersData.data.find((o: any) => 
+              const order = ordersData.data.find((o: { orderId: string | number; _id: string | number; partnerId?: string; totalAmount: number }) => 
                 o.orderId === `#${orderId}` || 
                 o.orderId === orderId || 
                 o._id === orderId ||
