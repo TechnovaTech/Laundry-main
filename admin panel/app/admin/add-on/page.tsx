@@ -11,24 +11,24 @@ export default function AddOnPage() {
     }
     return 'Pincode'
   })
-  const [states, setStates] = useState([])
-  const [cities, setCities] = useState([])
-  const [pincodes, setPincodes] = useState([])
-  const [serviceableAreas, setServiceableAreas] = useState([])
+  const [states, setStates] = useState<any[]>([])
+  const [cities, setCities] = useState<any[]>([])
+  const [pincodes, setPincodes] = useState<any[]>([])
+  const [serviceableAreas, setServiceableAreas] = useState<any[]>([])
   const [selectedState, setSelectedState] = useState('')
   const [selectedCity, setSelectedCity] = useState('')
   const [selectedPincode, setSelectedPincode] = useState('')
   const [selectedArea, setSelectedArea] = useState('')
-  const [vouchers, setVouchers] = useState([])
+  const [vouchers, setVouchers] = useState<any[]>([])
   const [voucherCode, setVoucherCode] = useState('')
   const [discount, setDiscount] = useState('')
   const [slogan, setSlogan] = useState('')
-  const [timeSlots, setTimeSlots] = useState([])
+  const [timeSlots, setTimeSlots] = useState<any[]>([])
   const [slotTime, setSlotTime] = useState('')
   const [slotType, setSlotType] = useState('pickup')
-  const [editingSlot, setEditingSlot] = useState(null)
-  const [draggedItem, setDraggedItem] = useState(null)
-  const [editingVoucher, setEditingVoucher] = useState(null)
+  const [editingSlot, setEditingSlot] = useState<string | null>(null)
+  const [draggedItem, setDraggedItem] = useState<any>(null)
+  const [editingVoucher, setEditingVoucher] = useState<string | null>(null)
   const [walletSettings, setWalletSettings] = useState({
     pointsPerRupee: 2,
     minRedeemPoints: 100,
@@ -679,6 +679,7 @@ export default function AddOnPage() {
             <h4 style={{ fontSize: '0.95rem', fontWeight: '600', color: '#0369a1', marginBottom: '0.75rem', margin: '0 0 0.75rem 0' }}>🔄 Auto-Fetch from API</h4>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
               <select 
+                aria-label="Select State"
                 value={selectedState} 
                 onChange={handleStateChange}
                 style={{ padding: '0.75rem', border: '1px solid #0ea5e9', borderRadius: '8px', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
@@ -690,6 +691,7 @@ export default function AddOnPage() {
               </select>
               
               <select 
+                aria-label="Select City"
                 value={selectedCity} 
                 onChange={handleCityChange}
                 disabled={!selectedState}
@@ -702,6 +704,7 @@ export default function AddOnPage() {
               </select>
               
               <select 
+                aria-label="Select Pincode"
                 value={selectedPincode ? JSON.stringify({pincode: selectedPincode, area: selectedArea}) : ''} 
                 onChange={handlePincodeChange}
                 disabled={!selectedCity}
@@ -983,6 +986,7 @@ export default function AddOnPage() {
               style={{ padding: '0.75rem', backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
             />
             <select 
+              aria-label="Select Slot Type"
               value={slotType}
               onChange={(e) => setSlotType(e.target.value)}
               style={{ padding: '0.75rem', backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9', borderRadius: '12px', outline: 'none', fontSize: '0.9rem' }}
@@ -1121,6 +1125,7 @@ export default function AddOnPage() {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Points Per Rupee</label>
               <input
                 type="number"
+                aria-label="Points Per Rupee"
                 value={walletSettings.pointsPerRupee}
                 onChange={(e) => setWalletSettings({...walletSettings, pointsPerRupee: Number(e.target.value)})}
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
@@ -1131,6 +1136,7 @@ export default function AddOnPage() {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Minimum Redeem Points</label>
               <input
                 type="number"
+                aria-label="Minimum Redeem Points"
                 value={walletSettings.minRedeemPoints}
                 onChange={(e) => setWalletSettings({...walletSettings, minRedeemPoints: Number(e.target.value)})}
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
@@ -1140,6 +1146,7 @@ export default function AddOnPage() {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Referral Bonus Points</label>
               <input
                 type="number"
+                aria-label="Referral Bonus Points"
                 value={walletSettings.referralPoints}
                 onChange={(e) => setWalletSettings({...walletSettings, referralPoints: Number(e.target.value)})}
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
@@ -1149,6 +1156,7 @@ export default function AddOnPage() {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Order Completion Points</label>
               <input
                 type="number"
+                aria-label="Order Completion Points"
                 value={walletSettings.orderCompletionPoints}
                 onChange={(e) => setWalletSettings({...walletSettings, orderCompletionPoints: Number(e.target.value)})}
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
@@ -1158,6 +1166,7 @@ export default function AddOnPage() {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Signup Bonus Points (Referred User)</label>
               <input
                 type="number"
+                aria-label="Signup Bonus Points"
                 value={walletSettings.signupBonusPoints}
                 onChange={(e) => setWalletSettings({...walletSettings, signupBonusPoints: Number(e.target.value)})}
                 style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
@@ -1183,21 +1192,21 @@ export default function AddOnPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
               <input placeholder="Hub Name" value={hubForm.name} onChange={(e) => setHubForm({...hubForm, name: e.target.value})} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }} />
               <input placeholder="Street" value={hubForm.address.street} onChange={(e) => setHubForm({...hubForm, address: {...hubForm.address, street: e.target.value}})} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }} />
-              <select value={hubState} onChange={(e) => { handleHubStateChange(e.target.value); setHubForm({...hubForm, address: {...hubForm.address, state: e.target.value}}); }} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
+              <select aria-label="Select Hub State" value={hubState} onChange={(e) => { handleHubStateChange(e.target.value); setHubForm({...hubForm, address: {...hubForm.address, state: e.target.value}}); }} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
                 <option value="">Select State</option>
                 {[...new Set(serviceableAreas.map((a: any) => a.state))].map((state: string) => <option key={state} value={state}>{state}</option>)}
               </select>
-              <select value={hubCity} onChange={(e) => { handleHubCityChange(e.target.value); setHubForm({...hubForm, address: {...hubForm.address, city: e.target.value}}); }} disabled={!hubState} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
+              <select aria-label="Select Hub City" value={hubCity} onChange={(e) => { handleHubCityChange(e.target.value); setHubForm({...hubForm, address: {...hubForm.address, city: e.target.value}}); }} disabled={!hubState} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
                 <option value="">Select City</option>
                 {hubCities.map((city: string) => <option key={city} value={city}>{city}</option>)}
               </select>
-              <select value={hubForm.address.pincode} onChange={(e) => setHubForm({...hubForm, address: {...hubForm.address, pincode: e.target.value}})} disabled={!hubCity} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
+              <select aria-label="Select Hub Pincode" value={hubForm.address.pincode} onChange={(e) => setHubForm({...hubForm, address: {...hubForm.address, pincode: e.target.value}})} disabled={!hubCity} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
                 <option value="">Select Hub Pincode</option>
                 {hubPincodes.map((p: any) => <option key={p.pincode} value={p.pincode}>{p.pincode} - {p.area}</option>)}
               </select>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Service Pincodes (select multiple)</label>
-                <select multiple value={selectedServicePincodes} onChange={(e) => setSelectedServicePincodes(Array.from(e.target.selectedOptions, option => option.value))} disabled={!hubCity} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', width: '100%', minHeight: '100px' }}>
+                <select aria-label="Select Service Pincodes" multiple value={selectedServicePincodes} onChange={(e) => setSelectedServicePincodes(Array.from(e.target.selectedOptions, option => option.value))} disabled={!hubCity} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', width: '100%', minHeight: '100px' }}>
                   {hubPincodes.map((p: any) => <option key={p.pincode} value={p.pincode}>{p.pincode} - {p.area}</option>)}
                 </select>
                 <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>Hold Ctrl/Cmd to select multiple pincodes</p>
@@ -1231,6 +1240,7 @@ export default function AddOnPage() {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: '500' }}>Upload File</label>
               <input 
                 type="file" 
+                aria-label="Upload Hero Image or Video"
                 accept="image/*,video/*"
                 onChange={(e) => setHeroFile(e.target.files?.[0] || null)}
                 style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.9rem', width: '100%' }}
@@ -1249,6 +1259,7 @@ export default function AddOnPage() {
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: '500' }}>Type</label>
               <select 
+                aria-label="Select Hero Type"
                 value={heroType}
                 onChange={(e) => setHeroType(e.target.value)}
                 style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '0.9rem', width: '100%' }}
@@ -1335,6 +1346,7 @@ export default function AddOnPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <input 
                   type="number" 
+                  aria-label="Cancellation Charge Percentage"
                   value={charges.cancellationPercentage}
                   onChange={(e) => setCharges({...charges, cancellationPercentage: Number(e.target.value)})}
                   min="0"
@@ -1360,6 +1372,7 @@ export default function AddOnPage() {
                   <span style={{ fontWeight: '600', color: '#991b1b' }}>₹</span>
                   <input 
                     type="number" 
+                    aria-label="Customer Unavailable Charge"
                     value={charges.customerUnavailable}
                     onChange={(e) => setCharges({...charges, customerUnavailable: Number(e.target.value)})}
                     min="0"
@@ -1374,6 +1387,7 @@ export default function AddOnPage() {
                   <span style={{ fontWeight: '600', color: '#991b1b' }}>₹</span>
                   <input 
                     type="number" 
+                    aria-label="Incorrect Address Charge"
                     value={charges.incorrectAddress}
                     onChange={(e) => setCharges({...charges, incorrectAddress: Number(e.target.value)})}
                     min="0"
@@ -1388,6 +1402,7 @@ export default function AddOnPage() {
                   <span style={{ fontWeight: '600', color: '#991b1b' }}>₹</span>
                   <input 
                     type="number" 
+                    aria-label="Refusal to Accept Charge"
                     value={charges.refusalToAccept}
                     onChange={(e) => setCharges({...charges, refusalToAccept: Number(e.target.value)})}
                     min="0"
