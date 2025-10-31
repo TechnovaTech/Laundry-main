@@ -78,7 +78,10 @@ export default function PickForDelivery() {
               <div key={order._id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
+                      {order.redeliveryScheduled && <span style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem', borderRadius: '4px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: '600' }}>REDELIVERY</span>}
+                    </div>
                     <p className="text-xs text-gray-600 mt-2">Customer: <span className="text-black">{order.customerId?.name || 'N/A'}</span></p>
                     <p className="text-xs text-gray-600 mt-1">Items: <span className="text-black">{order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ')}</span></p>
                     <p className="text-xs text-gray-600 mt-1">Address: <span className="text-black">{order.pickupAddress?.street}, {order.pickupAddress?.city}</span></p>

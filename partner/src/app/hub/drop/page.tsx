@@ -28,7 +28,10 @@ export default function DropToHub() {
     const ordersRes = await fetch(`http://localhost:3000/api/orders`);
     const ordersData = await ordersRes.json();
     if (ordersData.success) {
-      setOrders(ordersData.data.filter((o: any) => o.partnerId?._id === partnerId && o.status === 'picked_up'));
+      setOrders(ordersData.data.filter((o: any) => 
+        o.partnerId?._id === partnerId && 
+        (o.status === 'picked_up' || (o.status === 'delivery_failed' && !o.returnToHubApproved))
+      ));
     }
   };
 
@@ -85,7 +88,9 @@ export default function DropToHub() {
                   <div>
                     <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
                     <p className="text-xs text-black mt-1">{order.items?.length || 0} items</p>
-                    <span className="mt-1 text-xs" style={{ color: '#452D9B' }}>Picked Up</span>
+                    <span className="mt-1 text-xs" style={{ color: order.status === 'delivery_failed' ? '#dc2626' : '#452D9B' }}>
+                      {order.status === 'delivery_failed' ? '⚠ Delivery Failed' : 'Picked Up'}
+                    </span>
                   </div>
                 </div>
                 <span className="text-sm text-black">{order.customerId?.name}</span>
@@ -105,25 +110,61 @@ export default function DropToHub() {
       <div className="px-4">
         <button
           onClick={async () => {
-            const ordersToUpdate = selectedOrders.length > 0 ? selectedOrders : orders.map(o => o._id);
-            const updatePromises = ordersToUpdate.map(orderId => 
-              fetch(`http://localhost:3000/api/orders/${orderId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  status: 'delivered_to_hub',
-                  deliveredToHubAt: new Date().toISOString()
-                })
-              })
-            );
-            await Promise.all(updatePromises);
-            window.location.href = '/hub/delivered';
+            try {
+              const ordersToUpdate = selectedOrders.length > 0 ? selectedOrders : orders.map(o => o._id);
+              console.log('Orders to update:', ordersToUpdate);
+              
+              let hasFailedOrders = false;
+              
+              for (const orderId of ordersToUpdate) {
+                const order = orders.find(o => o._id === orderId);
+                console.log('Processing order:', order?.orderId, 'Status:', order?.status);
+                
+                if (order?.status === 'delivery_failed') {
+                  hasFailedOrders = true;
+                  console.log('Sending return request for failed delivery order:', orderId);
+                  const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                      returnToHubRequested: true,
+                      returnToHubRequestedAt: new Date().toISOString()
+                    })
+                  });
+                  const result = await response.json();
+                  console.log('Return request response:', result);
+                } else {
+                  console.log('Sending normal hub delivery for order:', orderId);
+                  const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                      status: 'delivered_to_hub',
+                      deliveredToHubAt: new Date().toISOString()
+                    })
+                  });
+                  const result = await response.json();
+                  console.log('Hub delivery response:', result);
+                }
+              }
+              
+              if (hasFailedOrders) {
+                alert('Return request sent to admin for approval');
+              } else {
+                alert('Orders delivered to hub successfully');
+              }
+              
+              window.location.href = '/hub/delivered';
+            } catch (error) {
+              console.error('Error dropping orders:', error);
+              alert('Failed to drop orders. Check console for details.');
+            }
           }}
           disabled={orders.length === 0}
           className="mt-5 w-full inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"
           style={orders.length > 0 ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af' }}
         >
-          Delivered to Hub ({selectedOrders.length > 0 ? selectedOrders.length : orders.length})
+          Drop to Hub ({selectedOrders.length > 0 ? selectedOrders.length : orders.length})
         </button>
       </div>
       <BottomNav />

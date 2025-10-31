@@ -44,7 +44,7 @@ export default function OrderDetails() {
           ) : (
           <div>
           {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
             <button 
               onClick={async () => {
                 if (confirm('Are you sure you want to cancel this order?')) {
@@ -93,6 +93,60 @@ export default function OrderDetails() {
               }}
             >
               Delete Order
+            </button>
+            <button 
+              onClick={() => window.location.href = `tel:${order?.customerId?.mobile}`}
+              style={{
+                backgroundColor: '#10b981',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              📞 Call Customer
+            </button>
+            <button 
+              onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${order?.customerId?.email}`, '_blank')}
+              style={{
+                backgroundColor: '#f59e0b',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              ✉️ Email Customer
+            </button>
+            <button 
+              onClick={() => window.open(`https://wa.me/${order?.customerId?.mobile?.replace(/[^0-9]/g, '')}`, '_blank')}
+              style={{
+                backgroundColor: '#25D366',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              💬 WhatsApp Customer
             </button>
           </div>
 
@@ -465,13 +519,13 @@ export default function OrderDetails() {
                 </div>
               </div>
               <div>
-                <div style={{ fontWeight: '600' }}>Out for Delivery</div>
+                <div style={{ fontWeight: '600' }}>{order?.redeliveryScheduled ? 'Out for Redelivery' : 'Out for Delivery'}</div>
                 <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-                  {order?.outForDeliveryAt ? new Date(order.outForDeliveryAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.outForDeliveryAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
+                  {order?.redeliveryScheduled && order?.outForRedeliveryAt ? new Date(order.outForRedeliveryAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.outForRedeliveryAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : order?.outForDeliveryAt ? new Date(order.outForDeliveryAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.outForDeliveryAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
                 </div>
               </div>
               <div>
-                <div style={{ fontWeight: '600' }}>Delivered</div>
+                <div style={{ fontWeight: '600' }}>{order?.redeliveryScheduled && order?.status === 'delivered' ? 'Redelivered Successfully' : 'Delivered'}</div>
                 <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>
                   {order?.deliveredAt ? new Date(order.deliveredAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveredAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Pending'}
                 </div>

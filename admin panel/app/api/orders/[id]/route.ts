@@ -50,7 +50,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id } = await params
     const updateData = await request.json()
     console.log('PATCH request - Order ID:', id)
-    console.log('PATCH request - Update data:', updateData)
+    console.log('PATCH request - Update data:', JSON.stringify(updateData, null, 2))
     
     // Try to find by orderId first, then by _id (without population for cancellation check)
     let currentOrder = await Order.findOne({ orderId: id })

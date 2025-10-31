@@ -12,6 +12,12 @@ const OrdersIcon = () => (
   </svg>
 )
 
+const UndeliveredIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+  </svg>
+)
+
 const CustomersIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
     <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99l-2.98 3.67a.5.5 0 0 0 .39.84H14v8h6zm-12.5 0v-7.5h1.75L7.91 7.85A1.5 1.5 0 0 0 6.5 7H5c-.8 0-1.54.37-2.01.99L.01 11.66a.5.5 0 0 0 .39.84H2v8.5h1.5z"/>
@@ -98,6 +104,7 @@ export default function Sidebar({ activePage, isMobileMenuOpen = false, onMobile
   const allMenuItems = [
     { icon: <DashboardIcon />, label: 'Dashboard', href: '/admin/dashboard', roles: ['Admin'] },
     { icon: <OrdersIcon />, label: 'Orders', href: '/admin/orders', roles: ['Admin', 'Store Manager'] },
+    { icon: <UndeliveredIcon />, label: 'Undelivered Orders', href: '/admin/undelivered-orders', roles: ['Admin', 'Store Manager'] },
     { icon: <CustomersIcon />, label: 'Customers', href: '/admin/customers', roles: ['Admin'] },
     { icon: <DeliveryIcon />, label: 'Delivery Partners', href: '/admin/delivery-partners', roles: ['Admin'] },
     { icon: <RoleIcon />, label: 'Partner KYC', href: '/admin/partner-kyc', roles: ['Admin'] },

@@ -112,14 +112,21 @@ export default function DeliveryDetails() {
           <button
             onClick={async () => {
               const partnerId = localStorage.getItem('partnerId');
+              const updateData: any = {
+                status: 'out_for_delivery',
+                partnerId: partnerId
+              };
+              
+              if (order.redeliveryScheduled) {
+                updateData.outForRedeliveryAt = new Date().toISOString();
+              } else {
+                updateData.outForDeliveryAt = new Date().toISOString();
+              }
+              
               const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  status: 'out_for_delivery',
-                  outForDeliveryAt: new Date().toISOString(),
-                  partnerId: partnerId
-                })
+                body: JSON.stringify(updateData)
               });
               if (response.ok) {
                 fetchOrder();
@@ -130,7 +137,7 @@ export default function DeliveryDetails() {
             className="mt-5 w-full inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"
             style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
           >
-            Start Delivery
+            {order.redeliveryScheduled ? 'Start Redelivery' : 'Start Delivery'}
           </button>
         ) : order.status === 'out_for_delivery' ? (
           <div className="mt-5 flex gap-3">
@@ -145,7 +152,8 @@ export default function DeliveryDetails() {
                   })
                 });
                 if (response.ok) {
-                  setToast({ message: 'Order delivered successfully!', type: 'success' });
+                  const message = order.redeliveryScheduled ? 'Order redelivered successfully!' : 'Order delivered successfully!';
+                  setToast({ message, type: 'success' });
                   setTimeout(() => window.location.href = '/delivery/pick', 1500);
                 } else {
                   setToast({ message: 'Failed to mark as delivered', type: 'error' });
@@ -253,7 +261,8 @@ export default function DeliveryDetails() {
                     body: JSON.stringify({ 
                       status: 'delivery_failed',
                       deliveryFailureReason: failureReason,
-                      deliveryFailureFee: deliveryFee
+                      deliveryFailureFee: deliveryFee,
+                      deliveryFailedAt: new Date().toISOString()
                     })
                   });
 

@@ -20,7 +20,8 @@ export default function DeliveredToHub() {
       
       if (data.success) {
         const filteredOrders = data.data.filter((order: any) => 
-          (order.status === 'delivered_to_hub' || order.status === 'ready' || order.status === 'delivered') && (order.partnerId?._id === partnerId || order.partnerId === partnerId)
+          ((order.status === 'delivered_to_hub' || order.status === 'ready' || order.status === 'delivered') && (order.partnerId?._id === partnerId || order.partnerId === partnerId)) ||
+          (order.status === 'delivery_failed' && order.returnToHubRequested && (order.partnerId?._id === partnerId || order.partnerId === partnerId))
         );
         setDelivered(filteredOrders);
       }
@@ -68,7 +69,17 @@ export default function DeliveredToHub() {
                   <p className="text-sm text-gray-700 mt-2">{order.customerId?.name || 'Customer'}, <span className="text-black">{order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items'}</span></p>
                   <p className="text-sm text-gray-600 mt-2">{order.status === 'ready' ? 'Approved on: ' : 'Delivered on: '}{order.status === 'ready' && order.hubApprovedAt ? new Date(order.hubApprovedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.hubApprovedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : order.deliveredToHubAt ? new Date(order.deliveredToHubAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveredToHubAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}</p>
                 </div>
-                <span className={`rounded-full text-white px-3 py-1 text-xs font-semibold ${order.status === 'ready' ? 'bg-green-500' : 'bg-orange-500'}`}>{order.status === 'ready' ? 'Approved' : 'Pending'}</span>
+                <span className={`rounded-full text-white px-3 py-1 text-xs font-semibold ${
+                  order.status === 'ready' ? 'bg-green-500' : 
+                  order.status === 'delivery_failed' && order.returnToHubRequested && !order.returnToHubApproved ? 'bg-yellow-500' :
+                  order.status === 'delivery_failed' && order.returnToHubApproved ? 'bg-green-500' :
+                  'bg-orange-500'
+                }`}>
+                  {order.status === 'ready' ? 'Approved' : 
+                   order.status === 'delivery_failed' && order.returnToHubRequested && !order.returnToHubApproved ? 'Return Pending' :
+                   order.status === 'delivery_failed' && order.returnToHubApproved ? 'Return Approved' :
+                   'Pending'}
+                </span>
               </div>
             </div>
           ))}

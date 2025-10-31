@@ -82,8 +82,8 @@ const OrderDetails = () => {
     const ironingTime = order.ironingAt ? formatDateTime(order.ironingAt) : 'Pending';
     const processCompletedTime = order.processCompletedAt ? formatDateTime(order.processCompletedAt) : 'Pending';
     
-    const finalStepLabel = order.status === 'delivery_failed' ? 'Undelivered' : 'Delivered';
-    const finalStepTime = order.status === 'delivery_failed' 
+    const finalStepLabel = order.status === 'delivery_failed' && !order.redeliveryScheduled ? 'Undelivered' : order.redeliveryScheduled && order.status === 'delivered' ? 'Redelivered Successfully' : 'Delivered';
+    const finalStepTime = order.status === 'delivery_failed' && !order.redeliveryScheduled
       ? (order.deliveryFailedAt ? formatDateTime(order.deliveryFailedAt) : 'Failed')
       : (order.deliveredAt ? formatDateTime(order.deliveredAt) : 'Pending');
     
@@ -95,8 +95,8 @@ const OrderDetails = () => {
       { icon: Shirt, label: 'Processing', time: processingTime, completed: currentStep >= 4, active: currentStep === 4 },
       { icon: Shirt, label: 'Ironing', time: ironingTime, completed: currentStep >= 5, active: currentStep === 5 },
       { icon: CheckCircle2, label: 'Process Completed', time: processCompletedTime, completed: currentStep >= 6, active: currentStep === 6 },
-      { icon: Truck, label: 'Out for Delivery', time: order.outForDeliveryAt ? formatDateTime(order.outForDeliveryAt) : 'Pending', completed: currentStep >= 7, active: currentStep === 7 },
-      { icon: order.status === 'delivery_failed' ? X : CheckCircle2, label: finalStepLabel, time: finalStepTime, completed: currentStep >= 8, active: currentStep === 8, failed: order.status === 'delivery_failed' },
+      { icon: Truck, label: order.redeliveryScheduled ? 'Out for Redelivery' : 'Out for Delivery', time: order.redeliveryScheduled && order.outForRedeliveryAt ? formatDateTime(order.outForRedeliveryAt) : order.outForDeliveryAt ? formatDateTime(order.outForDeliveryAt) : 'Pending', completed: currentStep >= 7, active: currentStep === 7 },
+      { icon: order.status === 'delivery_failed' && !order.redeliveryScheduled ? X : CheckCircle2, label: finalStepLabel, time: finalStepTime, completed: currentStep >= 8, active: currentStep === 8, failed: order.status === 'delivery_failed' && !order.redeliveryScheduled },
     ];
   };
   
