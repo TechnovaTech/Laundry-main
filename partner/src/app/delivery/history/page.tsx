@@ -191,10 +191,12 @@ export default function DeliveryHistory() {
           ))}
         </div>
       ) : (
-        <div className="mt-6 px-4 text-center">
-          <Image src="/Delivery.svg" alt="Delivery" width={220} height={160} className="mx-auto" />
-          <p className="mt-2 text-base font-semibold">No delivery history yet.</p>
-          <p className="text-xs text-black">Completed orders will appear here.</p>
+        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 300px)' }}>
+          <div className="text-center">
+            <Image src="/Delivery.svg" alt="Delivery" width={220} height={160} className="mx-auto" />
+            <p className="mt-2 text-base font-semibold text-gray-800">No delivery history yet.</p>
+            <p className="text-xs text-gray-600">Completed orders will appear here.</p>
+          </div>
         </div>
       )}
 
