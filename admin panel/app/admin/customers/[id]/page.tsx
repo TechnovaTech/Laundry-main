@@ -166,6 +166,60 @@ export default function CustomerProfilePage() {
             ))}
           </div>
         )}
+
+        {/* Payment Methods */}
+        {(customer as any).paymentMethods && (customer as any).paymentMethods.length > 0 && (
+          <div style={{
+            backgroundColor: 'white',
+            padding: '1.5rem',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            marginTop: '1.5rem'
+          }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Payment Methods</h3>
+            {(customer as any).paymentMethods.map((pm: any, index: number) => (
+              <div key={index} style={{
+                padding: '1rem',
+                backgroundColor: pm.isPrimary ? '#eff6ff' : '#f8fafc',
+                borderRadius: '8px',
+                marginBottom: '0.5rem',
+                border: pm.isPrimary ? '2px solid #2563eb' : '1px solid #e5e7eb'
+              }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {pm.type}
+                  {pm.isPrimary && <span style={{ 
+                    backgroundColor: '#2563eb', 
+                    color: 'white', 
+                    padding: '0.125rem 0.5rem', 
+                    borderRadius: '12px', 
+                    fontSize: '0.75rem',
+                    fontWeight: '500'
+                  }}>Primary</span>}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+                  {pm.type === 'UPI' && pm.upiId && `UPI ID: ${pm.upiId}`}
+                  {pm.type === 'Card' && pm.cardNumber && (
+                    <>
+                      <div>Card: ****{pm.cardNumber.slice(-4)}</div>
+                      <div>Holder: {pm.cardHolder}</div>
+                      <div>Expiry: {pm.expiryDate}</div>
+                    </>
+                  )}
+                  {pm.type === 'Bank Transfer' && pm.accountNumber && (
+                    <>
+                      <div>Bank: {pm.bankName}</div>
+                      <div>Account: ****{pm.accountNumber.slice(-4)}</div>
+                      <div>IFSC: {pm.ifscCode}</div>
+                    </>
+                  )}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.5rem' }}>
+                  Added: {new Date(pm.addedAt).toLocaleDateString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </ResponsiveLayout>
   )

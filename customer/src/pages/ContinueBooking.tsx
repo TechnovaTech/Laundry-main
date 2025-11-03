@@ -191,6 +191,7 @@ const ContinueBooking = () => {
               </div>
             </div>
           </div>
+          {/* Temporarily hidden - not in use currently
           <div className="flex gap-2 sm:gap-3">
             <Button className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold bg-white border border-gray-300 text-black hover:bg-gray-50 text-xs sm:text-sm">
               Contact Partner
@@ -199,6 +200,7 @@ const ContinueBooking = () => {
               Report Issue
             </Button>
           </div>
+          */}
         </div>
 
         {pastOrders.length > 0 && (
@@ -376,7 +378,8 @@ const ContinueBooking = () => {
                 return;
               }
               
-              const options = {
+              // Prepare payment method data for Razorpay
+              const razorpayOptions: any = {
                 key: orderResult.keyId,
                 amount: orderResult.amount,
                 currency: orderResult.currency,
@@ -459,6 +462,7 @@ const ContinueBooking = () => {
                   email: customerInfo?.email || '',
                   contact: customerInfo?.mobile || ''
                 },
+                method: primaryPaymentMethod.type === 'UPI' ? 'upi' : primaryPaymentMethod.type === 'Card' ? 'card' : 'netbanking',
                 theme: {
                   color: '#452D9B'
                 },
@@ -469,7 +473,12 @@ const ContinueBooking = () => {
                 }
               };
               
-              const razorpay = new window.Razorpay(options);
+              // Add payment method specific data
+              if (primaryPaymentMethod.type === 'UPI' && primaryPaymentMethod.upiId) {
+                razorpayOptions.prefill.vpa = primaryPaymentMethod.upiId;
+              }
+              
+              const razorpay = new window.Razorpay(razorpayOptions);
               razorpay.open();
               
             } catch (error) {

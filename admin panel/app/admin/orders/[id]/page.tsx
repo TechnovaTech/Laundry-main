@@ -235,6 +235,35 @@ export default function OrderDetails() {
                 </div>
               )}
             </div>
+            
+            {/* Customer Payment Methods */}
+            {order?.customerId?.paymentMethods && order.customerId.paymentMethods.length > 0 && (
+              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: '600', marginBottom: '0.75rem', color: '#6b7280' }}>Customer's Saved Payment Methods</h4>
+                {order.customerId.paymentMethods.map((pm: any, index: number) => (
+                  <div key={index} style={{ 
+                    padding: '0.75rem', 
+                    backgroundColor: pm.isPrimary ? '#eff6ff' : '#f9fafb', 
+                    borderRadius: '8px', 
+                    marginBottom: '0.5rem',
+                    border: pm.isPrimary ? '1px solid #2563eb' : '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>
+                          {pm.type} {pm.isPrimary && <span style={{ color: '#2563eb', fontSize: '0.8rem' }}>(Primary)</span>}
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                          {pm.type === 'UPI' && pm.upiId && `UPI: ${pm.upiId}`}
+                          {pm.type === 'Card' && pm.cardNumber && `Card: ****${pm.cardNumber.slice(-4)} | ${pm.cardHolder}`}
+                          {pm.type === 'Bank Transfer' && pm.accountNumber && `${pm.bankName} - ****${pm.accountNumber.slice(-4)}`}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Assigned Partner */}
