@@ -45,13 +45,28 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     await dbConnect()
     const { id } = await params
     
-    const customer = await Customer.findByIdAndDelete(id)
+    const customer = await Customer.findById(id)
     
     if (!customer) {
       return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, message: 'Customer deleted successfully' })
+    // Import models
+    const Order = (await import('@/models/Order')).default
+    const WalletTransaction = (await import('@/models/WalletTransaction')).default
+    const Review = (await import('@/models/Review')).default
+
+    // Delete all related data
+    await Promise.all([
+      Order.deleteMany({ customerId: id }),
+      WalletTransaction.deleteMany({ customerId: id }),
+      Review.deleteMany({ customerId: id })
+    ])
+
+    // Delete customer
+    await Customer.findByIdAndDelete(id)
+
+    return NextResponse.json({ success: true, message: 'Customer and all related data deleted successfully' })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }

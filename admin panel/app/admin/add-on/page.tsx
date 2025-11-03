@@ -34,7 +34,8 @@ export default function AddOnPage() {
     minRedeemPoints: 100,
     referralPoints: 50,
     signupBonusPoints: 25,
-    orderCompletionPoints: 10
+    orderCompletionPoints: 10,
+    minOrderPrice: 500
   })
   const [hubs, setHubs] = useState<any[]>([])
   const [hubForm, setHubForm] = useState({
@@ -175,17 +176,22 @@ export default function AddOnPage() {
 
   const saveWalletSettings = async () => {
     try {
+      const { _id, __v, updatedAt, ...settingsToSave } = walletSettings as any
+      console.log('Saving wallet settings:', settingsToSave)
       const response = await fetch('/api/wallet-settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(walletSettings)
+        body: JSON.stringify(settingsToSave)
       })
       const data = await response.json()
+      console.log('Save response:', data)
       if (data.success) {
+        await fetchWalletSettings()
         setToast({ show: true, message: 'Wallet settings saved successfully!', type: 'success' })
         setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
       }
     } catch (error) {
+      console.error('Save error:', error)
       setToast({ show: true, message: 'Failed to save wallet settings', type: 'error' })
       setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
     }
@@ -611,7 +617,7 @@ export default function AddOnPage() {
               cursor: 'pointer'
             }}
           >
-            Wallet Points
+            Wallet & Pricing
           </button>
           <button 
             onClick={() => {
@@ -1116,11 +1122,22 @@ export default function AddOnPage() {
         </div>
         )}
 
-        {/* Wallet Points Configuration Section */}
+        {/* Wallet & Pricing Configuration Section */}
         {activeSection === 'Wallet' && (
         <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#2563eb' }}>Wallet Points Configuration</h3>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#2563eb' }}>Wallet & Pricing Configuration</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Minimum Order Price (₹)</label>
+              <input
+                type="number"
+                aria-label="Minimum Order Price"
+                value={walletSettings.minOrderPrice}
+                onChange={(e) => setWalletSettings({...walletSettings, minOrderPrice: Number(e.target.value)})}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem' }}
+              />
+              <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>Minimum order value required to place order</p>
+            </div>
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Points Per Rupee</label>
               <input

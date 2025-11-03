@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.laundrymate.customer',
-  appName: 'LaundryMate Customer',
+  appId: 'com.steamiron.customer',
+  appName: 'Steam Iron',
   webDir: 'dist',
   plugins: {
     GoogleAuth: {
@@ -20,7 +20,8 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: true,
     backgroundColor: '#ffffff'
   },
-  StatusBar: {
+  plugins: {
+    StatusBar: {
       style: 'light',
       backgroundColor: '#ffffff',
       overlaysWebView: false
@@ -34,6 +35,11 @@ const config: CapacitorConfig = {
       resize: 'native',
       style: 'dark',
       resizeOnFullScreen: true
+    },
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      serverClientId: '514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true,
     }
   }
 };

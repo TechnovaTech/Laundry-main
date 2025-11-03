@@ -6,6 +6,7 @@ const WalletSettingsSchema = new mongoose.Schema({
   referralPoints: { type: Number, default: 50 },
   signupBonusPoints: { type: Number, default: 25 },
   orderCompletionPoints: { type: Number, default: 10 },
+  minOrderPrice: { type: Number, default: 500 },
   updatedAt: { type: Date, default: Date.now }
 })
 

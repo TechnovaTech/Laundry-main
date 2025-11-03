@@ -13,7 +13,8 @@ export async function GET() {
         minRedeemPoints: 100,
         referralPoints: 50,
         signupBonusPoints: 25,
-        orderCompletionPoints: 10
+        orderCompletionPoints: 10,
+        minOrderPrice: 500
       })
     }
     
@@ -27,23 +28,28 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB()
     const body = await request.json()
+    console.log('Received body:', body)
     
-    let settings = await WalletSettings.findOne()
+    const settings = await WalletSettings.findOneAndUpdate(
+      {},
+      {
+        $set: {
+          pointsPerRupee: body.pointsPerRupee,
+          minRedeemPoints: body.minRedeemPoints,
+          referralPoints: body.referralPoints,
+          signupBonusPoints: body.signupBonusPoints,
+          orderCompletionPoints: body.orderCompletionPoints,
+          minOrderPrice: body.minOrderPrice,
+          updatedAt: new Date()
+        }
+      },
+      { new: true, upsert: true }
+    )
     
-    if (settings) {
-      settings.pointsPerRupee = body.pointsPerRupee
-      settings.minRedeemPoints = body.minRedeemPoints
-      settings.referralPoints = body.referralPoints
-      settings.signupBonusPoints = body.signupBonusPoints
-      settings.orderCompletionPoints = body.orderCompletionPoints
-      settings.updatedAt = new Date()
-      await settings.save()
-    } else {
-      settings = await WalletSettings.create(body)
-    }
-    
+    console.log('Saved settings:', settings.toObject())
     return NextResponse.json({ success: true, data: settings })
   } catch (error) {
+    console.error('Save error:', error)
     return NextResponse.json({ success: false, error: 'Failed to update settings' }, { status: 500 })
   }
 }

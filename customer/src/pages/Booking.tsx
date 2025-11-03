@@ -36,12 +36,29 @@ const Booking = () => {
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [minOrderPrice, setMinOrderPrice] = useState(500);
   
   useEffect(() => {
     fetchPricingItems();
     fetchTimeSlots();
     fetchCustomerAddress();
+    fetchMinOrderPrice();
   }, []);
+  
+  const fetchMinOrderPrice = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/wallet-settings');
+      const data = await response.json();
+      console.log('Wallet settings response:', data);
+      if (data.success && data.data) {
+        const minPrice = data.data.minOrderPrice || 500;
+        console.log('Setting min order price to:', minPrice);
+        setMinOrderPrice(minPrice);
+      }
+    } catch (error) {
+      console.error('Failed to fetch min order price:', error);
+    }
+  };
   
   const fetchPricingItems = async () => {
     try {
@@ -343,11 +360,11 @@ const Booking = () => {
               Items: {pricingItems.filter(item => (quantities[item._id] || 0) > 0).map(item => `${quantities[item._id]} ${item.name}`).join(', ') || 'No items selected'}
             </p>
             <p className="text-xs sm:text-sm text-black">Service: Steam Iron</p>
-            <p className="text-xs sm:text-sm text-black font-semibold">Minimum Order Value: ₹500</p>
+            <p className="text-xs sm:text-sm text-black font-semibold">Minimum Order Value: ₹{minOrderPrice}</p>
             <div className="border-t pt-2 sm:pt-3">
               <p className="text-base sm:text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Estimated Total: ₹{calculateTotal()}</p>
-              {calculateTotal() < 500 && (
-                <p className="text-xs text-red-500 mt-1 sm:mt-2 font-semibold">⚠ Minimum order value of ₹500 required</p>
+              {calculateTotal() < minOrderPrice && (
+                <p className="text-xs text-red-500 mt-1 sm:mt-2 font-semibold">⚠ Minimum order value of ₹{minOrderPrice} required</p>
               )}
               <p className="text-xs text-gray-500 mt-1 sm:mt-2">Payment will be collected upon delivery</p>
             </div>
@@ -384,9 +401,9 @@ const Booking = () => {
             };
             navigate("/continue-booking", { state: orderData });
           }}
-          disabled={calculateTotal() < 500}
+          disabled={calculateTotal() < minOrderPrice}
           className={`w-full h-12 sm:h-14 rounded-2xl text-sm sm:text-base font-semibold transition-colors shadow-lg ${
-            calculateTotal() < 500 
+            calculateTotal() < minOrderPrice 
               ? 'bg-gray-300 cursor-not-allowed text-gray-500' 
               : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
           }`}
