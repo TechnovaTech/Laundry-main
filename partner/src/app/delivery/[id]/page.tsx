@@ -278,7 +278,11 @@ export default function DeliveryDetails() {
                       status: 'delivery_failed',
                       deliveryFailureReason: failureReason,
                       deliveryFailureFee: deliveryFee,
-                      deliveryFailedAt: new Date().toISOString()
+                      deliveryFailedAt: new Date().toISOString(),
+                      returnToHubRequested: false,
+                      returnToHubApproved: false,
+                      returnToHubRequestedAt: null,
+                      returnToHubApprovedAt: null
                     })
                   });
 

@@ -27,8 +27,8 @@ export default function UndeliveredOrdersPage() {
       
       if (data.success) {
         const undelivered = (data.data as any[]).filter((order: any) => 
-          order.status === 'delivery_failed' || 
-          (order.status === 'delivered_to_hub' && order.returnToHubApproved === true && order.redeliveryScheduled !== true)
+          (order.status === 'delivery_failed' && !order.orderSuspended) || 
+          (order.status === 'delivered_to_hub' && order.returnToHubApproved === true && order.redeliveryScheduled !== true && !order.orderSuspended)
         )
         console.log('Undelivered orders:', undelivered)
         console.log('Orders with return request:', undelivered.filter((o: any) => o.returnToHubRequested))
@@ -48,7 +48,7 @@ export default function UndeliveredOrdersPage() {
       mobile: order.customerId?.mobile || 'N/A',
       items: order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
       price: `₹${order.totalAmount}`,
-      reason: order.deliveryFailureReason || 'Not specified',
+      reason: (order.redeliveryScheduled ? '[REDELIVERY] ' : '') + (order.deliveryFailureReason || 'Not specified'),
       fee: `₹${order.deliveryFailureFee || 0}`,
       failedAt: order.deliveryFailedAt ? new Date(order.deliveryFailedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveryFailedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A',
       partner: order.partnerId?.name || 'Not Assigned',
@@ -150,7 +150,41 @@ export default function UndeliveredOrdersPage() {
                 <div style={{ cursor: 'pointer' }} onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.partner}</div>
                 <div onClick={(e) => e.stopPropagation()}>
                   {dbOrder.returnToHubRequested === true && dbOrder.returnToHubApproved !== true ? (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {dbOrder.redeliveryScheduled ? (
+                        <button
+                          onClick={async () => {
+                            if (confirm('Suspend this order due to multiple delivery failures?')) {
+                              const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                  status: 'suspended',
+                                  orderSuspended: true,
+                                  suspensionReason: 'Multiple delivery failures',
+                                  suspendedAt: new Date().toISOString()
+                                })
+                              });
+                              if (response.ok) {
+                                alert('Order suspended successfully');
+                                fetchUndeliveredOrders();
+                              }
+                            }
+                          }}
+                          style={{
+                            backgroundColor: '#f59e0b',
+                            color: 'white',
+                            border: 'none',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '6px',
+                            fontSize: '0.8rem',
+                            fontWeight: '500',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          SUSPEND ORDER
+                        </button>
+                      ) : null}
                       <button
                         onClick={async () => {
                           const response = await fetch(`/api/orders/${dbOrder._id}`, {

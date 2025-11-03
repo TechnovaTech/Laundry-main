@@ -28,10 +28,31 @@ export default function DropToHub() {
     const ordersRes = await fetch(`http://localhost:3000/api/orders`);
     const ordersData = await ordersRes.json();
     if (ordersData.success) {
-      setOrders(ordersData.data.filter((o: any) => 
-        o.partnerId?._id === partnerId && 
-        (o.status === 'picked_up' || (o.status === 'delivery_failed' && !o.returnToHubApproved))
-      ));
+      console.log('Partner ID:', partnerId);
+      console.log('All orders:', ordersData.data.length);
+      
+      const deliveryFailedOrders = ordersData.data.filter((o: any) => o.status === 'delivery_failed');
+      console.log('Delivery failed orders:', deliveryFailedOrders);
+      deliveryFailedOrders.forEach((o: any) => {
+        console.log(`Order ${o.orderId}:`, {
+          status: o.status,
+          partnerId: o.partnerId?._id,
+          redeliveryScheduled: o.redeliveryScheduled,
+          returnToHubApproved: o.returnToHubApproved,
+          returnToHubRequested: o.returnToHubRequested
+        });
+      });
+      
+      const filtered = ordersData.data.filter((o: any) => {
+        const isPartnerMatch = o.partnerId?._id === partnerId;
+        const isPickedUp = o.status === 'picked_up';
+        const isDeliveryFailed = o.status === 'delivery_failed' && !o.returnToHubApproved;
+        
+        return isPartnerMatch && (isPickedUp || isDeliveryFailed);
+      });
+      
+      console.log('Filtered orders:', filtered);
+      setOrders(filtered);
     }
   };
 
@@ -89,7 +110,7 @@ export default function DropToHub() {
                     <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
                     <p className="text-xs text-black mt-1">{order.items?.length || 0} items</p>
                     <span className="mt-1 text-xs" style={{ color: order.status === 'delivery_failed' ? '#dc2626' : '#452D9B' }}>
-                      {order.status === 'delivery_failed' ? '⚠ Delivery Failed' : 'Picked Up'}
+                      {order.status === 'delivery_failed' ? (order.redeliveryScheduled ? '⚠ Redelivery Failed' : '⚠ Delivery Failed') : 'Picked Up'}
                     </span>
                   </div>
                 </div>

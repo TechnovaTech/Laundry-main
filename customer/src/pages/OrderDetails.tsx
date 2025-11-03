@@ -63,7 +63,8 @@ const OrderDetails = () => {
       'ready': 4,
       'out_for_delivery': 7,
       'delivered': 8,
-      'delivery_failed': 8
+      'delivery_failed': 8,
+      'suspended': 3
     };
     
     const currentStep = statusMap[order.status] || 0;
@@ -185,12 +186,34 @@ const OrderDetails = () => {
             <div className="flex items-start gap-2">
               <span className="text-2xl">⚠️</span>
               <div className="flex-1">
-                <p className="text-sm sm:text-base font-bold text-red-700 mb-1">Delivery Failed</p>
+                <p className="text-sm sm:text-base font-bold text-red-700 mb-1">{order.redeliveryScheduled ? 'Redelivery Failed' : 'Delivery Failed'}</p>
                 <p className="text-xs sm:text-sm text-red-600 font-medium">
                   <strong>Reason:</strong> {order.deliveryFailureReason || 'Not specified'}
                 </p>
                 <p className="text-xs sm:text-sm text-red-600 font-medium mt-1">
                   <strong>Delivery Fee Charged:</strong> ₹{order.deliveryFailureFee || 0}
+                </p>
+                {order.redeliveryScheduled && (
+                  <p className="text-xs sm:text-sm text-red-600 font-medium mt-1">
+                    This order failed delivery multiple times.
+                  </p>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {order?.status === 'suspended' && (
+          <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fef3c7, #fde68a)', borderColor: '#f59e0b' }}>
+            <div className="flex items-start gap-2">
+              <span className="text-2xl">🚫</span>
+              <div className="flex-1">
+                <p className="text-sm sm:text-base font-bold text-amber-700 mb-1">Order Suspended</p>
+                <p className="text-xs sm:text-sm text-amber-600 font-medium">
+                  <strong>Reason:</strong> {order.suspensionReason || 'Multiple delivery failures'}
+                </p>
+                <p className="text-xs sm:text-sm text-amber-600 font-medium mt-2">
+                  Please contact admin for further assistance.
                 </p>
               </div>
             </div>

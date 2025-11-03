@@ -13,7 +13,7 @@ const OrderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['pending', 'reached_location', 'picked_up', 'delivered_to_hub', 'processing', 'ironing', 'process_completed', 'ready', 'out_for_delivery', 'delivered', 'cancelled', 'delivery_failed'],
+    enum: ['pending', 'reached_location', 'picked_up', 'delivered_to_hub', 'processing', 'ironing', 'process_completed', 'ready', 'out_for_delivery', 'delivered', 'cancelled', 'delivery_failed', 'suspended'],
     default: 'pending'
   },
   pickupAddress: {
@@ -55,6 +55,9 @@ const OrderSchema = new mongoose.Schema({
   returnToHubApproved: { type: Boolean, default: false },
   returnToHubApprovedAt: Date,
   redeliveryScheduled: { type: Boolean, default: false },
+  orderSuspended: { type: Boolean, default: false },
+  suspensionReason: String,
+  suspendedAt: Date,
   specialInstructions: String,
   pickupPhotos: [String],
   pickupNotes: String,
