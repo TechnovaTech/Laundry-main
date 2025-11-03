@@ -397,12 +397,19 @@ const Profile = () => {
         <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex items-center gap-3 sm:gap-4 mb-4">
             {userProfile.profileImage ? (
-              <img src={userProfile.profileImage} alt="Profile" className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0 shadow-md" />
-            ) : (
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl font-bold flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-                {userProfile.avatar}
-              </div>
-            )}
+              <img 
+                src={userProfile.profileImage} 
+                alt="Profile" 
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0 shadow-md" 
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl font-bold flex-shrink-0 shadow-md ${userProfile.profileImage ? 'hidden' : ''}`} style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+              {userProfile.avatar}
+            </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-lg sm:text-xl font-bold text-black truncate">{userProfile.name}</h2>
               <p className="text-xs sm:text-sm text-gray-500 truncate">{userProfile.phone}</p>

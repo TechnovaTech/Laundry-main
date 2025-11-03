@@ -75,12 +75,21 @@ export default function ProfilePage() {
         <div className="bg-white rounded-lg shadow p-6 mb-4">
           <div className="flex items-center gap-4">
             {partnerData.profileImage ? (
-              <img src={partnerData.profileImage} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2" style={{ borderColor: '#452D9B' }} />
-            ) : (
-              <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold" style={{ backgroundColor: '#f0ebf8', color: '#452D9B' }}>
-                {partnerData.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+              <img 
+                src={partnerData.profileImage} 
+                alt="Profile" 
+                className="w-20 h-20 rounded-full object-cover border-2" 
+                style={{ borderColor: '#452D9B' }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold ${partnerData.profileImage ? 'hidden' : ''}`} style={{ backgroundColor: '#f0ebf8', color: '#452D9B' }}>
+              {partnerData.name.charAt(0).toUpperCase()}
+            </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{partnerData.name}</h1>
               <p className="text-gray-600">{partnerData.mobile}</p>

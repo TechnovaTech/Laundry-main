@@ -17,10 +17,11 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: true
+    webContentsDebuggingEnabled: true,
+    backgroundColor: '#ffffff'
   },
   StatusBar: {
-      style: 'dark',
+      style: 'light',
       backgroundColor: '#ffffff',
       overlaysWebView: false
     },

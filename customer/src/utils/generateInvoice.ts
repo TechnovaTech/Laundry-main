@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
-import acsLogo from '@/assets/ACS Logo.jpg';
-import usLogo from '@/assets/US Logo.jpg';
+import acsLogo from '@/assets/ACS LOGO.png';
+import usLogo from '@/assets/LOGO MARK GRADIENT.png';
 
 export const generateInvoicePDF = async (order: any) => {
   if (!order) return;
@@ -41,8 +41,8 @@ export const generateInvoicePDF = async (order: any) => {
   doc.rect(10, 10, pageWidth - 20, pageHeight - 20, 'F');
   
   // Add logos with better quality
-  doc.addImage(acsLogo, 'JPEG', 15, 15, 35, 15);
-  doc.addImage(usLogo, 'JPEG', pageWidth - 55, 15, 40, 15);
+  doc.addImage(acsLogo, 'PNG', 15, 15, 35, 15);
+  doc.addImage(usLogo, 'PNG', pageWidth - 55, 15, 40, 15);
   doc.setTextColor(0, 0, 0);
   
   // Invoice header section with border
@@ -145,6 +145,22 @@ export const generateInvoicePDF = async (order: any) => {
     });
   }
   
+  // Add cancellation fee if exists
+  if (order.cancellationFee && order.cancellationFee > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(220, 38, 38);
+    doc.text('Cancellation fees Applied', 17, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(8);
+    doc.text(order.cancellationReason || 'Cancellation charge', 17, yPos + 4);
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.text(`Rs${order.cancellationFee.toFixed(2)}`, 180, yPos);
+    subtotal += order.cancellationFee;
+    yPos += 12;
+  }
+  
   yPos += 15;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
@@ -155,11 +171,9 @@ export const generateInvoicePDF = async (order: any) => {
   doc.text('Rs0.00', pageWidth - 20, yPos, { align: 'right' });
   yPos += 7;
   const discountPercent = order.discount || 0;
-  if (discountPercent > 0) {
-    doc.text('Discount/Coupon code', 140, yPos);
-    doc.text(`${discountPercent}%`, pageWidth - 20, yPos, { align: 'right' });
-    yPos += 7;
-  }
+  doc.text('Discount/Coupon code', 140, yPos);
+  doc.text(`${discountPercent}%`, pageWidth - 20, yPos, { align: 'right' });
+  yPos += 7;
   yPos += 5;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
