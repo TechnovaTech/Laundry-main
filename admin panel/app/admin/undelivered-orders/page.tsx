@@ -15,6 +15,10 @@ export default function UndeliveredOrdersPage() {
     newTimeSlot: '',
     redeliveryDate: ''
   })
+  const [showPendingModal, setShowPendingModal] = useState(false)
+  const [showSuspendedModal, setShowSuspendedModal] = useState(false)
+  const [pendingOrders, setPendingOrders] = useState<any[]>([])
+  const [suspendedOrders, setSuspendedOrders] = useState<any[]>([])
 
   useEffect(() => {
     fetchUndeliveredOrders()
@@ -30,9 +34,15 @@ export default function UndeliveredOrdersPage() {
           (order.status === 'delivery_failed' && !order.orderSuspended) || 
           (order.status === 'delivered_to_hub' && order.returnToHubApproved === true && order.redeliveryScheduled !== true && !order.orderSuspended)
         )
-        console.log('Undelivered orders:', undelivered)
-        console.log('Orders with return request:', undelivered.filter((o: any) => o.returnToHubRequested))
+        const pending = (data.data as any[]).filter((order: any) => 
+          order.status === 'process_completed' && order.redeliveryScheduled === true
+        )
+        const suspended = (data.data as any[]).filter((order: any) => 
+          order.orderSuspended === true
+        )
         setOrders(undelivered)
+        setPendingOrders(pending)
+        setSuspendedOrders(suspended)
       }
     } catch (error) {
       console.error('Failed to fetch undelivered orders:', error)
@@ -59,6 +69,51 @@ export default function UndeliveredOrdersPage() {
   return (
     <ResponsiveLayout activePage="Undelivered Orders" title="Undelivered Orders" searchPlaceholder="Search by Order ID / Customer">
         <div style={{ padding: '1.5rem' }}>
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+            <button
+              onClick={() => setShowPendingModal(true)}
+              style={{
+                flex: 1,
+                padding: '1rem',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <span>📦</span>
+              Pending Settlement Orders ({pendingOrders.length})
+            </button>
+            <button
+              onClick={() => setShowSuspendedModal(true)}
+              style={{
+                flex: 1,
+                padding: '1rem',
+                backgroundColor: '#f59e0b',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <span>⏸️</span>
+              Suspended Orders ({suspendedOrders.length})
+            </button>
+          </div>
           {/* Stats Card */}
           <div style={{
             backgroundColor: '#fee2e2',
@@ -279,6 +334,128 @@ export default function UndeliveredOrdersPage() {
             Showing {orders.length} undelivered order(s)
           </div>
         </div>
+
+        {/* Pending Orders Modal */}
+        {showPendingModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }} onClick={() => setShowPendingModal(false)}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '800px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'auto'
+            }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>Pending Settlement Orders</h2>
+                <button onClick={() => setShowPendingModal(false)} style={{ fontSize: '1.5rem', border: 'none', background: 'none', cursor: 'pointer' }}>×</button>
+              </div>
+              {pendingOrders.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No pending orders</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {pendingOrders.map((order) => (
+                    <div
+                      key={order._id}
+                      onClick={() => router.push(`/admin/orders/${order.orderId.replace('#', '')}`)}
+                      style={{
+                        padding: '1rem',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        backgroundColor: '#f9fafb',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontWeight: '600', fontSize: '1rem', color: '#3b82f6' }}>{order.orderId}</div>
+                          <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.25rem' }}>{order.customerId?.name} • {order.customerId?.mobile}</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: '600', fontSize: '1rem' }}>₹{order.totalAmount}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#3b82f6', marginTop: '0.25rem' }}>Redelivery Scheduled</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Suspended Orders Modal */}
+        {showSuspendedModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }} onClick={() => setShowSuspendedModal(false)}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '800px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'auto'
+            }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>Suspended Orders</h2>
+                <button onClick={() => setShowSuspendedModal(false)} style={{ fontSize: '1.5rem', border: 'none', background: 'none', cursor: 'pointer' }}>×</button>
+              </div>
+              {suspendedOrders.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#6b7280', padding: '2rem' }}>No suspended orders</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {suspendedOrders.map((order) => (
+                    <div
+                      key={order._id}
+                      onClick={() => router.push(`/admin/orders/${order.orderId.replace('#', '')}`)}
+                      style={{
+                        padding: '1rem',
+                        border: '1px solid #f59e0b',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        backgroundColor: '#fffbeb',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef3c7'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fffbeb'}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontWeight: '600', fontSize: '1rem', color: '#f59e0b' }}>{order.orderId}</div>
+                          <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.25rem' }}>{order.customerId?.name} • {order.customerId?.mobile}</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: '600', fontSize: '1rem' }}>₹{order.totalAmount}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#f59e0b', marginTop: '0.25rem' }}>Suspended</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Redelivery Setup Modal */}
         {showRedeliveryModal && selectedOrder && (

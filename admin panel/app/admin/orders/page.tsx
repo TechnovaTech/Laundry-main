@@ -23,6 +23,7 @@ export default function OrdersPage() {
     { label: 'Out for Delivery', value: 'out_for_delivery' },
     { label: 'Delivered', value: 'delivered' },
     { label: 'Delivery Failed', value: 'delivery_failed' },
+    { label: 'Suspended', value: 'suspended' },
     { label: 'Cancelled', value: 'cancelled' }
   ]
 
