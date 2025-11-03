@@ -22,6 +22,8 @@ const ContinueBooking = () => {
   const [customerInfo, setCustomerInfo] = useState<any>(null);
   const [pastOrders, setPastOrders] = useState<any[]>([]);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showPaymentWarning, setShowPaymentWarning] = useState(false);
+  const [paymentWarningMessage, setPaymentWarningMessage] = useState('');
   
   const itemsText = orderData.items ? orderData.items.map((item: any) => `${item.quantity} ${item.name}`).join(', ') : '3 Shirts, 1 Bedsheet';
   const totalAmount = orderData.total || 120;
@@ -290,10 +292,24 @@ const ContinueBooking = () => {
                 return;
               }
               
+              // Validate payment method
+              if (!customerInfo?.paymentMethods || customerInfo.paymentMethods.length === 0) {
+                setPaymentWarningMessage('Please add a payment method before placing order. Go to Profile → Payment Methods to add one.');
+                setShowPaymentWarning(true);
+                return;
+              }
+              
+              const primaryPaymentMethod = customerInfo.paymentMethods.find((pm: any) => pm.isPrimary);
+              if (!primaryPaymentMethod) {
+                setPaymentWarningMessage('Please set a primary payment method before placing order. Go to Profile → Payment Methods and mark one as primary.');
+                setShowPaymentWarning(true);
+                return;
+              }
+              
               setIsProcessingPayment(true);
               
               // Get selected payment method
-              const paymentMethod = customerInfo?.paymentMethods?.find((pm: any) => pm.isPrimary)?.type || 'Cash';
+              const paymentMethod = primaryPaymentMethod.type;
               
               // If payment method is Cash, place order directly
               if (paymentMethod === 'Cash') {
@@ -468,6 +484,41 @@ const ContinueBooking = () => {
           {isProcessingPayment ? 'Processing...' : 'Continue'}
         </Button>
       </div>
+
+      {/* Payment Warning Modal */}
+      {showPaymentWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'linear-gradient(to right, #f59e0b, #ef4444)' }}>
+                <span className="text-3xl">⚠️</span>
+              </div>
+              <h2 className="text-xl font-bold mb-3 text-gray-900">Payment Method Required</h2>
+              <p className="text-gray-600 mb-6 text-sm leading-relaxed">{paymentWarningMessage}</p>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowPaymentWarning(false)}
+                  variant="outline"
+                  className="flex-1 h-12 rounded-xl border-2"
+                  style={{ borderColor: '#452D9B', color: '#452D9B' }}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowPaymentWarning(false);
+                    navigate('/profile');
+                  }}
+                  className="flex-1 h-12 rounded-xl text-white"
+                  style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                >
+                  Go to Profile
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
