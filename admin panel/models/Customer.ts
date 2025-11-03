@@ -43,6 +43,11 @@ const CustomerSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
   }],
   referredBy: String,
+  usedVouchers: [{ 
+    voucherCode: String,
+    usedAt: { type: Date, default: Date.now },
+    orderId: String
+  }],
   isActive: { type: Boolean, default: true },
   lastOrderDate: { type: Date },
   createdAt: { type: Date, default: Date.now },

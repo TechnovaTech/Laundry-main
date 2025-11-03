@@ -52,6 +52,19 @@ export async function POST(request: NextRequest) {
     
     const savedOrder = await newOrder.save()
     
+    // Mark voucher as used if applied
+    if (orderData.appliedVoucherCode) {
+      await Customer.findByIdAndUpdate(orderData.customerId, {
+        $push: {
+          usedVouchers: {
+            voucherCode: orderData.appliedVoucherCode,
+            usedAt: new Date(),
+            orderId: orderId
+          }
+        }
+      })
+    }
+    
     // Clear due amount if payment is successful and record transaction
     if (orderData.paymentStatus === 'paid') {
       const customer = await Customer.findById(orderData.customerId)
@@ -80,39 +93,86 @@ export async function POST(request: NextRequest) {
     // Award points to customer and handle referral
     try {
       const settings = await WalletSettings.findOne()
-      const pointsToAward = settings?.orderCompletionPoints || 10
       const customer = await Customer.findById(orderData.customerId)
       
-      // Award order completion points
-      await Customer.findByIdAndUpdate(orderData.customerId, {
-        $inc: { loyaltyPoints: pointsToAward, totalOrders: 1 }
-      })
-      
-      // Check if this is first order and customer was referred
-      if (customer && customer.totalOrders === 0 && customer.referredBy) {
-        // Award signup bonus to new customer
-        const signupBonus = settings?.signupBonusPoints || 25
+      if (customer) {
+        // Calculate points based on order amount
+        const pointsPerRupee = settings?.pointsPerRupee || 2
+        const orderCompletionPoints = settings?.orderCompletionPoints || 10
+        const spendingPoints = Math.floor(orderData.totalAmount * pointsPerRupee)
+        const totalPoints = orderCompletionPoints + spendingPoints
+        
+        // Award order points to walletBalance
         await Customer.findByIdAndUpdate(orderData.customerId, {
-          $inc: { loyaltyPoints: signupBonus }
+          $inc: { walletBalance: totalPoints, totalOrders: 1 }
         })
         
-        // Find referrer and award referral points
-        const referrer = await Customer.findOne({ 
-          'referralCodes.code': customer.referredBy,
-          'referralCodes.used': false
+        // Create wallet transaction for order points
+        await WalletTransaction.create({
+          customerId: customer._id,
+          type: 'balance',
+          action: 'increase',
+          amount: totalPoints,
+          reason: `Order #${orderId} completed - ${orderCompletionPoints} completion + ${spendingPoints} spending points`,
+          previousValue: customer.walletBalance || 0,
+          newValue: (customer.walletBalance || 0) + totalPoints,
+          adjustedBy: 'System'
         })
         
-        if (referrer) {
-          const referralBonus = settings?.referralPoints || 50
-          await Customer.findByIdAndUpdate(referrer._id, {
-            $inc: { loyaltyPoints: referralBonus }
+        // Check if this is first order and customer was referred
+        if (customer.totalOrders === 0 && customer.referredBy) {
+          // Award signup bonus to new customer
+          const signupBonus = settings?.signupBonusPoints || 25
+          const newCustomerBalance = (customer.walletBalance || 0) + totalPoints
+          
+          await Customer.findByIdAndUpdate(orderData.customerId, {
+            $inc: { walletBalance: signupBonus }
           })
           
-          // Mark referral code as used
-          await Customer.updateOne(
-            { _id: referrer._id, 'referralCodes.code': customer.referredBy },
-            { $set: { 'referralCodes.$.used': true, 'referralCodes.$.usedBy': customer.name, 'referralCodes.$.usedAt': new Date() } }
-          )
+          // Create wallet transaction for signup bonus
+          await WalletTransaction.create({
+            customerId: customer._id,
+            type: 'balance',
+            action: 'increase',
+            amount: signupBonus,
+            reason: `Signup bonus for first order`,
+            previousValue: newCustomerBalance,
+            newValue: newCustomerBalance + signupBonus,
+            adjustedBy: 'System'
+          })
+          
+          // Find referrer and award referral points
+          const referrer = await Customer.findOne({ 
+            'referralCodes.code': customer.referredBy,
+            'referralCodes.used': false
+          })
+          
+          if (referrer) {
+            const referralBonus = settings?.referralPoints || 50
+            
+            // Award referral bonus to referrer's walletBalance
+            await Customer.findByIdAndUpdate(referrer._id, {
+              $inc: { walletBalance: referralBonus }
+            })
+            
+            // Create wallet transaction for referral bonus
+            await WalletTransaction.create({
+              customerId: referrer._id,
+              type: 'balance',
+              action: 'increase',
+              amount: referralBonus,
+              reason: `Referral bonus - ${customer.name} completed first order`,
+              previousValue: referrer.walletBalance || 0,
+              newValue: (referrer.walletBalance || 0) + referralBonus,
+              adjustedBy: 'System'
+            })
+            
+            // Mark referral code as used
+            await Customer.updateOne(
+              { _id: referrer._id, 'referralCodes.code': customer.referredBy },
+              { $set: { 'referralCodes.$.used': true, 'referralCodes.$.usedBy': customer.name, 'referralCodes.$.usedAt': new Date() } }
+            )
+          }
         }
       }
     } catch (error) {

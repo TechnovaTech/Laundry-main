@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Customer from '@/models/Customer'
+import WalletSettings from '@/models/WalletSettings'
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,7 +64,19 @@ export async function POST(request: NextRequest) {
       console.log('Updated existing customer:', updatedCustomer)
       return NextResponse.json({ success: true, data: { customerId: updatedCustomer._id, ...updatedCustomer.toObject() } })
     } else {
-      // Create new customer
+      // Get wallet settings for signup bonus
+      let settings = await WalletSettings.findOne()
+      if (!settings) {
+        settings = await WalletSettings.create({
+          pointsPerRupee: 2,
+          minRedeemPoints: 100,
+          referralPoints: 50,
+          signupBonusPoints: 25,
+          orderCompletionPoints: 10
+        })
+      }
+      
+      // Create new customer with signup bonus
       const customerData: any = {
         name: body.name,
         email: body.email,
@@ -71,14 +84,27 @@ export async function POST(request: NextRequest) {
         address: [],
         paymentMethods: [],
         walletBalance: 0,
-        loyaltyPoints: 0,
+        loyaltyPoints: settings.signupBonusPoints,
         createdAt: new Date(),
         updatedAt: new Date()
       }
       
       // Handle referral code if provided
       if (body.referralCode) {
-        customerData.referredBy = body.referralCode
+        const referrer = await Customer.findOne({ 'referralCodes.code': body.referralCode, 'referralCodes.used': false })
+        if (referrer) {
+          customerData.referredBy = body.referralCode
+          
+          // Mark code as used and award points to referrer
+          const codeIndex = referrer.referralCodes.findIndex((c: any) => c.code === body.referralCode && !c.used)
+          if (codeIndex !== -1) {
+            referrer.referralCodes[codeIndex].used = true
+            referrer.referralCodes[codeIndex].usedBy = body.name
+            referrer.referralCodes[codeIndex].usedAt = new Date()
+            referrer.loyaltyPoints = (referrer.loyaltyPoints || 0) + settings.referralPoints
+            await referrer.save()
+          }
+        }
       }
       
       const customer = new Customer(customerData)

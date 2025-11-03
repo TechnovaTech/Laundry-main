@@ -49,7 +49,8 @@ export default function Pickups() {
           const pendingPickups = data.data.filter((order: any) => 
             order.status === 'pending' &&
             order.pickupAddress?.pincode === partnerPincode &&
-            !order.partnerId
+            !order.partnerId &&
+            order.paymentStatus !== 'failed'
           );
           setPickups(pendingPickups);
         }

@@ -262,33 +262,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
     
-    // Credit referral points when FIRST order is delivered
+    // Award order completion points when order is delivered
     if (updateData.status === 'delivered' && currentOrder?.status !== 'delivered' && currentOrder?.customerId) {
       const customer = await Customer.findById(currentOrder.customerId)
+      const settings = await WalletSettings.findOne()
       
-      if (customer && customer.referredBy && customer.totalOrders === 0) {
-        const settings = await WalletSettings.findOne()
-        
-        if (settings) {
-          // Credit signup bonus to referred user (Customer B)
-          await Customer.findByIdAndUpdate(customer._id, {
-            $inc: { walletBalance: settings.signupBonusPoints }
-          })
-          
-          // Credit referral bonus to referrer (Customer A)
-          const referrer = await Customer.findOne({ 'referralCodes.code': customer.referredBy })
-          if (referrer) {
-            await Customer.findByIdAndUpdate(referrer._id, {
-              $inc: { walletBalance: settings.referralPoints }
-            })
+      if (customer && settings) {
+        // Award order completion points (loyalty points, not wallet balance)
+        await Customer.findByIdAndUpdate(customer._id, {
+          $inc: { 
+            loyaltyPoints: settings.orderCompletionPoints,
+            totalOrders: 1
           }
-        }
+        })
+        console.log(`Awarded ${settings.orderCompletionPoints} loyalty points to customer ${customer._id} for order completion`)
       }
-      
-      // Update total orders count
-      await Customer.findByIdAndUpdate(customer._id, {
-        $inc: { totalOrders: 1 }
-      })
     }
     
     // Update using the found order's _id

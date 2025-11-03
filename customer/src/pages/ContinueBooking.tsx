@@ -80,11 +80,33 @@ const ContinueBooking = () => {
     if (!couponCode.trim()) return;
     
     try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) {
+        setCouponError("Please login to use coupons");
+        return;
+      }
+      
+      // Check if customer already used this voucher
+      const customerRes = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const customerData = await customerRes.json();
+      
+      if (customerData.success && customerData.data) {
+        const usedVouchers = customerData.data.usedVouchers || [];
+        const alreadyUsed = usedVouchers.some((v: any) => v.voucherCode === couponCode.trim());
+        
+        if (alreadyUsed) {
+          setCouponError("You have already used this coupon");
+          setDiscount(0);
+          setAppliedVoucher(null);
+          return;
+        }
+      }
+      
       const response = await fetch('http://localhost:3000/api/vouchers');
       const data = await response.json();
       
       if (data.success) {
-        const voucher = data.data.find((v: any) => v.code === couponCode.trim());
+        const voucher = data.data.find((v: any) => v.code === couponCode.trim() && v.isActive);
         
         if (voucher) {
           const discountAmount = Math.floor((totalAmount * voucher.discount) / 100);
@@ -92,7 +114,7 @@ const ContinueBooking = () => {
           setAppliedVoucher(voucher);
           setCouponError("");
         } else {
-          setCouponError("Invalid coupon code");
+          setCouponError("Invalid or inactive coupon code");
           setDiscount(0);
           setAppliedVoucher(null);
         }
@@ -283,7 +305,8 @@ const ContinueBooking = () => {
                   pickupSlot: orderData.selectedSlot,
                   pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
                   paymentMethod: 'Cash on Delivery',
-                  paymentStatus: 'pending'
+                  paymentStatus: 'pending',
+                  appliedVoucherCode: appliedVoucher?.code || null
                 };
                 
                 const response = await fetch('http://localhost:3000/api/orders', {
@@ -371,7 +394,8 @@ const ContinueBooking = () => {
                         paymentMethod: paymentMethod,
                         paymentStatus: 'paid',
                         razorpayOrderId: response.razorpay_order_id,
-                        razorpayPaymentId: response.razorpay_payment_id
+                        razorpayPaymentId: response.razorpay_payment_id,
+                        appliedVoucherCode: appliedVoucher?.code || null
                       };
                       
                       const placeOrderResponse = await fetch('http://localhost:3000/api/orders', {

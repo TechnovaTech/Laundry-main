@@ -18,6 +18,7 @@ const Home = () => {
   const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [claimedVouchers, setClaimedVouchers] = useState<string[]>([]);
+  const [hasClaimedAny, setHasClaimedAny] = useState(false);
   const [recentOrders, setRecentOrders] = useState([]);
   const [heroItems, setHeroItems] = useState([]);
   const [currentHero, setCurrentHero] = useState(0);
@@ -44,6 +45,11 @@ const Home = () => {
     fetchRecentOrders();
     fetchHeroItems();
     fetchProfileImage();
+    
+    const claimed = localStorage.getItem('hasClaimedVoucher');
+    if (claimed === 'true') {
+      setHasClaimedAny(true);
+    }
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -195,6 +201,8 @@ const Home = () => {
     navigator.clipboard.writeText(selectedVoucherCode);
     setIsCopied(true);
     setClaimedVouchers(prev => [...prev, selectedVoucherCode]);
+    setHasClaimedAny(true);
+    localStorage.setItem('hasClaimedVoucher', 'true');
   };
 
   const closeModal = () => {
@@ -352,14 +360,14 @@ const Home = () => {
                   <h3 className="font-bold text-base mb-1 text-blue-900">{voucher.slogan}</h3>
                   <p className="text-blue-700 text-sm mb-3">Limited time offer</p>
                   <Button 
-                    onClick={() => !claimedVouchers.includes(voucher.code) && handleApplyVoucher(voucher.code)}
+                    onClick={() => !hasClaimedAny && handleApplyVoucher(voucher.code)}
                     className={`w-full h-9 rounded-xl text-sm font-semibold shadow-md ${
-                      claimedVouchers.includes(voucher.code)
+                      hasClaimedAny
                         ? 'bg-gray-400 text-white cursor-not-allowed'
                         : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
                     }`}
                   >
-                    {claimedVouchers.includes(voucher.code) ? '✓ Claimed' : 'Apply Now'}
+                    {hasClaimedAny ? '✓ Used' : 'Apply Now'}
                   </Button>
                 </div>
               </div>

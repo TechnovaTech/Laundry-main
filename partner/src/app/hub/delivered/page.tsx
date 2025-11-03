@@ -19,10 +19,12 @@ export default function DeliveredToHub() {
       const data = await response.json();
       
       if (data.success) {
-        const filteredOrders = data.data.filter((order: any) => 
-          ((order.status === 'delivered_to_hub' || order.status === 'ready' || order.status === 'delivered') && (order.partnerId?._id === partnerId || order.partnerId === partnerId)) ||
-          (order.status === 'delivery_failed' && order.returnToHubRequested && (order.partnerId?._id === partnerId || order.partnerId === partnerId))
-        );
+        const filteredOrders = data.data.filter((order: any) => {
+          const isMyOrder = order.partnerId?._id === partnerId || order.partnerId === partnerId;
+          const isDeliveredToHub = order.status === 'delivered_to_hub' || order.status === 'ready' || order.status === 'delivered';
+          const isReturnApproved = order.status === 'delivery_failed' && order.returnToHubApproved;
+          return isMyOrder && (isDeliveredToHub || isReturnApproved);
+        });
         setDelivered(filteredOrders);
       }
     } catch (error) {
@@ -64,20 +66,31 @@ export default function DeliveredToHub() {
           {delivered.map((order: any) => (
             <div key={order._id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
               <div className="flex items-start justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="text-base font-semibold text-black">#{order.orderId}</p>
-                  <p className="text-sm text-gray-700 mt-2">{order.customerId?.name || 'Customer'}, <span className="text-black">{order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items'}</span></p>
-                  <p className="text-sm text-gray-600 mt-2">{order.status === 'ready' ? 'Approved on: ' : 'Delivered on: '}{order.status === 'ready' && order.hubApprovedAt ? new Date(order.hubApprovedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.hubApprovedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : order.deliveredToHubAt ? new Date(order.deliveredToHubAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveredToHubAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}</p>
+                  <p className="text-sm text-gray-700 mt-1">{order.customerId?.name || 'Customer'}</p>
+                  <p className="text-xs text-black mt-1">{order.items?.length || 0} items • ₹{order.totalAmount || 0}</p>
+                  <p className="text-xs text-gray-600 mt-2">
+                    Delivered: {order.deliveredToHubAt ? new Date(order.deliveredToHubAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveredToHubAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
+                  </p>
+                  {(order.status === 'ready' || order.status === 'delivered') && order.hubApprovedAt && (
+                    <p className="text-xs text-green-600 mt-1">
+                      ✓ Approved: {new Date(order.hubApprovedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.hubApprovedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </p>
+                  )}
+                  {order.status === 'delivery_failed' && order.returnToHubApproved && (
+                    <p className="text-xs text-green-600 mt-1">
+                      ✓ Return Approved: {order.returnToHubApprovedAt ? new Date(order.returnToHubApprovedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.returnToHubApprovedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
+                    </p>
+                  )}
                 </div>
-                <span className={`rounded-full text-white px-3 py-1 text-xs font-semibold ${
-                  order.status === 'ready' ? 'bg-green-500' : 
-                  order.status === 'delivery_failed' && order.returnToHubRequested && !order.returnToHubApproved ? 'bg-yellow-500' :
-                  order.status === 'delivery_failed' && order.returnToHubApproved ? 'bg-green-500' :
+                <span className={`rounded-full text-white px-3 py-1 text-xs font-semibold whitespace-nowrap ${
+                  order.status === 'ready' || order.status === 'delivered' ? 'bg-green-500' : 
+                  order.status === 'delivery_failed' && order.returnToHubApproved ? 'bg-blue-500' :
                   'bg-orange-500'
                 }`}>
-                  {order.status === 'ready' ? 'Approved' : 
-                   order.status === 'delivery_failed' && order.returnToHubRequested && !order.returnToHubApproved ? 'Return Pending' :
-                   order.status === 'delivery_failed' && order.returnToHubApproved ? 'Return Approved' :
+                  {order.status === 'ready' || order.status === 'delivered' ? 'Approved' : 
+                   order.status === 'delivery_failed' && order.returnToHubApproved ? 'Return OK' :
                    'Pending'}
                 </span>
               </div>
