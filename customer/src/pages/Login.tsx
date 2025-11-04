@@ -6,6 +6,7 @@ import loginPersonImg from "@/assets/LOGIN.png";
 import { GoogleLogin } from '@react-oauth/google';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
+import { API_URL } from '@/config/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const Login = () => {
 
   const handleGoogleLogin = async (credentialResponse: any) => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/google-login', {
+      const response = await fetch(`${API_URL}/api/auth/google-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -42,7 +43,7 @@ const Login = () => {
   const handleGoogleLoginMobile = async () => {
     try {
       const result = await GoogleAuth.signIn();
-      const response = await fetch('http://localhost:3000/api/auth/google-login', {
+      const response = await fetch(`${API_URL}/api/auth/google-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -69,7 +70,7 @@ const Login = () => {
     if (mobileNumber.length === 10) {
       try {
         const phone = `+91${mobileNumber}`;
-        const response = await fetch('http://localhost:3000/api/auth/send-otp', {
+        const response = await fetch(`${API_URL}/api/auth/send-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone })

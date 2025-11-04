@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, MapPin, Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Toast, ConfirmDialog } from "@/components/Toast";
+import { API_URL } from '@/config/api';
 
 const BookingConfirmation = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const BookingConfirmation = () => {
 
   const fetchCancellationCharges = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/order-charges');
+      const response = await fetch(`${API_URL}/api/order-charges`);
       const data = await response.json();
       if (data.success) {
         setCancellationPercentage(data.data.cancellationPercentage);
@@ -193,7 +194,7 @@ const BookingConfirmation = () => {
           onConfirm={async () => {
             setShowConfirmDialog(false);
             try {
-              const orderRes = await fetch(`http://localhost:3000/api/orders`);
+              const orderRes = await fetch(`${API_URL}/api/orders`);
               const ordersData = await orderRes.json();
               const order = ordersData.data.find((o: { orderId: string | number; _id: string | number; partnerId?: string; totalAmount: number }) => 
                 o.orderId === `#${orderId}` || 
@@ -221,7 +222,7 @@ const BookingConfirmation = () => {
                 console.log('No partner assigned - No cancellation fee');
               }
               
-              const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 

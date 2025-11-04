@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { API_URL } from '@/config/api';
 
 export default function DeliveredToHub() {
   const [delivered, setDelivered] = useState([]);
@@ -14,8 +15,8 @@ export default function DeliveredToHub() {
 
   const fetchDeliveredOrders = async () => {
     try {
-      const partnerId = localStorage.getItem('partnerId');
-      const response = await fetch('http://localhost:3000/api/orders');
+      const partnerId = localStorage.getItem('partnerId`);
+      const response = await fetch(`${API_URL}/api/orders`);
       const data = await response.json();
       
       if (data.success) {
@@ -73,7 +74,7 @@ export default function DeliveredToHub() {
                   <p className="text-xs text-gray-600 mt-2">
                     Delivered: {order.deliveredToHubAt ? new Date(order.deliveredToHubAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveredToHubAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
                   </p>
-                  {(order.status === 'ready' || order.status === 'delivered') && order.hubApprovedAt && (
+                  {(order.status === 'ready' || order.status === 'delivered`) && order.hubApprovedAt && (
                     <p className="text-xs text-green-600 mt-1">
                       ✓ Approved: {new Date(order.hubApprovedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.hubApprovedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
                     </p>

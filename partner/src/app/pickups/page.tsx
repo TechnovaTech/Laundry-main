@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import BottomNav from "@/components/BottomNav";
+import { API_URL } from '@/config/api';
 
 interface Pickup {
   _id: string;
@@ -35,14 +36,14 @@ export default function Pickups() {
 
   const fetchPickups = async () => {
     try {
-      const partnerId = localStorage.getItem('partnerId');
+      const partnerId = localStorage.getItem('partnerId`);
       const partnerRes = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
       const partnerData = await partnerRes.json();
       
       if (partnerData.success && partnerData.data.address?.pincode) {
         const partnerPincode = partnerData.data.address.pincode;
         
-        const response = await fetch('http://localhost:3000/api/orders');
+        const response = await fetch(`${API_URL}/api/orders`);
         const data = await response.json();
         
         if (data.success) {
@@ -116,14 +117,14 @@ export default function Pickups() {
                 </a>
                 <button
                   onClick={async () => {
-                    const partnerId = localStorage.getItem('partnerId');
+                    const partnerId = localStorage.getItem('partnerId`);
                     
                     // Check if order is still available
                     const checkRes = await fetch(`http://localhost:3000/api/orders/${p._id}`);
                     const checkData = await checkRes.json();
                     
                     if (checkData.data?.partnerId) {
-                      alert('This order was just assigned to another partner');
+                      alert('This order was just assigned to another partner`);
                       fetchPickups();
                       return;
                     }

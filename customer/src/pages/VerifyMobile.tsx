@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { API_URL } from '@/config/api';
 
 const VerifyMobile = () => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const VerifyMobile = () => {
       const phone = `+91${mobileNumber}`;
       
       try {
-        const response = await fetch('http://localhost:3000/api/auth/verify-otp', {
+        const response = await fetch(`${API_URL}/api/auth/verify-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone, code: enteredOtp, role: 'customer' })
@@ -53,7 +54,7 @@ const VerifyMobile = () => {
           localStorage.setItem('authToken', data.token);
           localStorage.setItem('customerMobile', mobileNumber);
           
-          const checkResponse = await fetch('http://localhost:3000/api/mobile/auth/login', {
+          const checkResponse = await fetch(`${API_URL}/api/mobile/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ mobile: mobileNumber })
@@ -126,7 +127,7 @@ const VerifyMobile = () => {
               onClick={async () => {
                 try {
                   const phone = `+91${mobileNumber}`;
-                  const response = await fetch('http://localhost:3000/api/auth/send-otp', {
+                  const response = await fetch(`${API_URL}/api/auth/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ phone })

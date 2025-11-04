@@ -4,6 +4,7 @@ import { ArrowLeft, Phone, Shirt, Clock, Package, Truck, CheckCircle2, Download,
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { generateInvoicePDF } from "@/utils/generateInvoice";
+import { API_URL } from '@/config/api';
 
 const OrderDetails = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const OrderDetails = () => {
   
   const fetchOrderDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/orders`);
+      const response = await fetch(`${API_URL}/api/orders`);
       const data = await response.json();
       
       if (data.success) {
@@ -274,7 +275,7 @@ const OrderDetails = () => {
                     }
                     console.log('Reporting issue for order:', order._id);
                     console.log('Issue text:', issueText);
-                    const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+                    const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Shirt, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { API_URL } from '@/config/api';
 
 const RateOrder = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const RateOrder = () => {
 
   const fetchOrderData = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/orders/${orderId}`);
+      const response = await fetch(`${API_URL}/api/orders/${orderId}`);
       const data = await response.json();
       
       if (data.success) {
@@ -63,7 +64,7 @@ const RateOrder = () => {
       
       console.log('Submitting review:', { actualOrderId, customerId, rating, feedback });
       
-      const response = await fetch(`http://localhost:3000/api/orders/${actualOrderId}/review`, {
+      const response = await fetch(`${API_URL}/api/orders/${actualOrderId}/review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import BottomNav from "@/components/BottomNav";
+import { API_URL } from '@/config/api';
 
 export default function PickForDelivery() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -14,14 +15,14 @@ export default function PickForDelivery() {
 
   const fetchOrders = async () => {
     try {
-      const partnerId = localStorage.getItem('partnerId');
+      const partnerId = localStorage.getItem('partnerId`);
       const partnerRes = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
       const partnerData = await partnerRes.json();
       
       if (partnerData.success && partnerData.data.address?.pincode) {
         const partnerPincode = partnerData.data.address.pincode;
         
-        const ordersRes = await fetch('http://localhost:3000/api/orders');
+        const ordersRes = await fetch(`${API_URL}/api/orders`);
         const ordersData = await ordersRes.json();
         
         if (ordersData.success) {
@@ -83,7 +84,7 @@ export default function PickForDelivery() {
                       {order.redeliveryScheduled && <span style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem', borderRadius: '4px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: '600' }}>REDELIVERY</span>}
                     </div>
                     <p className="text-xs text-gray-600 mt-2">Customer: <span className="text-black">{order.customerId?.name || 'N/A'}</span></p>
-                    <p className="text-xs text-gray-600 mt-1">Items: <span className="text-black">{order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ')}</span></p>
+                    <p className="text-xs text-gray-600 mt-1">Items: <span className="text-black">{order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', `)}</span></p>
                     <p className="text-xs text-gray-600 mt-1">Address: <span className="text-black">{order.pickupAddress?.street}, {order.pickupAddress?.city}</span></p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -117,7 +118,7 @@ export default function PickForDelivery() {
               const firstOrderId = Array.from(selected)[0];
               window.location.href = `/delivery/${firstOrderId}`;
             } else {
-              alert('Please select at least one order');
+              alert('Please select at least one order`);
             }
           }}
           disabled={orders.length === 0}

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import checkAvailabilityImg from "@/assets/Pincode availablity screen.png";
+import { API_URL } from '@/config/api';
 
 const CheckAvailability = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const CheckAvailability = () => {
   const handleCheckAvailability = async () => {
     try {
       console.log('Checking pincode:', pincode)
-      const response = await fetch(`http://localhost:3000/api/check-serviceable?pincode=${pincode}`)
+      const response = await fetch(`${API_URL}/api/check-serviceable?pincode=${pincode}`)
       const data = await response.json()
       console.log('API response:', data)
       

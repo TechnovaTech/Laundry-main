@@ -4,6 +4,7 @@ import { ArrowLeft, Phone, Shirt, CheckCircle2, MapPin, Circle } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LeafletMap from "@/components/LeafletMap";
+import { API_URL } from '@/config/api';
 
 declare global {
   interface Window {
@@ -50,7 +51,7 @@ const ContinueBooking = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -66,7 +67,7 @@ const ContinueBooking = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/orders?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/orders?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -89,7 +90,7 @@ const ContinueBooking = () => {
       }
       
       // Check if customer already used this voucher
-      const customerRes = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const customerRes = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const customerData = await customerRes.json();
       
       if (customerData.success && customerData.data) {
@@ -104,7 +105,7 @@ const ContinueBooking = () => {
         }
       }
       
-      const response = await fetch('http://localhost:3000/api/vouchers');
+      const response = await fetch(`${API_URL}/api/vouchers`);
       const data = await response.json();
       
       if (data.success) {
@@ -327,7 +328,7 @@ const ContinueBooking = () => {
                   appliedVoucherCode: appliedVoucher?.code || null
                 };
                 
-                const response = await fetch('http://localhost:3000/api/orders', {
+                const response = await fetch(`${API_URL}/api/orders`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(orderPayload)
@@ -360,7 +361,7 @@ const ContinueBooking = () => {
               }
               
               // For online payment methods (UPI, Card, Bank Transfer), use Razorpay
-              const orderResponse = await fetch('http://localhost:3000/api/razorpay/create-order', {
+              const orderResponse = await fetch(`${API_URL}/api/razorpay/create-order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -389,7 +390,7 @@ const ContinueBooking = () => {
                 handler: async function (response: any) {
                   try {
                     // Verify payment
-                    const verifyResponse = await fetch('http://localhost:3000/api/razorpay/verify-payment', {
+                    const verifyResponse = await fetch(`${API_URL}/api/razorpay/verify-payment`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
@@ -417,7 +418,7 @@ const ContinueBooking = () => {
                         appliedVoucherCode: appliedVoucher?.code || null
                       };
                       
-                      const placeOrderResponse = await fetch('http://localhost:3000/api/orders', {
+                      const placeOrderResponse = await fetch(`${API_URL}/api/orders`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(orderPayload)

@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Info, Shirt, Bed, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { API_URL } from '@/config/api';
 
 const Prices = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const Prices = () => {
 
   const fetchItems = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/pricing');
+      const response = await fetch(`${API_URL}/api/pricing`);
       const data = await response.json();
       if (data.success) {
         setItems(data.data);

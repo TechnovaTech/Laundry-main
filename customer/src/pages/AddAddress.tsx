@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, ChevronDown, X, AlertCircle } from "lucide-react";
+import { API_URL } from '@/config/api';
 
 const AddAddress = () => {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ const AddAddress = () => {
     try {
       const customerId = localStorage.getItem('customerId');
       if (customerId) {
-        const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+        const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
         const data = await response.json();
         if (data.success && data.data?.address) {
           setSavedAddresses(data.data.address);
@@ -59,7 +60,7 @@ const AddAddress = () => {
       const customerId = localStorage.getItem('customerId');
       if (customerId) {
         const updatedAddresses = savedAddresses.filter((_, i) => i !== index);
-        const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
+        const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ address: updatedAddresses })
@@ -105,7 +106,7 @@ const AddAddress = () => {
     
     if (value.length === 6) {
       try {
-        const response = await fetch(`http://localhost:3000/api/locations/pincodes?pincode=${value}`);
+        const response = await fetch(`${API_URL}/api/locations/pincodes?pincode=${value}`);
         const data = await response.json();
         if (data && data.length > 0) {
           setAddress(prev => ({
@@ -116,7 +117,7 @@ const AddAddress = () => {
         }
         
         // Check serviceability for display only
-        const serviceableResponse = await fetch(`http://localhost:3000/api/check-serviceable?pincode=${value}`);
+        const serviceableResponse = await fetch(`${API_URL}/api/check-serviceable?pincode=${value}`);
         const serviceableData = await serviceableResponse.json();
         
         if (!serviceableData.serviceable) {
@@ -133,7 +134,7 @@ const AddAddress = () => {
       try {
         // Check serviceability but don't block saving
         try {
-          const serviceableResponse = await fetch(`http://localhost:3000/api/check-serviceable?pincode=${address.pincode}`)
+          const serviceableResponse = await fetch(`${API_URL}/api/check-serviceable?pincode=${address.pincode}`)
           const serviceableData = await serviceableResponse.json()
           
           if (!serviceableData.serviceable) {
@@ -156,7 +157,7 @@ const AddAddress = () => {
           
           const updatedAddresses = [...savedAddresses, newAddress];
           
-          const saveResponse = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
+          const saveResponse = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ address: updatedAddresses })

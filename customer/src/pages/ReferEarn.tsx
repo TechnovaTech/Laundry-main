@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Users, ShoppingCart, Wallet, Share2, Copy, Home as HomeIcon, Tag, RotateCcw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { API_URL } from '@/config/api';
 
 const ReferEarn = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const ReferEarn = () => {
 
   const fetchReferralSettings = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/wallet-settings');
+      const response = await fetch(`${API_URL}/api/wallet-settings`);
       const data = await response.json();
       if (data.success) {
         setReferralPoints(data.data.referralPoints);
@@ -37,7 +38,7 @@ const ReferEarn = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -51,7 +52,7 @@ const ReferEarn = () => {
           const newCode = generateReferralCode(data.data.name, codes.length);
           codes.push({ code: newCode, used: false, createdAt: new Date() });
           
-          await fetch(`http://localhost:3000/api/customers/${customerId}`, {
+          await fetch(`${API_URL}/api/customers/${customerId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ referralCodes: codes })
@@ -85,14 +86,14 @@ const ReferEarn = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data) {
         const codes = data.data.referralCodes || [];
         const usedCodes = codes.filter((c: any) => c.used);
         
-        const settingsRes = await fetch('http://localhost:3000/api/wallet-settings');
+        const settingsRes = await fetch(`${API_URL}/api/wallet-settings`);
         const settingsData = await settingsRes.json();
         const currentReferralPoints = settingsData.success ? settingsData.data.referralPoints : referralPoints;
         

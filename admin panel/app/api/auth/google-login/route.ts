@@ -7,6 +7,12 @@ import jwt from 'jsonwebtoken';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Support multiple client IDs (Web + Android)
+const ALLOWED_CLIENT_IDS = [
+  process.env.GOOGLE_CLIENT_ID, // Web client ID
+  process.env.GOOGLE_ANDROID_CLIENT_ID, // Android client ID
+].filter(Boolean);
+
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
@@ -23,18 +29,30 @@ export async function POST(request: NextRequest) {
     const { credential, idToken, role } = await request.json();
 
     let ticket;
-    if (credential) {
-      ticket = await client.verifyIdToken({
-        idToken: credential,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-    } else if (idToken) {
-      ticket = await client.verifyIdToken({
-        idToken: idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-    } else {
+    const tokenToVerify = credential || idToken;
+    
+    if (!tokenToVerify) {
       return NextResponse.json({ success: false, error: 'No credential provided' }, { status: 400 });
+    }
+
+    // Try to verify with all allowed client IDs
+    let verificationError;
+    for (const clientId of ALLOWED_CLIENT_IDS) {
+      try {
+        ticket = await client.verifyIdToken({
+          idToken: tokenToVerify,
+          audience: clientId,
+        });
+        break; // Success, exit loop
+      } catch (error) {
+        verificationError = error;
+        continue; // Try next client ID
+      }
+    }
+
+    if (!ticket) {
+      console.error('Token verification failed for all client IDs:', verificationError);
+      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 400 });
     }
 
     const payload = ticket.getPayload();

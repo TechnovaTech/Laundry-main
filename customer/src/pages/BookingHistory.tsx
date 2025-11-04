@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import group12Image from "@/assets/Group (12).png";
 import deliveryImage from "@/assets/Delivery.png";
+import { API_URL } from '@/config/api';
 
 const BookingHistory = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const BookingHistory = () => {
         return;
       }
       
-      const response = await fetch(`http://localhost:3000/api/orders?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/orders?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success) {

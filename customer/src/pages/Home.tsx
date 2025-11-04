@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, Minus, Plus, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
 import homeScreenImage from "@/assets/Home screen.png";
+import { API_URL } from '@/config/api';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ const Home = () => {
 
   const fetchVouchers = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/vouchers');
+      const response = await fetch(`${API_URL}/api/vouchers`);
       const data = await response.json();
       if (data.success) {
         setVouchers(data.data);
@@ -74,7 +75,7 @@ const Home = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data?.address?.[0]) {
@@ -92,7 +93,7 @@ const Home = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data?.profileImage) {
@@ -108,7 +109,7 @@ const Home = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/orders?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/orders?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success) {
@@ -122,7 +123,7 @@ const Home = () => {
   
   const fetchHeroItems = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/hero-section');
+      const response = await fetch(`${API_URL}/api/hero-section`);
       const data = await response.json();
       if (data.success) {
         setHeroItems(data.data);

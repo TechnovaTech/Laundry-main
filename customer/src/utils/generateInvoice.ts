@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import acsLogo from '@/assets/ACS LOGO.png';
 import usLogo from '@/assets/LOGO MARK GRADIENT.png';
+import { API_URL } from '@/config/api';
 
 export const generateInvoicePDF = async (order: any) => {
   if (!order) return;
@@ -19,7 +20,7 @@ export const generateInvoicePDF = async (order: any) => {
   };
   
   try {
-    const response = await fetch(`http://localhost:3000/api/check-serviceable?pincode=${order.pickupAddress?.pincode}`);
+    const response = await fetch(`${API_URL}/api/check-serviceable?pincode=${order.pickupAddress?.pincode}`);
     const data = await response.json();
     if (data.serviceable && data.hub) {
       hubAddress = {

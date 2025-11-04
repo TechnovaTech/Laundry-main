@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Info, Shirt, MapPin, CheckCircle2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { API_URL } from '@/config/api';
 
 interface PricingItem {
   _id: string;
@@ -47,7 +48,7 @@ const Booking = () => {
   
   const fetchMinOrderPrice = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/wallet-settings');
+      const response = await fetch(`${API_URL}/api/wallet-settings`);
       const data = await response.json();
       console.log('Wallet settings response:', data);
       if (data.success && data.data) {
@@ -62,7 +63,7 @@ const Booking = () => {
   
   const fetchPricingItems = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/pricing');
+      const response = await fetch(`${API_URL}/api/pricing`);
       const data = await response.json();
       if (data.success) {
         setPricingItems(data.data);
@@ -80,7 +81,7 @@ const Booking = () => {
   
   const fetchTimeSlots = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/time-slots');
+      const response = await fetch(`${API_URL}/api/time-slots`);
       const data = await response.json();
       if (data.success) {
         setTimeSlots(data.data);
@@ -149,7 +150,7 @@ const Booking = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data?.address) {

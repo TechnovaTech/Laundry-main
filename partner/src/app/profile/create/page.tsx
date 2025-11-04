@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { API_URL } from '@/config/api';
 
 export default function CreateProfile() {
   const [formData, setFormData] = useState({
@@ -24,9 +25,9 @@ export default function CreateProfile() {
 
   useEffect(() => {
     const fetchPartnerData = async () => {
-      const partnerId = localStorage.getItem("partnerId");
+      const partnerId = localStorage.getItem("partnerId`);
       if (!partnerId) {
-        router.push("/login");
+        router.push("/login`);
         return;
       }
 
@@ -36,11 +37,11 @@ export default function CreateProfile() {
         
         if (data.success && data.data) {
           const partner = data.data;
-          const isGoogleUser = partner.mobile?.startsWith('google_');
+          const isGoogleUser = partner.mobile?.startsWith('google_`);
           setFormData({
             name: partner.name || "",
             email: partner.email || "",
-            mobile: isGoogleUser ? "" : (partner.mobile || ""),
+            mobile: isGoogleUser ? "" : (partner.mobile || "`),
             profileImage: partner.profileImage || "",
             address: partner.address || {
               street: "",
@@ -65,13 +66,13 @@ export default function CreateProfile() {
 
   const handleSave = async () => {
     if (!formData.name || !formData.mobile) {
-      alert("Please fill required fields");
+      alert("Please fill required fields`);
       return;
     }
 
     setLoading(true);
     try {
-      const partnerId = localStorage.getItem("partnerId");
+      const partnerId = localStorage.getItem("partnerId`);
       const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -81,12 +82,12 @@ export default function CreateProfile() {
       const data = await response.json();
       
       if (data.success) {
-        router.push("/profile/kyc");
+        router.push("/profile/kyc`);
       } else {
-        alert(data.error || "Failed to save profile");
+        alert(data.error || "Failed to save profile`);
       }
     } catch (error) {
-      alert("Network error. Please try again.");
+      alert("Network error. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -187,7 +188,7 @@ export default function CreateProfile() {
             maxLength={10}
             value={formData.mobile}
             onChange={(e) => {
-              const value = e.target.value.replace(/\D/g, '');
+              const value = e.target.value.replace(/\D/g, '`);
               setFormData(prev => ({ ...prev, mobile: value }));
             }}
           />

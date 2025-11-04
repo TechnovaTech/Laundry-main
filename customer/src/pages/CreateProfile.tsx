@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, User, Mail, Phone, Plus, X } from "lucide-react";
+import { API_URL } from '@/config/api';
 
 const CreateProfile = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const CreateProfile = () => {
     // Fetch existing customer data from database
     const fetchCustomerData = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${actualCustomerId}`)
+        const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${actualCustomerId}`)
         const data = await response.json()
         
         if (data.success && data.data) {
@@ -74,7 +75,7 @@ const CreateProfile = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/mobile/profile`, {
+      const response = await fetch(`${API_URL}/api/mobile/profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

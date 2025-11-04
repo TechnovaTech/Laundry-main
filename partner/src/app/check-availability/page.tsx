@@ -3,9 +3,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { API_URL } from '@/config/api';
 
 export default function CheckAvailability() {
-  const [pincode, setPincode] = useState("");
+  const [pincode, setPincode] = useState("`);
   const router = useRouter();
 
   const handleCheck = async () => {
@@ -14,12 +15,12 @@ export default function CheckAvailability() {
       const data = await response.json();
       
       if (data.serviceable) {
-        router.push("/congrats");
+        router.push("/congrats`);
       } else {
-        router.push("/not-available");
+        router.push("/not-available`);
       }
     } catch (error) {
-      router.push("/not-available");
+      router.push("/not-available`);
     }
   };
 
@@ -44,7 +45,7 @@ export default function CheckAvailability() {
             type="tel"
             placeholder="Pincode"
             value={pincode}
-            onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
+            onChange={(e) => setPincode(e.target.value.replace(/\D/g, "`))}
             className="w-full rounded-xl border border-gray-300 px-4 py-4 text-center text-lg text-black placeholder:text-gray-400 outline-none focus:ring-2"
             style={{ outlineColor: '#452D9B' }}
             onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px #452D9B'}

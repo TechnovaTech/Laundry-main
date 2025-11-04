@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, Share2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { API_URL } from '@/config/api';
 
 const Wallet = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const Wallet = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -79,7 +80,7 @@ const Wallet = () => {
 
   const fetchWalletSettings = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/wallet-settings');
+      const response = await fetch(`${API_URL}/api/wallet-settings`);
       const data = await response.json();
       console.log('Wallet settings fetched:', data);
       if (data.success) {
@@ -102,7 +103,7 @@ const Wallet = () => {
       console.log('Fetching transactions for customer:', customerId);
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/wallet-transactions?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/wallet-transactions?customerId=${customerId}`);
       const data = await response.json();
       console.log('Transactions response:', data);
       
@@ -159,7 +160,7 @@ const Wallet = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/customers/${customerId}`, {
+      const response = await fetch(`${API_URL}/api/customers/${customerId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -169,7 +170,7 @@ const Wallet = () => {
       });
       
       if (response.ok) {
-        await fetch(`http://localhost:3000/api/customers/${customerId}/adjust`, {
+        await fetch(`${API_URL}/api/customers/${customerId}/adjust`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -180,7 +181,7 @@ const Wallet = () => {
           })
         });
         
-        await fetch(`http://localhost:3000/api/customers/${customerId}/adjust`, {
+        await fetch(`${API_URL}/api/customers/${customerId}/adjust`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

@@ -10,7 +10,7 @@ const ReferAndEarn = () => {
 
   const fetchReferralPoints = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/wallet-settings');
+      const response = await fetch(`${API_URL}/api/wallet-settings`);
       const data = await response.json();
       if (data.success) {
         setReferralPoints(data.data.referralPoints);
@@ -36,6 +36,7 @@ const ReferAndEarn = () => {
 import { useNavigate, useLocation } from "react-router-dom";
 import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, MessageCircle, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { API_URL } from '@/config/api';
 
 
 const Profile = () => {
@@ -103,7 +104,7 @@ const Profile = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -158,7 +159,7 @@ const Profile = () => {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -215,7 +216,7 @@ const Profile = () => {
       });
       
       // Update database
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address: dbAddresses })
@@ -287,7 +288,7 @@ const Profile = () => {
       
       console.log('Sending payment data:', { paymentMethods: updatedPayments });
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentMethods: updatedPayments })
@@ -338,7 +339,7 @@ const Profile = () => {
       
       const updatedPayments = paymentOptions.filter((_, i) => i !== index);
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentMethods: updatedPayments })
@@ -362,7 +363,7 @@ const Profile = () => {
         isPrimary: i === index
       }));
       
-      const response = await fetch(`http://localhost:3000/api/mobile/profile?customerId=${customerId}`, {
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentMethods: updatedPayments })

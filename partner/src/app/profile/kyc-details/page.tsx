@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { API_URL } from '@/config/api';
 
 export default function KYCDetails() {
   const [loading, setLoading] = useState(true);
@@ -8,9 +9,9 @@ export default function KYCDetails() {
   const router = useRouter();
 
   useEffect(() => {
-    const partnerId = localStorage.getItem("partnerId");
+    const partnerId = localStorage.getItem("partnerId`);
     if (!partnerId) {
-      router.push("/login");
+      router.push("/login`);
       return;
     }
     fetchPartnerStatus(partnerId);

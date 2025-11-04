@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { API_URL } from '@/config/api';
 
 export default function BankDetailsPage() {
   const router = useRouter();
@@ -21,9 +22,9 @@ export default function BankDetailsPage() {
 
   const fetchPartnerData = async () => {
     try {
-      const partnerId = localStorage.getItem("partnerId");
+      const partnerId = localStorage.getItem("partnerId`);
       if (!partnerId) {
-        router.push("/login");
+        router.push("/login`);
         return;
       }
 
@@ -50,7 +51,7 @@ export default function BankDetailsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const partnerId = localStorage.getItem("partnerId");
+      const partnerId = localStorage.getItem("partnerId`);
 
       const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`, {
         method: "PATCH",
@@ -68,14 +69,14 @@ export default function BankDetailsPage() {
 
       const result = await response.json();
       if (result.success) {
-        alert("Bank details updated successfully!");
+        alert("Bank details updated successfully!`);
         setIsEditing(false);
         fetchPartnerData();
       } else {
-        alert("Failed to update bank details");
+        alert("Failed to update bank details`);
       }
     } catch (error) {
-      alert("Error updating bank details");
+      alert("Error updating bank details`);
     } finally {
       setSaving(false);
     }
