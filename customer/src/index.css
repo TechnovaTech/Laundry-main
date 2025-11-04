@@ -93,13 +93,16 @@ All colors MUST be HSL.
     padding: 0;
     overflow-x: hidden;
     overscroll-behavior: none;
+    position: fixed;
   }
   
   #root {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    overflow-y: auto;
     overflow-x: hidden;
     padding-top: env(safe-area-inset-top);
+    overscroll-behavior-y: contain;
   }
   
   body {
