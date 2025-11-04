@@ -25,7 +25,9 @@ export async function POST(request: Request) {
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     await mkdir(uploadDir, { recursive: true });
 
-    const filename = `${Date.now()}-${file.name}`;
+    // Sanitize filename: remove spaces and special characters
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const filename = `${Date.now()}-${sanitizedName}`;
     const filepath = path.join(uploadDir, filename);
     
     await writeFile(filepath, buffer);

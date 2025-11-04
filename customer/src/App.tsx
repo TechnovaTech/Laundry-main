@@ -41,6 +41,16 @@ const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Check if user is logged in on app start
+  useEffect(() => {
+    const customerId = localStorage.getItem('customerId');
+    const authToken = localStorage.getItem('authToken');
+    
+    if (customerId && authToken && location.pathname === '/') {
+      navigate('/home', { replace: true });
+    }
+  }, []);
+
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       let backButtonListener: PluginListenerHandle | null = null;

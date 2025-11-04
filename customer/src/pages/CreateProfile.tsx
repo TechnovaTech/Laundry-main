@@ -47,6 +47,10 @@ const CreateProfile = () => {
           if (customer.profileImage) {
             setProfileImage(customer.profileImage)
           }
+          // Auto-check terms when editing existing profile
+          if (customer.name) {
+            setAgreedToTerms(true)
+          }
         }
       } catch (error) {
         console.log('No existing customer data found')
@@ -76,35 +80,48 @@ const CreateProfile = () => {
   const handleSubmit = async () => {
     try {
       const actualCustomerId = customerId || localStorage.getItem('customerId')
+      console.log('Saving profile for customer:', actualCustomerId)
+      
       const updateData: any = {
         name: formData.fullName,
         email: formData.email,
         mobile: formData.phone
       }
       
+      if (profileImage) {
+        updateData.profileImage = profileImage
+      }
+      
       if (formData.referralCode) {
         updateData.referredBy = formData.referralCode
       }
+      
+      console.log('Update data:', updateData)
+      console.log('API URL:', `${API_URL}/api/mobile/profile?customerId=${actualCustomerId}`)
       
       const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${actualCustomerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData)
       })
+      
+      console.log('Response status:', response.status)
       const data = await response.json()
+      console.log('Response data:', data)
       
       if (data.success) {
         localStorage.setItem('customerId', actualCustomerId)
         localStorage.setItem('userName', formData.fullName)
         window.dispatchEvent(new Event('userNameChanged'))
+        alert('Profile saved successfully!')
         navigate("/home")
       } else {
         console.error('Profile save failed:', data.error)
-        alert('Failed to save profile: ' + data.error)
+        alert('Failed to save profile: ' + (data.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Profile save failed:', error)
-      alert('Failed to save profile')
+      alert('Failed to save profile: ' + error.message)
     }
   };
 
@@ -209,9 +226,9 @@ const CreateProfile = () => {
 
         <Button
           onClick={handleSubmit}
-          disabled={!formData.fullName || !formData.email || !formData.phone || !agreedToTerms}
+          disabled={!formData.fullName || !formData.email || !formData.phone}
           className="w-full h-10 sm:h-12 rounded-xl text-white text-sm sm:text-base font-semibold mt-4 disabled:cursor-not-allowed"
-          style={!formData.fullName || !formData.email || !formData.phone || !agreedToTerms ? { background: '#9ca3af' } : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+          style={!formData.fullName || !formData.email || !formData.phone ? { background: '#9ca3af' } : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
         >
           Save & Continue
         </Button>

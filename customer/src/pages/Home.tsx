@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Minus, Plus, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
 import homeScreenImage from "@/assets/Home screen.png";
 import { API_URL } from '@/config/api';
+import { Capacitor } from '@capacitor/core';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -23,7 +24,6 @@ const Home = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [heroItems, setHeroItems] = useState([]);
   const [currentHero, setCurrentHero] = useState(0);
-  const [videoErrors, setVideoErrors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const savedName = localStorage.getItem('userName');
@@ -123,10 +123,21 @@ const Home = () => {
   
   const fetchHeroItems = async () => {
     try {
+      console.log('Fetching hero items from:', `${API_URL}/api/hero-section`);
       const response = await fetch(`${API_URL}/api/hero-section`);
+      console.log('Hero response status:', response.status);
       const data = await response.json();
-      if (data.success) {
-        setHeroItems(data.data);
+      console.log('Hero data:', data);
+      if (data.success && data.data && data.data.length > 0) {
+        // Convert relative URLs to full URLs
+        const itemsWithFullUrls = data.data.map((item: any) => ({
+          ...item,
+          url: item.url.startsWith('http') ? item.url : `${API_URL}${item.url}`
+        }));
+        console.log('Setting hero items with full URLs:', itemsWithFullUrls);
+        setHeroItems(itemsWithFullUrls);
+      } else {
+        console.log('No hero items found or API returned empty');
       }
     } catch (error) {
       console.error('Error fetching hero items:', error);
@@ -252,20 +263,18 @@ const Home = () => {
                       alt="Hero"
                       className="w-full h-48 sm:h-64 object-cover"
                     />
-                  ) : !videoErrors.has(item._id) ? (
+                  ) : (
                     <video
                       src={item.url}
                       autoPlay
                       loop
                       muted
                       playsInline
-                      className="w-full h-48 sm:h-64 object-cover"
-                      onError={() => setVideoErrors(prev => new Set(prev).add(item._id))}
-                    />
-                  ) : (
-                    <div className="w-full h-48 sm:h-64 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                      <p className="text-white text-sm">Video unavailable</p>
-                    </div>
+                      preload="auto"
+                      className="w-full h-48 sm:h-64 object-cover bg-gray-200"
+                    >
+                      Your browser does not support video.
+                    </video>
                   )}
                   {(item.title || item.description || item.buttonText) && (
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 sm:p-6">
