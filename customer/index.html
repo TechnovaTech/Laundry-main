@@ -30,24 +30,14 @@
         -webkit-overflow-scrolling: touch;
       }
       
-      /* Prevent content behind notch/camera cutout */
-      @supports (padding-top: env(safe-area-inset-top)) {
-        body {
-          padding-top: env(safe-area-inset-top) !important;
-        }
-      }
-      
       /* Prevent zoom on input focus */
       input, select, textarea {
         font-size: 16px !important;
       }
       
-      /* Safe area support for notched devices */
-      body {
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
+      #root {
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
       }
     </style>
   </head>

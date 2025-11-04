@@ -13,11 +13,14 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: true,
     backgroundColor: '#ffffff'
   },
+  ios: {
+    contentInset: 'automatic'
+  },
   plugins: {
     StatusBar: {
       style: 'light',
       backgroundColor: '#ffffff',
-      overlaysWebView: false
+      overlaysWebView: true
     },
     SplashScreen: {
       launchShowDuration: 2000,
