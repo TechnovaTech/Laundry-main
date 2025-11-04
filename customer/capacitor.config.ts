@@ -1,16 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.steamiron.customer',
+  appId: 'com.laundrymate.customer',
   appName: 'Steam Iron',
   webDir: 'dist',
-  plugins: {
-    GoogleAuth: {
-      scopes: ['profile', 'email'],
-      serverClientId: '514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true,
-    },
-  },
   server: {
     androidScheme: 'https'
   },
@@ -38,7 +31,7 @@ const config: CapacitorConfig = {
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],
-      serverClientId: '514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com',
+      serverClientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
     }
   }

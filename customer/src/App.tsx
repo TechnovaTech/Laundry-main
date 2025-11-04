@@ -99,7 +99,7 @@ const App = () => {
         try {
           // Initialize Google Auth for native platforms
           await GoogleAuth.initialize({
-            clientId: '514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com',
+            clientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
             scopes: ['profile', 'email'],
             grantOfflineAccess: true,
           });

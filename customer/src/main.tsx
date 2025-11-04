@@ -5,19 +5,15 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 
-const GOOGLE_CLIENT_ID = "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com";
+const GOOGLE_WEB_CLIENT_ID = "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com";
 
-// Initialize Google Auth for Capacitor
+// Initialize Google Auth for Capacitor - uses strings.xml configuration
 if (Capacitor.isNativePlatform()) {
-  GoogleAuth.initialize({
-    clientId: GOOGLE_CLIENT_ID,
-    scopes: ['profile', 'email'],
-    grantOfflineAccess: true,
-  });
+  GoogleAuth.initialize();
 }
 
 createRoot(document.getElementById("root")!).render(
-  <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+  <GoogleOAuthProvider clientId={GOOGLE_WEB_CLIENT_ID}>
     <App />
   </GoogleOAuthProvider>
 );

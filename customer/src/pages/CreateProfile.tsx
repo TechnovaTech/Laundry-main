@@ -75,21 +75,25 @@ const CreateProfile = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/mobile/profile`, {
-        method: 'POST',
+      const actualCustomerId = customerId || localStorage.getItem('customerId')
+      const updateData: any = {
+        name: formData.fullName,
+        email: formData.email,
+        mobile: formData.phone
+      }
+      
+      if (formData.referralCode) {
+        updateData.referredBy = formData.referralCode
+      }
+      
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${actualCustomerId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.fullName,
-          email: formData.email,
-          mobile: formData.phone,
-          profileImage: profileImage || undefined,
-          referralCode: formData.referralCode || undefined
-        })
+        body: JSON.stringify(updateData)
       })
       const data = await response.json()
       
       if (data.success) {
-        const actualCustomerId = data.data?.customerId || customerId || localStorage.getItem('customerId')
         localStorage.setItem('customerId', actualCustomerId)
         localStorage.setItem('userName', formData.fullName)
         window.dispatchEvent(new Event('userNameChanged'))

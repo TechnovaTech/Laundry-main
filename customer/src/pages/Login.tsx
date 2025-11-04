@@ -43,6 +43,12 @@ const Login = () => {
   const handleGoogleLoginMobile = async () => {
     try {
       const result = await GoogleAuth.signIn();
+      
+      if (!result?.authentication?.idToken) {
+        alert('Failed to get authentication token');
+        return;
+      }
+
       const response = await fetch(`${API_URL}/api/auth/google-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,18 +57,19 @@ const Login = () => {
           role: 'customer'
         })
       });
+      
       const data = await response.json();
+      
       if (data.success) {
         localStorage.setItem('customerId', data.data.customerId);
         localStorage.setItem('authToken', data.token);
-        if (data.data.isNewUser) {
-          navigate('/create-profile');
-        } else {
-          navigate('/home');
-        }
+        navigate(data.data.isNewUser ? '/create-profile' : '/home');
+      } else {
+        alert(data.error || 'Login failed');
       }
-    } catch (error) {
-      console.error('Google login failed:', error);
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      alert(error.message || 'Something went wrong');
     }
   };
 

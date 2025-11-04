@@ -1,4 +1,4 @@
-package com.pixelperfect.app;
+package com.laundrymate.customer;
 
 import com.getcapacitor.BridgeActivity;
 

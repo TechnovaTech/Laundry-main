@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Steam Iron</string>
     <string name="title_activity_main">Steam Iron</string>
-    <string name="package_name">com.steamiron.customer</string>
-    <string name="custom_url_scheme">com.steamiron.customer</string>
+    <string name="package_name">com.laundrymate.customer</string>
+    <string name="custom_url_scheme">com.laundrymate.customer</string>
+    <string name="server_client_id">514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com</string>
 </resources>
