@@ -96,30 +96,40 @@ export default function AddOnPage() {
     if (!heroUrl && !heroFile) return
     setUploading(true)
     
-    let finalUrl = heroUrl
-    if (heroFile) {
-      const formData = new FormData()
-      formData.append('file', heroFile)
-      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
-      const uploadData = await uploadRes.json()
-      if (uploadData.success) finalUrl = uploadData.url
-    }
-    
-    const response = await fetch('/api/hero-section', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        type: heroType, 
-        url: finalUrl, 
-        order: heroItems.length 
+    try {
+      let finalUrl = heroUrl
+      if (heroFile) {
+        const formData = new FormData()
+        formData.append('file', heroFile)
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        const uploadData = await uploadRes.json()
+        if (uploadData.success) finalUrl = uploadData.url
+        else throw new Error('Upload failed')
+      }
+      
+      const response = await fetch('/api/hero-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          type: heroType, 
+          url: finalUrl, 
+          order: heroItems.length 
+        })
       })
-    })
-    if (response.ok) {
-      setHeroUrl('')
-      setHeroFile(null)
-      fetchHeroItems()
+      
+      if (response.ok) {
+        setHeroUrl('')
+        setHeroFile(null)
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+        if (fileInput) fileInput.value = ''
+        await fetchHeroItems()
+      }
+    } catch (error) {
+      console.error('Error adding hero item:', error)
+      alert('Failed to upload. Please try again.')
+    } finally {
+      setUploading(false)
     }
-    setUploading(false)
   }
 
   const removeHeroItem = async (id: string) => {

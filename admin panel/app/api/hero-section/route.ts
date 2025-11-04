@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import HeroSection from '@/models/HeroSection';
+import { unlink } from 'fs/promises';
+import path from 'path';
 
 export async function GET() {
   try {
@@ -28,6 +30,18 @@ export async function DELETE(request: Request) {
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    
+    const item = await HeroSection.findById(id);
+    if (item && item.url.startsWith('/uploads/')) {
+      const filename = item.url.replace('/uploads/', '');
+      const filepath = path.join(process.cwd(), 'public', 'uploads', filename);
+      try {
+        await unlink(filepath);
+      } catch (err) {
+        console.log('File not found or already deleted:', filepath);
+      }
+    }
+    
     await HeroSection.findByIdAndDelete(id);
     return NextResponse.json({ success: true });
   } catch (error: any) {
