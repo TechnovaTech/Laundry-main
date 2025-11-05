@@ -7,7 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:514222866895:android:def456",
+        "mobilesdk_app_id": "1:514222866895:android:partner123",
         "android_client_info": {
           "package_name": "com.ironstream.deliverypartner"
         }

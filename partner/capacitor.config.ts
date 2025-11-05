@@ -2,15 +2,8 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.ironstream.deliverypartner',
-  appName: 'Steam Iron Captain',
+  appName: 'Urban Steam Captain',
   webDir: 'out',
-  plugins: {
-    GoogleAuth: {
-      scopes: ['profile', 'email'],
-      serverClientId: '514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true,
-    },
-  },
   server: {
     androidScheme: 'https'
   },
@@ -32,8 +25,8 @@ const config: CapacitorConfig = {
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],
-      serverClientId: '514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true,
+      serverClientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true
     }
   }
 };

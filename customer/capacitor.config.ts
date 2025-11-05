@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.laundrymate.customer',
-  appName: 'Steam Iron',
+  appName: 'Urban Steam',
   webDir: 'dist',
   server: {
     androidScheme: 'https'

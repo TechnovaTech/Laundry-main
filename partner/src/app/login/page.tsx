@@ -49,7 +49,24 @@ export default function Login() {
 
   const handleGoogleLoginMobile = async () => {
     try {
+      console.log('Starting Google Sign-In...');
+      
+      // Ensure GoogleAuth is initialized
+      await GoogleAuth.initialize({
+        clientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
+        scopes: ['profile', 'email'],
+        grantOfflineAccess: true,
+      });
+      
       const result = await GoogleAuth.signIn();
+      console.log('Google sign-in result:', result);
+      
+      if (!result?.authentication?.idToken) {
+        alert('Failed to get authentication token from Google');
+        return;
+      }
+      
+      console.log('Sending to backend...');
       const response = await fetch(`${API_URL}/api/auth/google-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,23 +76,18 @@ export default function Login() {
         })
       });
       const data = await response.json();
-      console.log('Google login mobile response:', data);
+      console.log('Backend response:', data);
+      
       if (data.success) {
-        console.log('isNewUser:', data.data.isNewUser);
         localStorage.setItem('partnerId', data.data.partnerId);
         localStorage.setItem('authToken', data.token);
-        
-        // Redirect based on isNewUser flag
-        if (data.data.isNewUser === true) {
-          console.log('NEW USER - Redirecting to profile/create');
-          window.location.href = '/profile/create';
-        } else {
-          console.log('EXISTING USER - Redirecting to pickups');
-          window.location.href = '/pickups';
-        }
+        window.location.href = data.data.isNewUser ? '/profile/create' : '/pickups';
+      } else {
+        alert('Login failed: ' + (data.error || 'Unknown error'));
       }
-    } catch (error) {
-      console.error('Google login failed:', error);
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      alert('Google Sign-In Error: ' + (error?.message || 'Something went wrong'));
     }
   };
 

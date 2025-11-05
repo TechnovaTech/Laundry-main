@@ -9,7 +9,7 @@ import { Capacitor } from '@capacitor/core';
 const Home = () => {
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
-  const [userName, setUserName] = useState('Sagnik');
+  const [userName, setUserName] = useState('Guest');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [currentVoucher, setCurrentVoucher] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
@@ -27,9 +27,7 @@ const Home = () => {
 
   useEffect(() => {
     const savedName = localStorage.getItem('userName');
-    if (savedName) {
-      setUserName(savedName);
-    }
+    setUserName(savedName || 'Guest');
 
     const handleStorageChange = () => {
       const updatedName = localStorage.getItem('userName');

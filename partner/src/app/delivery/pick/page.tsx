@@ -10,7 +10,9 @@ export default function PickForDelivery() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrders();
+    if (typeof window !== 'undefined') {
+      fetchOrders();
+    }
   }, []);
 
   const fetchOrders = async () => {

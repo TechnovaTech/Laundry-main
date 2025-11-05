@@ -12,7 +12,9 @@ export default function DropToHub() {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchHubAndOrders();
+    if (typeof window !== 'undefined') {
+      fetchHubAndOrders();
+    }
   }, []);
 
   const fetchHubAndOrders = async () => {
