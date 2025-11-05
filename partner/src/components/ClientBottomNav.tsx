@@ -9,13 +9,13 @@ export default function ClientBottomNav() {
   const [kycApproved, setKycApproved] = useState(false);
 
   useEffect(() => {
-    const partnerId = localStorage.getItem("partnerId`);
+    const partnerId = localStorage.getItem("partnerId");
     if (partnerId) {
-      fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`)
+      fetch(`${API_URL}/api/mobile/partners/${partnerId}`)
         .then(res => res.json())
         .then(result => {
           if (result.success) {
-            setKycApproved(result.data.kycStatus === "approved`);
+            setKycApproved(result.data.kycStatus === "approved");
           }
         })
         .catch(err => console.error("Failed to fetch partner:", err));

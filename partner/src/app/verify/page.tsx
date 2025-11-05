@@ -5,15 +5,15 @@ import { useRouter } from "next/navigation";
 import { API_URL } from '@/config/api';
 
 export default function Verify() {
-  const [otp, setOtp] = useState<string[]>(Array(6).fill("`));
-  const [mobile, setMobile] = useState("`);
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const router = useRouter();
-  const nextEmptyIndex = otp.findIndex((d) => d === "`);
+  const nextEmptyIndex = otp.findIndex((d) => d === "");
 
   useEffect(() => {
-    const partnerMobile = localStorage.getItem("partnerMobile`);
+    const partnerMobile = localStorage.getItem("partnerMobile");
     if (partnerMobile) {
       setMobile(partnerMobile);
     }
@@ -28,7 +28,7 @@ export default function Verify() {
 
   const addDigit = (d: string) => {
     setOtp((prev) => {
-      const idx = prev.findIndex((x) => x === "`);
+      const idx = prev.findIndex((x) => x === "");
       if (idx === -1) return prev; // full
       const copy = [...prev];
       copy[idx] = d;
@@ -38,7 +38,7 @@ export default function Verify() {
 
   const backspace = () => {
     setOtp((prev) => {
-      const idx = prev.findLastIndex((x) => x !== "`);
+      const idx = prev.findLastIndex((x) => x !== "");
       if (idx < 0) return prev;
       const copy = [...prev];
       copy[idx] = "";
@@ -47,9 +47,9 @@ export default function Verify() {
   };
 
   const handleVerify = async () => {
-    const otpString = otp.join("`);
+    const otpString = otp.join("");
     if (otpString.length !== 6) {
-      alert("Please enter complete OTP`);
+      alert("Please enter complete OTP");
       return;
     }
 
@@ -57,7 +57,7 @@ export default function Verify() {
     const phone = `+91${mobile}`;
     
     try {
-      const response = await fetch(`${API_URL}/api/auth/verify-otp", {
+      const response = await fetch(`${API_URL}/api/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone, code: otpString, role: 'partner' })
@@ -67,7 +67,7 @@ export default function Verify() {
       if (data.success) {
         localStorage.setItem("authToken", data.token);
         
-        const partnerResponse = await fetch(`${API_URL}/api/mobile/partners", {
+        const partnerResponse = await fetch(`${API_URL}/api/mobile/partners`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mobile, name: "Partner" })
@@ -78,18 +78,18 @@ export default function Verify() {
           localStorage.setItem("partnerId", partnerData.data.partnerId || partnerData.data._id);
           
           if (partnerData.data.isExistingUser && partnerData.data.partner?.email) {
-            router.push("/pickups`);
+            router.push("/pickups");
           } else {
-            router.push("/profile/create`);
+            router.push("/profile/create");
           }
         }
       } else {
-        alert(data.error || "Invalid OTP. Please try again.`);
-        setOtp(Array(6).fill("`));
+        alert(data.error || "Invalid OTP. Please try again.");
+        setOtp(Array(6).fill(""));
       }
     } catch (error) {
-      alert("Verification failed. Please try again.`);
-      setOtp(Array(6).fill("`));
+      alert("Verification failed. Please try again.");
+      setOtp(Array(6).fill(""));
     } finally {
       setLoading(false);
     }
@@ -107,7 +107,7 @@ export default function Verify() {
 
       <div className="px-4 pt-6">
         <p className="text-center text-gray-500">We’ve sent an OTP to</p>
-        <p className="mt-1 text-center text-black font-semibold">+91 {mobile.replace(/(\d{5})(\d{5})/, '$1XXXXX`)}</p>
+        <p className="mt-1 text-center text-black font-semibold">+91 {mobile.replace(/(\d{5})(\d{5})/, '$1XXXXX')}</p>
         <p className="mt-1 text-center" style={{ color: '#452D9B' }}>Change number</p>
 
         <div className="mt-4 flex items-center justify-center gap-3">
@@ -129,9 +129,9 @@ export default function Verify() {
 
         <button 
           onClick={handleVerify}
-          disabled={loading || otp.join("`).length !== 6}
+          disabled={loading || otp.join("").length !== 6}
           className="mt-4 w-full text-white rounded-xl py-3 text-base font-semibold"
-          style={!loading && otp.join("`).length === 6 ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af' }}
+          style={!loading && otp.join("").length === 6 ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af' }}
         >
           {loading ? "Verifying..." : "Verify & Continue"}
         </button>

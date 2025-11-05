@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { API_URL } from '@/config/api';
 
 function Icon({ src, active, showCheck }: { src: string; active: boolean; showCheck?: boolean }) {
-  if (src === "profile`) {
+  if (src === 'profile') {
     return (
       <div className="relative">
         <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" style={{ color: active ? '#452D9B' : '#6b7280' }}>
@@ -42,13 +42,13 @@ export default function BottomNav() {
   const [kycApproved, setKycApproved] = useState(false);
 
   useEffect(() => {
-    const partnerId = localStorage.getItem("partnerId`);
+    const partnerId = localStorage.getItem("partnerId");
     if (partnerId) {
-      fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`)
+      fetch(`${API_URL}/api/mobile/partners/${partnerId}`)
         .then(res => res.json())
         .then(result => {
           if (result.success) {
-            setKycApproved(result.data.kycStatus === "approved`);
+            setKycApproved(result.data.kycStatus === 'approved');
           }
         })
         .catch(err => console.error("Failed to fetch partner:", err));
@@ -60,12 +60,12 @@ export default function BottomNav() {
   //   return null;
   // }
 
-  const isPickup = pathname.startsWith("/pickups`);
-  const isHub = pathname.startsWith("/hub`);
-  const isPickForDelivery = pathname.startsWith("/delivery/pick`);
-  const isDelivery = pathname.startsWith("/delivery`) && !isPickForDelivery;
+  const isPickup = pathname.startsWith('//pickups');
+  const isHub = pathname.startsWith('//hub');
+  const isPickForDelivery = pathname.startsWith('//delivery/pick');
+  const isDelivery = pathname.startsWith('//delivery') && !isPickForDelivery;
 
-  const isProfile = pathname.startsWith("/profile`);
+  const isProfile = pathname.startsWith('//profile');
 
   const items = [
     { href: "/pickups", label: "Pickup", icon: "/PickupIcon.svg", active: isPickup, check: false },

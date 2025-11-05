@@ -96,26 +96,23 @@ export async function POST(request: NextRequest) {
       const customer = await Customer.findById(orderData.customerId)
       
       if (customer) {
-        // Calculate points based on order amount
-        const pointsPerRupee = settings?.pointsPerRupee || 2
+        // Award only order completion points (no spending points)
         const orderCompletionPoints = settings?.orderCompletionPoints || 10
-        const spendingPoints = Math.floor(orderData.totalAmount * pointsPerRupee)
-        const totalPoints = orderCompletionPoints + spendingPoints
         
-        // Award order points to walletBalance
+        // Award order points to loyaltyPoints
         await Customer.findByIdAndUpdate(orderData.customerId, {
-          $inc: { walletBalance: totalPoints, totalOrders: 1 }
+          $inc: { loyaltyPoints: orderCompletionPoints, totalOrders: 1 }
         })
         
         // Create wallet transaction for order points
         await WalletTransaction.create({
           customerId: customer._id,
-          type: 'balance',
+          type: 'points',
           action: 'increase',
-          amount: totalPoints,
-          reason: `Order #${orderId} completed - ${orderCompletionPoints} completion + ${spendingPoints} spending points`,
-          previousValue: customer.walletBalance || 0,
-          newValue: (customer.walletBalance || 0) + totalPoints,
+          amount: orderCompletionPoints,
+          reason: `Order #${orderId} completed - ${orderCompletionPoints} points earned`,
+          previousValue: customer.loyaltyPoints || 0,
+          newValue: (customer.loyaltyPoints || 0) + orderCompletionPoints,
           adjustedBy: 'System'
         })
         
@@ -123,21 +120,21 @@ export async function POST(request: NextRequest) {
         if (customer.totalOrders === 0 && customer.referredBy) {
           // Award signup bonus to new customer
           const signupBonus = settings?.signupBonusPoints || 25
-          const newCustomerBalance = (customer.walletBalance || 0) + totalPoints
+          const newCustomerPoints = (customer.loyaltyPoints || 0) + totalPoints
           
           await Customer.findByIdAndUpdate(orderData.customerId, {
-            $inc: { walletBalance: signupBonus }
+            $inc: { loyaltyPoints: signupBonus }
           })
           
           // Create wallet transaction for signup bonus
           await WalletTransaction.create({
             customerId: customer._id,
-            type: 'balance',
+            type: 'points',
             action: 'increase',
             amount: signupBonus,
             reason: `Signup bonus for first order`,
-            previousValue: newCustomerBalance,
-            newValue: newCustomerBalance + signupBonus,
+            previousValue: newCustomerPoints,
+            newValue: newCustomerPoints + signupBonus,
             adjustedBy: 'System'
           })
           
@@ -150,20 +147,20 @@ export async function POST(request: NextRequest) {
           if (referrer) {
             const referralBonus = settings?.referralPoints || 50
             
-            // Award referral bonus to referrer's walletBalance
+            // Award referral bonus to referrer's loyaltyPoints
             await Customer.findByIdAndUpdate(referrer._id, {
-              $inc: { walletBalance: referralBonus }
+              $inc: { loyaltyPoints: referralBonus }
             })
             
             // Create wallet transaction for referral bonus
             await WalletTransaction.create({
               customerId: referrer._id,
-              type: 'balance',
+              type: 'points',
               action: 'increase',
               amount: referralBonus,
               reason: `Referral bonus - ${customer.name} completed first order`,
-              previousValue: referrer.walletBalance || 0,
-              newValue: (referrer.walletBalance || 0) + referralBonus,
+              previousValue: referrer.loyaltyPoints || 0,
+              newValue: (referrer.loyaltyPoints || 0) + referralBonus,
               adjustedBy: 'System'
             })
             

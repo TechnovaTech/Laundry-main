@@ -10,9 +10,9 @@ export default function DeliveryHistory() {
   const [history, setHistory] = useState<any[]>([]);
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState('all`);
-  const [statusFilter, setStatusFilter] = useState('all`);
-  const [searchQuery, setSearchQuery] = useState('`);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchDeliveryHistory();
@@ -20,16 +20,16 @@ export default function DeliveryHistory() {
 
   const fetchDeliveryHistory = async () => {
     try {
-      const partnerId = localStorage.getItem('partnerId`);
+      const partnerId = localStorage.getItem('partnerId');
       const response = await fetch(`${API_URL}/api/orders`);
       const data = await response.json();
       
       if (data.success) {
         const deliveredOrders = data.data.filter((order: any) => 
-          (order.status === 'delivered' || order.status === 'delivery_failed`) && order.partnerId?._id === partnerId
+          (order.status === 'delivered' || order.status === 'delivery_failed') && order.partnerId?._id === partnerId
         );
         setAllOrders(deliveredOrders);
-        filterOrders(deliveredOrders, 'all', '`);
+        filterOrders(deliveredOrders, 'all', '');
       }
     } catch (error) {
       console.error('Failed to fetch delivery history:', error);
@@ -43,21 +43,21 @@ export default function DeliveryHistory() {
     const now = new Date();
     
     // Status filter
-    if (status === 'delivered`) {
-      filtered = filtered.filter(order => order.status === 'delivered`);
-    } else if (status === 'undelivered`) {
-      filtered = filtered.filter(order => order.status === 'delivery_failed`);
+    if (status === 'delivered') {
+      filtered = filtered.filter(order => order.status === 'delivered');
+    } else if (status === 'undelivered') {
+      filtered = filtered.filter(order => order.status === 'delivery_failed');
     }
     
     // Date filter
-    if (filter === 'thisWeek`) {
+    if (filter === 'thisWeek') {
       const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
       weekStart.setHours(0, 0, 0, 0);
       filtered = filtered.filter(order => {
         const orderDate = new Date(order.deliveredAt || order.deliveryFailedAt);
         return orderDate >= weekStart;
       });
-    } else if (filter === 'lastWeek`) {
+    } else if (filter === 'lastWeek') {
       const lastWeekStart = new Date(now.setDate(now.getDate() - now.getDay() - 7));
       lastWeekStart.setHours(0, 0, 0, 0);
       const lastWeekEnd = new Date(lastWeekStart);
@@ -66,7 +66,7 @@ export default function DeliveryHistory() {
         const orderDate = new Date(order.deliveredAt || order.deliveryFailedAt);
         return orderDate >= lastWeekStart && orderDate < lastWeekEnd;
       });
-    } else if (filter === 'thisMonth`) {
+    } else if (filter === 'thisMonth') {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       filtered = filtered.filter(order => {
         const orderDate = new Date(order.deliveredAt || order.deliveryFailedAt);
@@ -114,14 +114,14 @@ export default function DeliveryHistory() {
       {/* Status Filter Buttons */}
       <div className="px-4 pt-3 flex gap-3">
         <button
-          onClick={() => handleStatusFilterChange('delivered`)}
+          onClick={() => handleStatusFilterChange('delivered')}
           className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white shadow-md"
           style={{ background: statusFilter === 'delivered' ? 'linear-gradient(to right, #10b981, #059669)' : 'linear-gradient(to right, #9ca3af, #6b7280)' }}
         >
           Delivered
         </button>
         <button
-          onClick={() => handleStatusFilterChange('undelivered`)}
+          onClick={() => handleStatusFilterChange('undelivered')}
           className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white shadow-md"
           style={{ background: statusFilter === 'undelivered' ? 'linear-gradient(to right, #ef4444, #dc2626)' : 'linear-gradient(to right, #9ca3af, #6b7280)' }}
         >
@@ -141,28 +141,28 @@ export default function DeliveryHistory() {
         />
         <div className="mt-3 flex items-center gap-2">
           <button 
-            onClick={() => handleFilterChange('all`)}
+            onClick={() => handleFilterChange('all')}
             className="rounded-lg px-3 py-1 text-xs font-semibold"
             style={activeFilter === 'all' ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)', color: 'white' } : { background: '#e5e7eb', color: 'black' }}
           >
             All
           </button>
           <button 
-            onClick={() => handleFilterChange('thisWeek`)}
+            onClick={() => handleFilterChange('thisWeek')}
             className="rounded-lg px-3 py-1 text-xs font-semibold"
             style={activeFilter === 'thisWeek' ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)', color: 'white' } : { background: '#e5e7eb', color: 'black' }}
           >
             This Week
           </button>
           <button 
-            onClick={() => handleFilterChange('lastWeek`)}
+            onClick={() => handleFilterChange('lastWeek')}
             className="rounded-lg px-3 py-1 text-xs font-semibold"
             style={activeFilter === 'lastWeek' ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)', color: 'white' } : { background: '#e5e7eb', color: 'black' }}
           >
             Last Week
           </button>
           <button 
-            onClick={() => handleFilterChange('thisMonth`)}
+            onClick={() => handleFilterChange('thisMonth')}
             className="rounded-lg px-3 py-1 text-xs font-semibold"
             style={activeFilter === 'thisMonth' ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)', color: 'white' } : { background: '#e5e7eb', color: 'black' }}
           >

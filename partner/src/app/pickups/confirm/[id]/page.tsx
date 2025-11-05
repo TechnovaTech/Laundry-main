@@ -38,11 +38,13 @@ interface Hub {
   contactNumber?: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function PickupConfirm() {
   const params = useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [notes, setNotes] = useState('`);
+  const [notes, setNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [hub, setHub] = useState<Hub | null>(null);
@@ -54,7 +56,7 @@ export default function PickupConfirm() {
 
   const fetchOrder = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/orders`);
+      const response = await fetch(`${API_URL}/api/orders`);
       const data = await response.json();
       
       if (data.success) {
@@ -93,7 +95,7 @@ export default function PickupConfirm() {
             <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="mt-3 inline-flex items-center rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>Open in Maps</a>
           </div>
           <span className="rounded-lg border-2 px-3 py-1 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
-            {order.status === 'reached_location' ? 'Reached Location' : order.status === 'picked_up' ? 'Picked Up' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' `)}
+            {order.status === 'reached_location' ? 'Reached Location' : order.status === 'picked_up' ? 'Picked Up' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
           </span>
         </div>
       </div>
@@ -141,7 +143,7 @@ export default function PickupConfirm() {
               return;
             }
             try {
-              const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pickupPhotos: photos })
@@ -192,7 +194,7 @@ export default function PickupConfirm() {
                 pickupNotes: notes,
                 pickedUpAt: new Date().toISOString()
               };
-              const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)

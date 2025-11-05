@@ -29,7 +29,10 @@ const ContinueBooking = () => {
   const itemsText = orderData.items ? orderData.items.map((item: any) => `${item.quantity} ${item.name}`).join(', ') : '3 Shirts, 1 Bedsheet';
   const totalAmount = orderData.total || 120;
   const dueAmount = customerInfo?.dueAmount || 0;
-  const finalAmount = totalAmount - discount + dueAmount;
+  const walletBalance = customerInfo?.walletBalance || 0;
+  const amountAfterDiscount = totalAmount - discount + dueAmount;
+  const walletUsed = Math.min(walletBalance, amountAfterDiscount);
+  const finalAmount = Math.max(0, amountAfterDiscount - walletUsed);
   
   useEffect(() => {
     fetchCustomerInfo();
@@ -278,8 +281,20 @@ const ContinueBooking = () => {
                   <span>+₹{dueAmount}</span>
                 </div>
               )}
+              {walletUsed > 0 && (
+                <div className="flex justify-between text-blue-600">
+                  <span>Wallet Balance Used:</span>
+                  <span>-₹{walletUsed}</span>
+                </div>
+              )}
+              {walletBalance > 0 && (
+                <div className="flex justify-between text-gray-500 text-xs">
+                  <span>Available Wallet Balance:</span>
+                  <span>₹{walletBalance}</span>
+                </div>
+              )}
               <div className="flex justify-between text-base sm:text-lg font-bold text-black">
-                <span>Grand Total:</span>
+                <span>Amount to Pay:</span>
                 <span>₹{finalAmount}</span>
               </div>
             </div>
@@ -314,17 +329,18 @@ const ContinueBooking = () => {
               // Get selected payment method
               const paymentMethod = primaryPaymentMethod.type;
               
-              // If payment method is Cash, place order directly
-              if (paymentMethod === 'Cash') {
+              // If wallet covers full amount, place order directly without Razorpay
+              if (finalAmount === 0) {
                 const orderPayload = {
                   customerId,
                   items: orderData.items || [],
-                  totalAmount: finalAmount,
+                  totalAmount: amountAfterDiscount,
                   pickupAddress: orderData.address,
                   pickupSlot: orderData.selectedSlot,
                   pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
-                  paymentMethod: 'Cash on Delivery',
-                  paymentStatus: 'pending',
+                  paymentMethod: 'Wallet',
+                  paymentStatus: 'paid',
+                  walletUsed: walletUsed,
                   appliedVoucherCode: appliedVoucher?.code || null
                 };
                 
@@ -343,9 +359,59 @@ const ContinueBooking = () => {
                       orderId: result.data.orderId,
                       items: itemsText,
                       service: 'Steam Iron',
-                      total: finalAmount,
+                      total: amountAfterDiscount,
                       originalTotal: totalAmount,
                       discount: discount,
+                      walletUsed: walletUsed,
+                      appliedVoucher: appliedVoucher,
+                      customerInfo: customerInfo,
+                      status: 'Pending',
+                      pickupType: orderData.pickupType,
+                      selectedSlot: orderData.selectedSlot,
+                      address: orderData.address,
+                      paymentStatus: 'Paid'
+                    }
+                  });
+                } else {
+                  alert('Failed to place order. Please try again.');
+                }
+                return;
+              }
+              
+              // If payment method is Cash, place order directly
+              if (paymentMethod === 'Cash') {
+                const orderPayload = {
+                  customerId,
+                  items: orderData.items || [],
+                  totalAmount: amountAfterDiscount,
+                  pickupAddress: orderData.address,
+                  pickupSlot: orderData.selectedSlot,
+                  pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
+                  paymentMethod: 'Cash on Delivery',
+                  paymentStatus: 'pending',
+                  walletUsed: walletUsed,
+                  appliedVoucherCode: appliedVoucher?.code || null
+                };
+                
+                const response = await fetch(`${API_URL}/api/orders`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(orderPayload)
+                });
+                
+                const result = await response.json();
+                setIsProcessingPayment(false);
+                
+                if (result.success) {
+                  navigate("/booking-confirmation", { 
+                    state: {
+                      orderId: result.data.orderId,
+                      items: itemsText,
+                      service: 'Steam Iron',
+                      total: amountAfterDiscount,
+                      originalTotal: totalAmount,
+                      discount: discount,
+                      walletUsed: walletUsed,
                       appliedVoucher: appliedVoucher,
                       customerInfo: customerInfo,
                       status: 'Pending',
@@ -407,7 +473,7 @@ const ContinueBooking = () => {
                       const orderPayload = {
                         customerId,
                         items: orderData.items || [],
-                        totalAmount: finalAmount,
+                        totalAmount: amountAfterDiscount,
                         pickupAddress: orderData.address,
                         pickupSlot: orderData.selectedSlot,
                         pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -415,6 +481,7 @@ const ContinueBooking = () => {
                         paymentStatus: 'paid',
                         razorpayOrderId: response.razorpay_order_id,
                         razorpayPaymentId: response.razorpay_payment_id,
+                        walletUsed: walletUsed,
                         appliedVoucherCode: appliedVoucher?.code || null
                       };
                       
@@ -433,9 +500,10 @@ const ContinueBooking = () => {
                             orderId: placeOrderResult.data.orderId,
                             items: itemsText,
                             service: 'Steam Iron',
-                            total: finalAmount,
+                            total: amountAfterDiscount,
                             originalTotal: totalAmount,
                             discount: discount,
+                            walletUsed: walletUsed,
                             appliedVoucher: appliedVoucher,
                             customerInfo: customerInfo,
                             status: 'Pending',

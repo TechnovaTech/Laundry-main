@@ -16,23 +16,23 @@ export default function DropToHub() {
   }, []);
 
   const fetchHubAndOrders = async () => {
-    const partnerId = localStorage.getItem('partnerId`);
-    const partnerRes = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+    const partnerId = localStorage.getItem('partnerId');
+    const partnerRes = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
     const partnerData = await partnerRes.json();
     
     if (partnerData.success && partnerData.data.address?.pincode) {
-      const hubRes = await fetch(`http://localhost:3000/api/hubs?pincode=${partnerData.data.address.pincode}`);
+      const hubRes = await fetch(`${API_URL}/api/hubs?pincode=${partnerData.data.address.pincode}`);
       const hubData = await hubRes.json();
       if (hubData.success && hubData.data.length > 0) setHub(hubData.data[0]);
     }
 
-    const ordersRes = await fetch(`http://localhost:3000/api/orders`);
+    const ordersRes = await fetch(`${API_URL}/api/orders`);
     const ordersData = await ordersRes.json();
     if (ordersData.success) {
       console.log('Partner ID:', partnerId);
       console.log('All orders:', ordersData.data.length);
       
-      const deliveryFailedOrders = ordersData.data.filter((o: any) => o.status === 'delivery_failed`);
+      const deliveryFailedOrders = ordersData.data.filter((o: any) => o.status === 'delivery_failed');
       console.log('Delivery failed orders:', deliveryFailedOrders);
       deliveryFailedOrders.forEach((o: any) => {
         console.log(`Order ${o.orderId}:`, {
@@ -111,7 +111,7 @@ export default function DropToHub() {
                     <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
                     <p className="text-xs text-black mt-1">{order.items?.length || 0} items</p>
                     <span className="mt-1 text-xs" style={{ color: order.status === 'delivery_failed' ? '#dc2626' : '#452D9B' }}>
-                      {order.status === 'delivery_failed' ? (order.redeliveryScheduled ? '⚠ Redelivery Failed' : '⚠ Delivery Failed`) : 'Picked Up'}
+                      {order.status === 'delivery_failed' ? (order.redeliveryScheduled ? '⚠ Redelivery Failed' : '⚠ Delivery Failed') : 'Picked Up'}
                     </span>
                   </div>
                 </div>
@@ -142,10 +142,10 @@ export default function DropToHub() {
                 const order = orders.find(o => o._id === orderId);
                 console.log('Processing order:', order?.orderId, 'Status:', order?.status);
                 
-                if (order?.status === 'delivery_failed`) {
+                if (order?.status === 'delivery_failed') {
                   hasFailedOrders = true;
                   console.log('Sending return request for failed delivery order:', orderId);
-                  const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+                  const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -157,7 +157,7 @@ export default function DropToHub() {
                   console.log('Return request response:', result);
                 } else {
                   console.log('Sending normal hub delivery for order:', orderId);
-                  const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+                  const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -171,15 +171,15 @@ export default function DropToHub() {
               }
               
               if (hasFailedOrders) {
-                alert('Return request sent to admin for approval`);
+                alert('Return request sent to admin for approval');
               } else {
-                alert('Orders delivered to hub successfully`);
+                alert('Orders delivered to hub successfully');
               }
               
               window.location.href = '/hub/delivered';
             } catch (error) {
               console.error('Error dropping orders:', error);
-              alert('Failed to drop orders. Check console for details.`);
+              alert('Failed to drop orders. Check console for details.');
             }
           }}
           disabled={orders.length === 0}

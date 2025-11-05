@@ -23,13 +23,13 @@ export default function PersonalDetailsPage() {
 
   const fetchPartnerData = async () => {
     try {
-      const partnerId = localStorage.getItem("partnerId`);
+      const partnerId = localStorage.getItem("partnerId");
       if (!partnerId) {
-        router.push("/login`);
+        router.push("/login");
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -58,9 +58,9 @@ export default function PersonalDetailsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const partnerId = localStorage.getItem("partnerId`);
+      const partnerId = localStorage.getItem("partnerId");
 
-      const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`, {
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -74,14 +74,14 @@ export default function PersonalDetailsPage() {
 
       const result = await response.json();
       if (result.success) {
-        alert("Profile updated successfully!`);
+        alert("Profile updated successfully!");
         setIsEditing(false);
         fetchPartnerData();
       } else {
-        alert("Failed to update profile`);
+        alert("Failed to update profile");
       }
     } catch (error) {
-      alert("Error updating profile`);
+      alert("Error updating profile");
     } finally {
       setSaving(false);
     }

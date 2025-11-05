@@ -36,8 +36,8 @@ export default function Pickups() {
 
   const fetchPickups = async () => {
     try {
-      const partnerId = localStorage.getItem('partnerId`);
-      const partnerRes = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+      const partnerId = localStorage.getItem('partnerId');
+      const partnerRes = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
       const partnerData = await partnerRes.json();
       
       if (partnerData.success && partnerData.data.address?.pincode) {
@@ -111,26 +111,26 @@ export default function Pickups() {
                 <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">#{p.orderId}</span>
               </div>
               <div className="flex items-center gap-3">
-                <a href={`tel:${p.customerId?.mobile}`} className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border-2 py-2.5 text-sm font-bold btn-press" style={{ borderColor: '#452D9B', color: '#452D9B' }}>
+                <a href={'tel:' + p.customerId?.mobile} className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border-2 py-2.5 text-sm font-bold btn-press" style={{ borderColor: '#452D9B', color: '#452D9B' }}>
                   <span>📞</span>
                   Call
                 </a>
                 <button
                   onClick={async () => {
-                    const partnerId = localStorage.getItem('partnerId`);
+                    const partnerId = localStorage.getItem('partnerId');
                     
                     // Check if order is still available
-                    const checkRes = await fetch(`http://localhost:3000/api/orders/${p._id}`);
+                    const checkRes = await fetch(`${API_URL}/api/orders/${p._id}`);
                     const checkData = await checkRes.json();
                     
                     if (checkData.data?.partnerId) {
-                      alert('This order was just assigned to another partner`);
+                      alert('This order was just assigned to another partner');
                       fetchPickups();
                       return;
                     }
                     
                     // Assign partner
-                    await fetch(`http://localhost:3000/api/orders/${p._id}`, {
+                    await fetch(`${API_URL}/api/orders/${p._id}`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ partnerId })

@@ -20,28 +20,28 @@ export default function CreateProfile() {
     vehicleNumber: ""
   });
   const [loading, setLoading] = useState(false);
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchPartnerData = async () => {
-      const partnerId = localStorage.getItem("partnerId`);
+      const partnerId = localStorage.getItem("partnerId");
       if (!partnerId) {
-        router.push("/login`);
+        router.push("/login");
         return;
       }
 
       try {
-        const response = await fetch(`http://localhost:3000/api/mobile/partners?partnerId=${partnerId}`);
+        const response = await fetch(`${API_URL}/api/mobile/partners?partnerId=${partnerId}`);
         const data = await response.json();
         
         if (data.success && data.data) {
           const partner = data.data;
-          const isGoogleUser = partner.mobile?.startsWith('google_`);
+          const isGoogleUser = partner.mobile?.startsWith('google_');
           setFormData({
             name: partner.name || "",
             email: partner.email || "",
-            mobile: isGoogleUser ? "" : (partner.mobile || "`),
+            mobile: isGoogleUser ? "" : (partner.mobile || ""),
             profileImage: partner.profileImage || "",
             address: partner.address || {
               street: "",
@@ -66,14 +66,14 @@ export default function CreateProfile() {
 
   const handleSave = async () => {
     if (!formData.name || !formData.mobile) {
-      alert("Please fill required fields`);
+      alert("Please fill required fields");
       return;
     }
 
     setLoading(true);
     try {
-      const partnerId = localStorage.getItem("partnerId`);
-      const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`, {
+      const partnerId = localStorage.getItem("partnerId");
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -82,12 +82,12 @@ export default function CreateProfile() {
       const data = await response.json();
       
       if (data.success) {
-        router.push("/profile/kyc`);
+        router.push("/profile/kyc");
       } else {
-        alert(data.error || "Failed to save profile`);
+        alert(data.error || "Failed to save profile");
       }
     } catch (error) {
-      alert("Network error. Please try again.`);
+      alert("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -120,9 +120,9 @@ export default function CreateProfile() {
             if (file) {
               const reader = new FileReader();
               reader.onload = (e) => {
-                const base64 = e.target?.result;
+                const base64 = e.target?.result as string;
                 setProfileImage(base64);
-                setFormData(prev => ({ ...prev, profileImage: base64 }));
+                setFormData(prev => ({ ...prev, profileImage: base64 || "" }));
               };
               reader.readAsDataURL(file);
             }
@@ -188,7 +188,7 @@ export default function CreateProfile() {
             maxLength={10}
             value={formData.mobile}
             onChange={(e) => {
-              const value = e.target.value.replace(/\D/g, '`);
+              const value = e.target.value.replace(/\D/g, '');
               setFormData(prev => ({ ...prev, mobile: value }));
             }}
           />

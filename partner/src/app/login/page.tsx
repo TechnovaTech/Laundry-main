@@ -9,13 +9,13 @@ import { Capacitor } from '@capacitor/core';
 import { API_URL } from '@/config/api';
 
 export default function Login() {
-  const [mobile, setMobile] = useState("`);
+  const [mobile, setMobile] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleGoogleLogin = async (credentialResponse: any) => {
     try {
-      const response = await fetch(`${API_URL}/api/auth/google-login', {
+      const response = await fetch(`${API_URL}/api/auth/google-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -32,25 +32,25 @@ export default function Login() {
         
         // Redirect based on isNewUser flag
         if (data.data.isNewUser === true) {
-          console.log('NEW USER - Redirecting to profile/create`);
+          console.log('NEW USER - Redirecting to profile/create');
           window.location.href = '/profile/create';
         } else {
-          console.log('EXISTING USER - Redirecting to pickups`);
+          console.log('EXISTING USER - Redirecting to pickups');
           window.location.href = '/pickups';
         }
       } else {
-        alert(data.error || 'Google login failed`);
+        alert(data.error || 'Google login failed');
       }
     } catch (error) {
       console.error('Google login failed:', error);
-      alert('Network error. Please try again.`);
+      alert('Network error. Please try again.');
     }
   };
 
   const handleGoogleLoginMobile = async () => {
     try {
       const result = await GoogleAuth.signIn();
-      const response = await fetch(`${API_URL}/api/auth/google-login', {
+      const response = await fetch(`${API_URL}/api/auth/google-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -67,10 +67,10 @@ export default function Login() {
         
         // Redirect based on isNewUser flag
         if (data.data.isNewUser === true) {
-          console.log('NEW USER - Redirecting to profile/create`);
+          console.log('NEW USER - Redirecting to profile/create');
           window.location.href = '/profile/create';
         } else {
-          console.log('EXISTING USER - Redirecting to pickups`);
+          console.log('EXISTING USER - Redirecting to pickups');
           window.location.href = '/pickups';
         }
       }
@@ -81,14 +81,14 @@ export default function Login() {
 
   const handleLogin = async () => {
     if (!mobile || mobile.length !== 10) {
-      alert("Please enter a valid 10-digit mobile number`);
+      alert('Please enter a valid 10-digit mobile number');
       return;
     }
 
     setLoading(true);
     try {
       const phone = `+91${mobile}`;
-      const response = await fetch(`${API_URL}/api/auth/send-otp", {
+      const response = await fetch(`${API_URL}/api/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone })
@@ -98,12 +98,12 @@ export default function Login() {
       
       if (data.success) {
         localStorage.setItem("partnerMobile", mobile);
-        router.push("/verify`);
+        router.push('/verify');
       } else {
-        alert(data.error || "Failed to send OTP`);
+        alert(data.error || "Failed to send OTP");
       }
     } catch (error) {
-      alert("Network error. Please try again.`);
+      alert('Network error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -136,7 +136,7 @@ export default function Login() {
             placeholder="Enter your phone no"
             type="tel"
             value={mobile}
-            onChange={(e) => setMobile(e.target.value.replace(/\D/g, "`))}
+            onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
             maxLength={10}
           />
         </div>
@@ -175,7 +175,7 @@ export default function Login() {
           <div className="w-full flex justify-center">
             <GoogleLogin
               onSuccess={handleGoogleLogin}
-              onError={() => alert('Google login failed`)}
+              onError={() => alert('Google login failed')}
               useOneTap
               theme="outline"
               size="large"

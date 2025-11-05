@@ -26,6 +26,8 @@ interface Order {
   specialInstructions?: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default function StartPickup() {
   const params = useParams();
   const [order, setOrder] = useState<Order | null>(null);
@@ -38,7 +40,7 @@ export default function StartPickup() {
 
   const fetchOrder = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/orders`);
+      const response = await fetch(`${API_URL}/api/orders`);
       const data = await response.json();
       
       if (data.success) {
@@ -56,7 +58,7 @@ export default function StartPickup() {
   if (!order) return <div className="p-8 text-center">Order not found</div>;
   
   // Check if order is cancelled
-  if (order.status === 'cancelled`) {
+  if (order.status === 'cancelled') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 shadow-lg text-center max-w-md w-full">
@@ -116,7 +118,7 @@ export default function StartPickup() {
             <span>📞</span>
             Call Customer
           </a>
-          <a href={`https://wa.me/${order.customerId?.mobile.replace(/[^0-9]/g, '`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
+          <a href={`https://wa.me/${order.customerId?.mobile.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border-2 px-4 py-2 text-sm font-semibold" style={{ borderColor: '#b8a7d9', color: '#452D9B' }}>
             <span>💬</span>
             Message
           </a>
@@ -138,7 +140,7 @@ export default function StartPickup() {
       <div className="mx-4">
         <button 
           onClick={async () => {
-            const partnerId = localStorage.getItem('partnerId`);
+            const partnerId = localStorage.getItem('partnerId');
             console.log('Partner ID from localStorage:', partnerId);
             const updateData = { 
               status: 'reached_location',
@@ -146,7 +148,7 @@ export default function StartPickup() {
               partnerId: partnerId
             };
             console.log('Updating order with:', updateData);
-            const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+            const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(updateData)
@@ -166,8 +168,8 @@ export default function StartPickup() {
         </button>
         <button 
           onClick={async () => {
-            if (confirm('Are you sure you want to stop this pickup? The order will be unassigned and available for other partners.`)) {
-              const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+            if (confirm('Are you sure you want to stop this pickup? The order will be unassigned and available for other partners.')) {
+              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ partnerId: null })

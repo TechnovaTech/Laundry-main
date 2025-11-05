@@ -6,21 +6,21 @@ import Image from "next/image";
 import { API_URL } from '@/config/api';
 
 export default function CheckAvailability() {
-  const [pincode, setPincode] = useState("`);
+  const [pincode, setPincode] = useState('');
   const router = useRouter();
 
   const handleCheck = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/check-serviceable?pincode=${pincode}`);
+      const response = await fetch(`${API_URL}/api/check-serviceable?pincode=${pincode}`);
       const data = await response.json();
       
       if (data.serviceable) {
-        router.push("/congrats`);
+        router.push('/congrats');
       } else {
-        router.push("/not-available`);
+        router.push('/not-available');
       }
     } catch (error) {
-      router.push("/not-available`);
+      router.push('/not-available');
     }
   };
 
@@ -45,7 +45,7 @@ export default function CheckAvailability() {
             type="tel"
             placeholder="Pincode"
             value={pincode}
-            onChange={(e) => setPincode(e.target.value.replace(/\D/g, "`))}
+            onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
             className="w-full rounded-xl border border-gray-300 px-4 py-4 text-center text-lg text-black placeholder:text-gray-400 outline-none focus:ring-2"
             style={{ outlineColor: '#452D9B' }}
             onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px #452D9B'}

@@ -19,18 +19,18 @@ export default function KYCVerification() {
 
   useEffect(() => {
     const fetchPartner = async () => {
-      const partnerId = localStorage.getItem("partnerId`);
+      const partnerId = localStorage.getItem("partnerId");
       if (!partnerId) {
-        router.push("/login`);
+        router.push("/login");
         return;
       }
 
       try {
-        const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+        const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
         const result = await response.json();
         if (result.success) {
           setPartner(result.data);
-          if (result.data.kycStatus && result.data.kycStatus !== 'pending`) {
+          if (result.data.kycStatus && result.data.kycStatus !== 'pending') {
             setIsSubmitted(true);
           }
         }
@@ -57,7 +57,7 @@ export default function KYCVerification() {
 
   const handleSubmit = async () => {
     if (!formData.vehicleType || !formData.vehicleNumber || !formData.aadharNumber || !formData.drivingLicenseNumber) {
-      alert("Please fill all required fields`);
+      alert("Please fill all required fields");
       return;
     }
 
@@ -65,7 +65,7 @@ export default function KYCVerification() {
     try {
       const partnerId = partner._id || partner.id;
 
-      const response = await fetch(`http://localhost:3000/api/mobile/partners/kyc/${partnerId}`, {
+      const response = await fetch(`${API_URL}/api/mobile/partners/kyc/${partnerId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -76,17 +76,17 @@ export default function KYCVerification() {
       if (data.success) {
         setIsSubmitted(true);
         // Refresh partner data
-        const partnerId = localStorage.getItem("partnerId`);
-        const refreshResponse = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+        const partnerId = localStorage.getItem("partnerId");
+        const refreshResponse = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
         const refreshData = await refreshResponse.json();
         if (refreshData.success) {
           setPartner(refreshData.data);
         }
       } else {
-        alert(data.error || "Failed to submit KYC`);
+        alert(data.error || "Failed to submit KYC");
       }
     } catch (error) {
-      alert("Network error. Please try again.`);
+      alert("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -94,8 +94,8 @@ export default function KYCVerification() {
 
   // Check KYC status and redirect if approved
   useEffect(() => {
-    if (partner?.kycStatus === 'approved`) {
-      router.push('/pickups`);
+    if (partner?.kycStatus === 'approved') {
+      router.push('/pickups');
     }
   }, [partner?.kycStatus, router]);
 
@@ -115,7 +115,7 @@ export default function KYCVerification() {
             <p className="text-sm font-medium" style={{ color: '#452D9B' }}>Status: {partner?.kycStatus?.toUpperCase() || 'PENDING'}</p>
           </div>
           <button 
-            onClick={() => router.push('/`)}
+            onClick={() => router.push('/')}
             className="w-full text-white rounded-xl py-3 font-semibold"
             style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
           >

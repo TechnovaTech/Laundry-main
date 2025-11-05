@@ -26,7 +26,7 @@ export default function DeliveryDetails() {
 
   const fetchOrder = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/orders/${params.id}`);
+      const response = await fetch(`${API_URL}/api/orders/${params.id}`);
       const data = await response.json();
       
       if (data.success) {
@@ -59,7 +59,7 @@ export default function DeliveryDetails() {
         <div className="flex items-start justify-between">
           <p className="text-sm font-semibold text-black">Order #{order.orderId}</p>
           <span className="rounded-lg text-white px-3 py-1 text-xs font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-            {order.status === 'process_completed' ? 'Ready for Delivery' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' `)}
+            {order.status === 'process_completed' ? 'Ready for Delivery' : order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
           </span>
         </div>
         <div className="mt-3 flex items-center justify-between">
@@ -112,7 +112,7 @@ export default function DeliveryDetails() {
         {order.status === 'process_completed' ? (
           <button
             onClick={async () => {
-              const partnerId = localStorage.getItem('partnerId`);
+              const partnerId = localStorage.getItem('partnerId');
               const updateData: any = {
                 status: 'out_for_delivery',
                 partnerId: partnerId
@@ -124,7 +124,7 @@ export default function DeliveryDetails() {
                 updateData.outForDeliveryAt = new Date().toISOString();
               }
               
-              const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
@@ -144,7 +144,7 @@ export default function DeliveryDetails() {
           <div className="mt-5 flex gap-3">
             <button
               onClick={async () => {
-                const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+                const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                   method: 'PATCH',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ 
@@ -252,15 +252,15 @@ export default function DeliveryDetails() {
                   const charges = chargesData.data;
                   
                   if (failureReasons.customerUnavailable) {
-                    selectedReasons.push('Customer Unavailable`);
+                    selectedReasons.push('/Customer Unavailable');
                     fees.push(charges.customerUnavailable);
                   }
                   if (failureReasons.incorrectAddress) {
-                    selectedReasons.push('Incorrect Address`);
+                    selectedReasons.push('/Incorrect Address');
                     fees.push(charges.incorrectAddress);
                   }
                   if (failureReasons.refusalToAccept) {
-                    selectedReasons.push('Refusal to Accept`);
+                    selectedReasons.push('/Refusal to Accept');
                     fees.push(charges.refusalToAccept);
                   }
 
@@ -270,9 +270,9 @@ export default function DeliveryDetails() {
                   }
 
                   const deliveryFee = Math.max(...fees); // Highest charge
-                  const failureReason = selectedReasons.join(', `);
+                  const failureReason = selectedReasons.join(', ');
 
-                  const response = await fetch(`http://localhost:3000/api/orders/${order._id}`, {
+                  const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 

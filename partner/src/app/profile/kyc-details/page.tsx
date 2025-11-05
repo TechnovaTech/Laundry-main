@@ -9,9 +9,9 @@ export default function KYCDetails() {
   const router = useRouter();
 
   useEffect(() => {
-    const partnerId = localStorage.getItem("partnerId`);
+    const partnerId = localStorage.getItem("partnerId");
     if (!partnerId) {
-      router.push("/login`);
+      router.push("/login");
       return;
     }
     fetchPartnerStatus(partnerId);
@@ -19,7 +19,7 @@ export default function KYCDetails() {
 
   const fetchPartnerStatus = async (partnerId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
       const data = await response.json();
       if (data.success) {
         setPartner(data.data);

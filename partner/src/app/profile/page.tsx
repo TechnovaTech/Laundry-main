@@ -20,13 +20,13 @@ export default function ProfilePage() {
 
   const fetchPartnerData = async () => {
     try {
-      const partnerId = localStorage.getItem("partnerId`);
+      const partnerId = localStorage.getItem("partnerId");
       if (!partnerId) {
-        router.push("/login`);
+        router.push("/login");
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/api/mobile/partners/${partnerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -47,9 +47,9 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("partnerId`);
-    localStorage.removeItem("authToken`);
-    router.push("/`);
+    localStorage.removeItem("partnerId");
+    localStorage.removeItem("authToken");
+    router.push("/");
   };
 
   if (loading) {
@@ -84,7 +84,7 @@ export default function ProfilePage() {
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.classList.remove('hidden`);
+                  if (fallback) fallback.classList.remove('hidden');
                 }}
               />
             ) : null}
@@ -100,7 +100,7 @@ export default function ProfilePage() {
 
       <div className="space-y-4">
         <div 
-          onClick={() => router.push("/profile/personal`)}
+          onClick={() => router.push("/profile/personal")}
           className="bg-white rounded-lg shadow p-6 flex items-center gap-4 cursor-pointer hover:shadow-lg transition"
         >
           <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
@@ -118,7 +118,7 @@ export default function ProfilePage() {
         </div>
 
         <div 
-          onClick={() => router.push("/profile/kyc-details`)}
+          onClick={() => router.push("/profile/kyc-details")}
           className="bg-white rounded-lg shadow p-6 flex items-center gap-4 cursor-pointer hover:shadow-lg transition"
         >
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -145,7 +145,7 @@ export default function ProfilePage() {
         </div>
 
         <div 
-          onClick={() => router.push("/profile/bank`)}
+          onClick={() => router.push("/profile/bank")}
           className="bg-white rounded-lg shadow p-6 flex items-center gap-4 cursor-pointer hover:shadow-lg transition"
         >
           <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
