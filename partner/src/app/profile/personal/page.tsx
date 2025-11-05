@@ -29,27 +29,41 @@ export default function PersonalDetailsPage() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
-      const result = await response.json();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      if (result.success && result.data) {
-        const data = result.data;
-        setPartnerData({
-          name: data.name || "",
-          mobile: data.mobile || "",
-          email: data.email || "",
-          address: {
-            street: data.address?.street || "",
-            city: data.address?.city || "",
-            state: data.address?.state || "",
-            pincode: data.address?.pincode || ""
-          },
-          vehicleType: data.vehicleType || "",
-          vehicleNumber: data.vehicleNumber || ""
-        });
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const data = result.data;
+          setPartnerData({
+            name: data.name || "",
+            mobile: data.mobile || "",
+            email: data.email || "",
+            address: {
+              street: data.address?.street || "",
+              city: data.address?.city || "",
+              state: data.address?.state || "",
+              pincode: data.address?.pincode || ""
+            },
+            vehicleType: data.vehicleType || "",
+            vehicleNumber: data.vehicleNumber || ""
+          });
+        }
+      } else {
+        console.error(`API Error: ${response.status} - ${response.statusText}`);
       }
     } catch (error) {
-      console.error("Error fetching partner data:", error);
+      if (error.name === 'AbortError') {
+        console.error("Request timeout - API took too long to respond");
+      } else {
+        console.error("Error fetching partner data:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -72,13 +86,17 @@ export default function PersonalDetailsPage() {
         })
       });
 
-      const result = await response.json();
-      if (result.success) {
-        alert("Profile updated successfully!");
-        setIsEditing(false);
-        fetchPartnerData();
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          alert("Profile updated successfully!");
+          setIsEditing(false);
+          fetchPartnerData();
+        } else {
+          alert(result.error || "Failed to update profile");
+        }
       } else {
-        alert("Failed to update profile");
+        alert(`Server error: ${response.status}`);
       }
     } catch (error) {
       alert("Error updating profile");

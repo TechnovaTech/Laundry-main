@@ -44,14 +44,29 @@ export default function BottomNav() {
   useEffect(() => {
     const partnerId = localStorage.getItem("partnerId");
     if (partnerId) {
-      fetch(`${API_URL}/api/mobile/partners/${partnerId}`)
-        .then(res => res.json())
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      fetch(`${API_URL}/api/mobile/partners/${partnerId}`, {
+        signal: controller.signal
+      })
+        .then(res => {
+          clearTimeout(timeoutId);
+          if (res.ok) {
+            return res.json();
+          }
+          throw new Error(`HTTP ${res.status}`);
+        })
         .then(result => {
           if (result.success) {
             setKycApproved(result.data.kycStatus === 'approved');
           }
         })
-        .catch(err => console.error("Failed to fetch partner:", err));
+        .catch(err => {
+          if (err.name !== 'AbortError') {
+            console.error("Failed to fetch partner:", err);
+          }
+        });
     }
   }, []);
 

@@ -19,13 +19,26 @@ export default function KYCDetails() {
 
   const fetchPartnerStatus = async (partnerId) => {
     try {
-      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
-      const data = await response.json();
-      if (data.success) {
-        setPartner(data.data);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setPartner(data.data);
+        }
+      } else {
+        console.error(`API Error: ${response.status}`);
       }
     } catch (error) {
-      console.error("Failed to fetch partner:", error);
+      if (error.name !== 'AbortError') {
+        console.error("Failed to fetch partner:", error);
+      }
     } finally {
       setLoading(false);
     }

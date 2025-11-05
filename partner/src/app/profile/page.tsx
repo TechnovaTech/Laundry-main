@@ -26,21 +26,33 @@ export default function ProfilePage() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
-      const result = await response.json();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      if (result.success && result.data) {
-        const data = result.data;
-        setPartnerData({
-          name: data.name || "",
-          mobile: data.mobile || "",
-          email: data.email || "",
-          kycStatus: data.kycStatus || "pending",
-          profileImage: data.profileImage || ""
-        });
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const data = result.data;
+          setPartnerData({
+            name: data.name || "",
+            mobile: data.mobile || "",
+            email: data.email || "",
+            kycStatus: data.kycStatus || "pending",
+            profileImage: data.profileImage || ""
+          });
+        }
+      } else {
+        console.error(`API Error: ${response.status}`);
       }
     } catch (error) {
-      console.error("Error fetching partner data:", error);
+      if (error.name !== 'AbortError') {
+        console.error("Error fetching partner data:", error);
+      }
     } finally {
       setLoading(false);
     }

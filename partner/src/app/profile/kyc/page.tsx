@@ -65,25 +65,30 @@ export default function KYCVerification() {
     try {
       const partnerId = partner._id || partner.id;
 
-      const response = await fetch(`${API_URL}/api/mobile/partners/kyc/${partnerId}`, {
-        method: "POST",
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}/kyc`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
       });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        setIsSubmitted(true);
-        // Refresh partner data
-        const partnerId = localStorage.getItem("partnerId");
-        const refreshResponse = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
-        const refreshData = await refreshResponse.json();
-        if (refreshData.success) {
-          setPartner(refreshData.data);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setIsSubmitted(true);
+          // Refresh partner data
+          const refreshResponse = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            if (refreshData.success) {
+              setPartner(refreshData.data);
+            }
+          }
+        } else {
+          alert(data.error || "Failed to submit KYC");
         }
       } else {
-        alert(data.error || "Failed to submit KYC");
+        const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+        alert(errorData.error || `Server error: ${response.status}`);
       }
     } catch (error) {
       alert("Network error. Please try again.");
