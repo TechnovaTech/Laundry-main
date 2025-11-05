@@ -31,6 +31,7 @@ export default function Pickups() {
   const router = useRouter();
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [startingPickup, setStartingPickup] = useState<string | null>(null);
 
   useEffect(() => {
     checkKYCStatus();
@@ -153,6 +154,9 @@ export default function Pickups() {
                 </a>
                 <button
                   onClick={async () => {
+                    if (startingPickup) return; // Prevent multiple clicks
+                    
+                    setStartingPickup(p._id);
                     try {
                       const partnerId = localStorage.getItem('partnerId');
                       
@@ -178,16 +182,23 @@ export default function Pickups() {
                         router.push(`/pickups/start/${p._id}`);
                       } else {
                         alert('Failed to assign order. Please try again.');
+                        setStartingPickup(null);
                       }
                     } catch (error) {
                       console.error('Error starting pickup:', error);
                       alert('Network error. Please try again.');
+                      setStartingPickup(null);
                     }
                   }}
+                  disabled={startingPickup === p._id}
                   className="flex-1 inline-flex justify-center items-center text-white rounded-xl py-2.5 text-sm font-bold shadow-md btn-press"
-                  style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                  style={{ 
+                    background: startingPickup === p._id 
+                      ? '#9ca3af' 
+                      : 'linear-gradient(to right, #452D9B, #07C8D0)' 
+                  }}
                 >
-                  Start Pickup →
+                  {startingPickup === p._id ? 'Starting...' : 'Start Pickup →'}
                 </button>
               </div>
             </div>
