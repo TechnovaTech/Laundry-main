@@ -23,6 +23,7 @@ export default function PartnerKYCPage() {
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [rejectPartnerId, setRejectPartnerId] = useState('')
   const [toast, setToast] = useState({ show: false, message: '', type: '' })
+  const [selectedPartners, setSelectedPartners] = useState<string[]>([])
 
   useEffect(() => {
     fetchPartners()
@@ -87,6 +88,46 @@ export default function PartnerKYCPage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (selectedPartners.length === 0) return
+    if (!confirm(`Delete ${selectedPartners.length} partner(s) from database?`)) return
+    
+    try {
+      const response = await fetch('/api/mobile/partners/kyc/bulk-delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedPartners })
+      })
+      if (response.ok) {
+        setToast({ show: true, message: `${selectedPartners.length} partner(s) deleted successfully!`, type: 'success' })
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
+        setSelectedPartners([])
+        fetchPartners()
+      } else {
+        setToast({ show: true, message: 'Failed to delete partners', type: 'error' })
+        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
+      }
+    } catch (error) {
+      console.error('Failed to delete:', error)
+      setToast({ show: true, message: 'Failed to delete partners', type: 'error' })
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedPartners(prev => 
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    )
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedPartners.length === filteredPartners.length) {
+      setSelectedPartners([])
+    } else {
+      setSelectedPartners(filteredPartners.map(p => p._id))
+    }
+  }
+
   const filteredPartners = partners.filter(p => 
     filter === 'all' ? true : p.kycStatus === filter
   )
@@ -94,24 +135,42 @@ export default function PartnerKYCPage() {
   return (
     <ResponsiveLayout activePage="Partner KYC" title="Partner KYC Verification">
       <div style={{ padding: '1.5rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-          {['all', 'pending', 'approved', 'rejected'].map(status => (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            {['all', 'pending', 'approved', 'rejected'].map(status => (
+              <button
+                key={status}
+                onClick={() => setFilter(status as any)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: filter === status ? '#2563eb' : 'white',
+                  color: filter === status ? 'white' : '#6b7280',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize'
+                }}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+          {selectedPartners.length > 0 && (
             <button
-              key={status}
-              onClick={() => setFilter(status as any)}
+              onClick={handleDelete}
               style={{
                 padding: '0.5rem 1rem',
-                backgroundColor: filter === status ? '#2563eb' : 'white',
-                color: filter === status ? 'white' : '#6b7280',
-                border: '1px solid #d1d5db',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                textTransform: 'capitalize'
+                fontWeight: '500'
               }}
             >
-              {status}
+              Delete Selected ({selectedPartners.length})
             </button>
-          ))}
+          )}
         </div>
 
         <div style={{
@@ -124,13 +183,21 @@ export default function PartnerKYCPage() {
             backgroundColor: '#f8fafc',
             padding: '1rem',
             display: 'grid',
-            gridTemplateColumns: '1fr 1.5fr 1.5fr 1.5fr 1fr 2fr',
+            gridTemplateColumns: '50px 1fr 1.5fr 1.5fr 1.5fr 1fr 2fr',
             gap: '1rem',
             fontSize: '0.9rem',
             fontWeight: '600',
             color: '#6b7280',
             borderBottom: '1px solid #e5e7eb'
           }}>
+            <div>
+              <input
+                type="checkbox"
+                checked={selectedPartners.length === filteredPartners.length && filteredPartners.length > 0}
+                onChange={toggleSelectAll}
+                style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+              />
+            </div>
             <div>Partner ID</div>
             <div>Name</div>
             <div>Mobile</div>
@@ -150,13 +217,21 @@ export default function PartnerKYCPage() {
                 style={{
                   padding: '1rem',
                   display: 'grid',
-                  gridTemplateColumns: '1fr 1.5fr 1.5fr 1.5fr 1fr 2fr',
+                  gridTemplateColumns: '50px 1fr 1.5fr 1.5fr 1.5fr 1fr 2fr',
                   gap: '1rem',
                   borderBottom: index < filteredPartners.length - 1 ? '1px solid #f3f4f6' : 'none',
                   fontSize: '0.9rem',
                   alignItems: 'center'
                 }}
               >
+                <div>
+                  <input
+                    type="checkbox"
+                    checked={selectedPartners.includes(partner._id)}
+                    onChange={() => toggleSelect(partner._id)}
+                    style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                  />
+                </div>
                 <div>#{partner._id.slice(-6)}</div>
                 <div>{partner.name}</div>
                 <div>{partner.mobile}</div>

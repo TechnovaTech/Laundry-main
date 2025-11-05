@@ -33,10 +33,10 @@ export default function Login() {
         // Redirect based on isNewUser flag
         if (data.data.isNewUser === true) {
           console.log('NEW USER - Redirecting to profile/create');
-          window.location.href = '/profile/create';
+          router.push('/profile/create');
         } else {
           console.log('EXISTING USER - Redirecting to pickups');
-          window.location.href = '/pickups';
+          router.push('/pickups');
         }
       } else {
         alert(data.error || 'Google login failed');
@@ -81,7 +81,7 @@ export default function Login() {
       if (data.success) {
         localStorage.setItem('partnerId', data.data.partnerId);
         localStorage.setItem('authToken', data.token);
-        window.location.href = data.data.isNewUser ? '/profile/create' : '/pickups';
+        router.push(data.data.isNewUser ? '/profile/create' : '/pickups');
       } else {
         alert('Login failed: ' + (data.error || 'Unknown error'));
       }
