@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
         if (customer.totalOrders === 0 && customer.referredBy) {
           // Award signup bonus to new customer
           const signupBonus = settings?.signupBonusPoints || 25
-          const newCustomerPoints = (customer.loyaltyPoints || 0) + totalPoints
+          const newCustomerPoints = (customer.loyaltyPoints || 0) + orderCompletionPoints
           
           await Customer.findByIdAndUpdate(orderData.customerId, {
             $inc: { loyaltyPoints: signupBonus }
