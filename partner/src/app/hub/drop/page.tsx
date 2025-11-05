@@ -13,9 +13,42 @@ export default function DropToHub() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      fetchHubAndOrders();
+      checkKYCStatus();
     }
   }, []);
+
+  const checkKYCStatus = async () => {
+    try {
+      const partnerId = localStorage.getItem('partnerId');
+      if (!partnerId) {
+        window.location.href = '/login';
+        return;
+      }
+      
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const kycStatus = data.data.kycStatus;
+        
+        if (kycStatus === 'rejected') {
+          window.location.href = '/profile/kyc';
+          return;
+        }
+        
+        if (kycStatus === 'pending') {
+          window.location.href = '/profile/kyc-details';
+          return;
+        }
+        
+        if (kycStatus === 'approved') {
+          fetchHubAndOrders();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check KYC status:', error);
+    }
+  };
 
   const fetchHubAndOrders = async () => {
     const partnerId = localStorage.getItem('partnerId');

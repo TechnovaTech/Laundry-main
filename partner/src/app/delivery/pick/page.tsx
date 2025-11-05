@@ -11,9 +11,43 @@ export default function PickForDelivery() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      fetchOrders();
+      checkKYCStatus();
     }
   }, []);
+
+  const checkKYCStatus = async () => {
+    try {
+      const partnerId = localStorage.getItem('partnerId');
+      if (!partnerId) {
+        window.location.href = '/login';
+        return;
+      }
+      
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const kycStatus = data.data.kycStatus;
+        
+        if (kycStatus === 'rejected') {
+          window.location.href = '/profile/kyc';
+          return;
+        }
+        
+        if (kycStatus === 'pending') {
+          window.location.href = '/profile/kyc-details';
+          return;
+        }
+        
+        if (kycStatus === 'approved') {
+          fetchOrders();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check KYC status:', error);
+      setLoading(false);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
