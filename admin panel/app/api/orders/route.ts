@@ -65,6 +65,34 @@ export async function POST(request: NextRequest) {
       })
     }
     
+    // Handle wallet payment - deduct from wallet balance
+    if (orderData.walletUsed && orderData.walletUsed > 0) {
+      const customer = await Customer.findById(orderData.customerId)
+      if (customer) {
+        const walletBalance = customer.walletBalance || 0
+        const walletAmount = orderData.walletUsed
+        
+        if (walletBalance >= walletAmount) {
+          // Deduct wallet amount from balance
+          await Customer.findByIdAndUpdate(orderData.customerId, {
+            walletBalance: walletBalance - walletAmount
+          })
+          
+          // Record wallet transaction
+          await WalletTransaction.create({
+            customerId: customer._id,
+            type: 'balance',
+            action: 'decrease',
+            amount: walletAmount,
+            reason: `Payment for Order #${orderId}`,
+            previousValue: walletBalance,
+            newValue: walletBalance - walletAmount,
+            adjustedBy: 'System'
+          })
+        }
+      }
+    }
+    
     // Clear due amount if payment is successful and record transaction
     if (orderData.paymentStatus === 'paid') {
       const customer = await Customer.findById(orderData.customerId)

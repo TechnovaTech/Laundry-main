@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     await connectDB()
     const { id } = await params
-    const { type, action, amount, reason } = await request.json()
+    const { type, action, amount, reason, adjustedBy } = await request.json()
 
     if (!['balance', 'points'].includes(type)) {
       return NextResponse.json({ success: false, error: 'Invalid type' }, { 
@@ -83,7 +83,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       amount,
       reason: reason || 'Admin adjustment',
       previousValue,
-      newValue
+      newValue,
+      adjustedBy: adjustedBy || 'Admin'
     })
 
     return NextResponse.json({ success: true, data: customer }, {
