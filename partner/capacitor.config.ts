@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.ironstream.deliverypartner',
-  appName: 'Delivery Partner - Iron Stream',
+  appName: 'Steam Iron Captain',
   webDir: 'out',
   plugins: {
     GoogleAuth: {

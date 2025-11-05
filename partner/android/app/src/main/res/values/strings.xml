@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Steam Iron Captain</string>
+    <string name="title_activity_main">Steam Iron Captain</string>
+    <string name="package_name">com.ironstream.deliverypartner</string>
+    <string name="custom_url_scheme">com.ironstream.deliverypartner</string>
+</resources>

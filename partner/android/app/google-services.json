@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "514222866895",
+    "project_id": "laundry-mate-app",
+    "storage_bucket": "laundry-mate-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:514222866895:android:def456",
+        "android_client_info": {
+          "package_name": "com.ironstream.deliverypartner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ironstream.deliverypartner",
+            "certificate_hash": "dad014ad5d874a44468bd684a19578a440e5302e"
+          }
+        },
+        {
+          "client_id": "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4fO5u8wnn-p6eGWBKaYo-tKBgAz9ih6c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

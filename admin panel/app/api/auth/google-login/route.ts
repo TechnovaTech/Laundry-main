@@ -10,7 +10,8 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Support multiple client IDs (Web + Android)
 const ALLOWED_CLIENT_IDS = [
   process.env.GOOGLE_CLIENT_ID, // Web client ID
-  process.env.GOOGLE_ANDROID_CLIENT_ID, // Android client ID
+  process.env.GOOGLE_ANDROID_CLIENT_ID, // Customer Android client ID
+  process.env.GOOGLE_PARTNER_ANDROID_CLIENT_ID, // Partner Android client ID
 ].filter(Boolean);
 
 export async function OPTIONS(request: NextRequest) {
