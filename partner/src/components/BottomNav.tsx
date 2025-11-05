@@ -8,28 +8,66 @@ function Icon({ src, active, showCheck }: { src: string; active: boolean; showCh
   if (src === 'profile') {
     return (
       <div className="relative">
-        <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" style={{ color: active ? '#452D9B' : '#6b7280' }}>
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-        </svg>
+        {active ? (
+          // Gradient profile icon when active
+          <div
+            className="h-6 w-6 rounded-lg p-1"
+            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+          >
+            <svg className="h-full w-full" fill="white" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+        ) : (
+          // Regular profile icon
+          <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" style={{ color: '#6b7280' }}>
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        )}
       </div>
     );
   }
+  
   return (
     <div className="relative">
-      <div
-        className="h-6 w-6"
-        style={{
-          backgroundColor: active ? '#452D9B' : '#6b7280',
-          WebkitMaskImage: `url(${src})`,
-          maskImage: `url(${src})`,
-          WebkitMaskSize: "contain",
-          maskSize: "contain",
-          WebkitMaskRepeat: "no-repeat",
-          maskRepeat: "no-repeat",
-          WebkitMaskPosition: "center",
-          maskPosition: "center",
-        }}
-      />
+      {active ? (
+        // Gradient icon when active
+        <div
+          className="h-6 w-6 rounded-lg p-1"
+          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+        >
+          <div
+            className="h-full w-full"
+            style={{
+              backgroundColor: 'white',
+              WebkitMaskImage: `url(${src})`,
+              maskImage: `url(${src})`,
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              maskPosition: "center",
+            }}
+          />
+        </div>
+      ) : (
+        // Regular icon
+        <div
+          className="h-6 w-6"
+          style={{
+            backgroundColor: '#6b7280',
+            WebkitMaskImage: `url(${src})`,
+            maskImage: `url(${src})`,
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+          }}
+        />
+      )}
       {active && showCheck && (
         <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full text-white text-[10px] leading-4 flex items-center justify-center" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>✓</span>
       )}
@@ -75,12 +113,11 @@ export default function BottomNav() {
   //   return null;
   // }
 
-  const isPickup = pathname.startsWith('//pickups');
-  const isHub = pathname.startsWith('//hub');
-  const isPickForDelivery = pathname.startsWith('//delivery/pick');
-  const isDelivery = pathname.startsWith('//delivery') && !isPickForDelivery;
-
-  const isProfile = pathname.startsWith('//profile');
+  const isPickup = pathname.startsWith('/pickups');
+  const isHub = pathname.startsWith('/hub');
+  const isPickForDelivery = pathname.startsWith('/delivery/pick');
+  const isDelivery = pathname.startsWith('/delivery') && !isPickForDelivery;
+  const isProfile = pathname.startsWith('/profile');
 
   const items = [
     { href: "/pickups", label: "Pickup", icon: "/PickupIcon.svg", active: isPickup, check: false },

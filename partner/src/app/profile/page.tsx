@@ -58,6 +58,30 @@ export default function ProfilePage() {
     }
   };
 
+  const handleProfileImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const partnerId = localStorage.getItem("partnerId");
+        const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profileImage: event.target.result })
+        });
+
+        if (response.ok) {
+          fetchPartnerData();
+        }
+      } catch (error) {
+        console.error("Failed to update profile image:", error);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("partnerId");
     localStorage.removeItem("authToken");
@@ -87,25 +111,48 @@ export default function ProfilePage() {
         
         <div className="bg-white rounded-lg shadow p-6 mb-4">
           <div className="flex items-center gap-4">
-            {partnerData.profileImage ? (
-              <img 
-                src={partnerData.profileImage} 
-                alt="Profile" 
-                className="w-20 h-20 rounded-full object-cover border-2" 
-                style={{ borderColor: '#452D9B' }}
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.classList.remove('hidden');
-                }}
+            <div className="relative">
+              {partnerData.profileImage ? (
+                <img 
+                  src={partnerData.profileImage} 
+                  alt="Profile" 
+                  className="w-20 h-20 rounded-full object-cover border-2" 
+                  style={{ borderColor: '#452D9B' }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold ${partnerData.profileImage ? 'hidden' : ''}`} style={{ backgroundColor: '#f0ebf8', color: '#452D9B' }}>
+                {partnerData.name ? partnerData.name.charAt(0).toUpperCase() : 'P'}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleProfileImageUpload}
+                className="hidden"
+                id="profile-upload"
               />
-            ) : null}
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold ${partnerData.profileImage ? 'hidden' : ''}`} style={{ backgroundColor: '#f0ebf8', color: '#452D9B' }}>
-              {partnerData.name.charAt(0).toUpperCase()}
+              <label
+                htmlFor="profile-upload"
+                className="absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer text-white text-xs"
+                style={{ backgroundColor: '#452D9B' }}
+              >
+                📷
+              </label>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{partnerData.name}</h1>
-              <p className="text-gray-600">{partnerData.mobile}</p>
+              <h1 className="text-2xl font-bold text-gray-900">{partnerData.name || 'Partner'}</h1>
+              <p className="text-gray-600">{partnerData.mobile || 'No mobile'}</p>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                partnerData.kycStatus === "approved" ? "bg-green-100 text-green-800" :
+                partnerData.kycStatus === "rejected" ? "bg-red-100 text-red-800" :
+                "bg-yellow-100 text-yellow-800"
+              }`}>
+                KYC: {partnerData.kycStatus?.toUpperCase() || 'PENDING'}
+              </span>
             </div>
           </div>
         </div>

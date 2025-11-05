@@ -26,24 +26,44 @@ export default function KYCVerification() {
       }
 
       try {
-        const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
-        const result = await response.json();
-        if (result.success) {
-          setPartner(result.data);
-          if (result.data.kycStatus && result.data.kycStatus !== 'pending') {
-            setIsSubmitted(true);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setPartner(result.data);
+            
+            // Pre-fill form with existing data
+            setFormData({
+              vehicleType: result.data.vehicleType || "",
+              vehicleNumber: result.data.vehicleNumber || "",
+              aadharNumber: result.data.aadharNumber || "",
+              aadharImage: result.data.aadharImage || "",
+              drivingLicenseNumber: result.data.drivingLicenseNumber || "",
+              drivingLicenseImage: result.data.drivingLicenseImage || ""
+            });
+            
+            if (result.data.kycStatus && result.data.kycStatus !== 'pending') {
+              setIsSubmitted(true);
+            }
           }
+        } else {
+          console.error(`API Error: ${response.status}`);
         }
       } catch (error) {
-        console.error('Failed to fetch partner:', error);
+        if (error.name !== 'AbortError') {
+          console.error('Failed to fetch partner:', error);
+        }
       }
     };
 
     fetchPartner();
-
-    // Poll for KYC status updates every 5 seconds
-    const interval = setInterval(fetchPartner, 5000);
-    return () => clearInterval(interval);
   }, [router]);
 
   const handleImageUpload = (field, file) => {
@@ -63,10 +83,20 @@ export default function KYCVerification() {
 
     setLoading(true);
     try {
-      const partnerId = partner._id || partner.id;
+      const partnerId = localStorage.getItem("partnerId");
+      if (!partnerId) {
+        alert("Partner ID not found. Please login again.");
+        return;
+      }
 
-      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}/kyc`, {
-        method: "PATCH",
+      const kycData = {
+        ...formData,
+        kycStatus: 'pending',
+        kycSubmittedAt: new Date().toISOString()
+      };
+
+      const response = await fetch(`${API_URL}/api/mobile/partners/kyc/${partnerId}`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
       });
@@ -75,23 +105,19 @@ export default function KYCVerification() {
         const data = await response.json();
         if (data.success) {
           setIsSubmitted(true);
-          // Refresh partner data
-          const refreshResponse = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
-          if (refreshResponse.ok) {
-            const refreshData = await refreshResponse.json();
-            if (refreshData.success) {
-              setPartner(refreshData.data);
-            }
-          }
+          setPartner(data.data);
+          alert("KYC submitted successfully! Admin will review within 24-48 hours.");
         } else {
           alert(data.error || "Failed to submit KYC");
         }
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Network error' }));
-        alert(errorData.error || `Server error: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Server response:', errorText);
+        alert(`Server error: ${response.status}. Please try again.`);
       }
     } catch (error) {
-      alert("Network error. Please try again.");
+      console.error('KYC submission error:', error);
+      alert("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }

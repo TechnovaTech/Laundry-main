@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import { API_URL } from '@/config/api';
 
@@ -30,6 +30,7 @@ export const dynamic = 'force-dynamic';
 
 export default function StartPickup() {
   const params = useParams();
+  const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
@@ -156,7 +157,7 @@ export default function StartPickup() {
             const result = await response.json();
             console.log('Update response:', result);
             if (response.ok) {
-              window.location.href = `/pickups/confirm/${order._id}`;
+              router.push(`/pickups/confirm/${order._id}`);
             } else {
               setToast({ message: 'Failed to update order', type: 'error' });
             }
@@ -176,7 +177,7 @@ export default function StartPickup() {
               });
               if (response.ok) {
                 setToast({ message: 'Pickup stopped. Order unassigned.', type: 'success' });
-                setTimeout(() => window.location.href = '/pickups', 1500);
+                setTimeout(() => router.push('/pickups'), 1500);
               } else {
                 setToast({ message: 'Failed to stop pickup', type: 'error' });
               }

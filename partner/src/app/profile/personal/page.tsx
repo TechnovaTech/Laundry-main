@@ -170,15 +170,42 @@ export default function PersonalDetailsPage() {
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-800">Pincode</label>
-              <p className="text-base font-normal text-gray-900">{partnerData.address.pincode || "N/A"}</p>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={partnerData.address.pincode}
+                  onChange={(e) => setPartnerData({...partnerData, address: {...partnerData.address, pincode: e.target.value}})}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                />
+              ) : (
+                <p className="text-base font-normal text-gray-900">{partnerData.address.pincode || "N/A"}</p>
+              )}
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-800">City</label>
-              <p className="text-base font-normal text-gray-900">{partnerData.address.city || "N/A"}</p>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={partnerData.address.city}
+                  onChange={(e) => setPartnerData({...partnerData, address: {...partnerData.address, city: e.target.value}})}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                />
+              ) : (
+                <p className="text-base font-normal text-gray-900">{partnerData.address.city || "N/A"}</p>
+              )}
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-800">State</label>
-              <p className="text-base font-normal text-gray-900">{partnerData.address.state || "N/A"}</p>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={partnerData.address.state}
+                  onChange={(e) => setPartnerData({...partnerData, address: {...partnerData.address, state: e.target.value}})}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                />
+              ) : (
+                <p className="text-base font-normal text-gray-900">{partnerData.address.state || "N/A"}</p>
+              )}
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-800">Street Address</label>

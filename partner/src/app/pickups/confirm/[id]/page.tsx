@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import { API_URL } from '@/config/api';
 
@@ -42,6 +42,7 @@ export const dynamic = 'force-dynamic';
 
 export default function PickupConfirm() {
   const params = useParams();
+  const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState('');
@@ -200,7 +201,7 @@ export default function PickupConfirm() {
                 body: JSON.stringify(updateData)
               });
               if (response.ok) {
-                window.location.href = '/hub/drop';
+                router.push('/hub/drop');
               }
             } catch (error) {
               console.error('Failed to update order:', error);

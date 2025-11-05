@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 
@@ -27,6 +28,7 @@ interface Pickup {
 }
 
 export default function Pickups() {
+  const router = useRouter();
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +40,7 @@ export default function Pickups() {
     try {
       const partnerId = localStorage.getItem('partnerId');
       if (!partnerId) {
-        window.location.href = '/login';
+        router.push('/login');
         return;
       }
       
@@ -49,12 +51,12 @@ export default function Pickups() {
         const kycStatus = data.data.kycStatus;
         
         if (kycStatus === 'rejected') {
-          window.location.href = '/profile/kyc';
+          router.push('/profile/kyc');
           return;
         }
         
         if (kycStatus === 'pending') {
-          window.location.href = '/profile/kyc-details';
+          router.push('/profile/kyc-details');
           return;
         }
         
@@ -151,25 +153,36 @@ export default function Pickups() {
                 </a>
                 <button
                   onClick={async () => {
-                    const partnerId = localStorage.getItem('partnerId');
-                    
-                    // Check if order is still available
-                    const checkRes = await fetch(`${API_URL}/api/orders/${p._id}`);
-                    const checkData = await checkRes.json();
-                    
-                    if (checkData.data?.partnerId) {
-                      alert('This order was just assigned to another partner');
-                      fetchPickups();
-                      return;
+                    try {
+                      const partnerId = localStorage.getItem('partnerId');
+                      
+                      // Check if order is still available
+                      const checkRes = await fetch(`${API_URL}/api/orders/${p._id}`);
+                      const checkData = await checkRes.json();
+                      
+                      if (checkData.data?.partnerId) {
+                        alert('This order was just assigned to another partner');
+                        fetchPickups();
+                        return;
+                      }
+                      
+                      // Assign partner to order
+                      const assignRes = await fetch(`${API_URL}/api/orders/${p._id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ partnerId })
+                      });
+                      
+                      if (assignRes.ok) {
+                        // Navigate to start pickup page
+                        router.push(`/pickups/start/${p._id}`);
+                      } else {
+                        alert('Failed to assign order. Please try again.');
+                      }
+                    } catch (error) {
+                      console.error('Error starting pickup:', error);
+                      alert('Network error. Please try again.');
                     }
-                    
-                    // Assign partner
-                    await fetch(`${API_URL}/api/orders/${p._id}`, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ partnerId })
-                    });
-                    window.location.href = `/pickups/start/${p._id}`;
                   }}
                   className="flex-1 inline-flex justify-center items-center text-white rounded-xl py-2.5 text-sm font-bold shadow-md btn-press"
                   style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}

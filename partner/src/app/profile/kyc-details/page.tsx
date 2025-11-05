@@ -76,38 +76,92 @@ export default function KYCDetails() {
             </span>
           </div>
           <div className="p-4 space-y-4">
+            {partner?.kycStatus === 'pending' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-yellow-800">📋 Your KYC is under review. Admin will verify within 24-48 hours.</p>
+              </div>
+            )}
+            
+            {partner?.kycStatus === 'approved' && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-green-800">✅ Your KYC has been approved! You can now accept orders.</p>
+              </div>
+            )}
+            
             <div>
               <label className="text-sm font-semibold text-gray-800">Vehicle Type</label>
-              <p className="text-base font-normal text-gray-900">{partner?.vehicleType || "N/A"}</p>
+              <p className="text-base font-normal text-gray-900">{partner?.vehicleType || "Not provided"}</p>
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-800">Vehicle Number</label>
-              <p className="text-base font-normal text-gray-900">{partner?.vehicleNumber || "N/A"}</p>
+              <p className="text-base font-normal text-gray-900">{partner?.vehicleNumber || "Not provided"}</p>
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-800">Aadhar Number</label>
-              <p className="text-base font-normal text-gray-900">{partner?.aadharNumber || "N/A"}</p>
+              <p className="text-base font-normal text-gray-900">
+                {partner?.aadharNumber ? `****-****-${partner.aadharNumber.slice(-4)}` : "Not provided"}
+              </p>
             </div>
             {partner?.aadharImage && (
               <div>
                 <label className="text-sm font-semibold text-gray-800">Aadhar Card Image</label>
-                <img src={partner.aadharImage} alt="Aadhar" className="mt-2 w-full max-w-md h-48 object-contain rounded-lg border" />
+                <img 
+                  src={partner.aadharImage} 
+                  alt="Aadhar" 
+                  className="mt-2 w-full max-w-md h-48 object-contain rounded-lg border cursor-pointer" 
+                  onClick={() => window.open(partner.aadharImage, '_blank')}
+                />
               </div>
             )}
             <div>
               <label className="text-sm font-semibold text-gray-800">Driving License Number</label>
-              <p className="text-base font-normal text-gray-900">{partner?.drivingLicenseNumber || "N/A"}</p>
+              <p className="text-base font-normal text-gray-900">{partner?.drivingLicenseNumber || "Not provided"}</p>
             </div>
             {partner?.drivingLicenseImage && (
               <div>
                 <label className="text-sm font-semibold text-gray-800">Driving License Image</label>
-                <img src={partner.drivingLicenseImage} alt="License" className="mt-2 w-full max-w-md h-48 object-contain rounded-lg border" />
+                <img 
+                  src={partner.drivingLicenseImage} 
+                  alt="License" 
+                  className="mt-2 w-full max-w-md h-48 object-contain rounded-lg border cursor-pointer" 
+                  onClick={() => window.open(partner.drivingLicenseImage, '_blank')}
+                />
               </div>
             )}
+            
+            {partner?.kycSubmittedAt && (
+              <div>
+                <label className="text-sm font-semibold text-gray-800">Submitted On</label>
+                <p className="text-base font-normal text-gray-900">
+                  {new Date(partner.kycSubmittedAt).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+            )}
+            
             {partner?.kycRejectionReason && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <label className="text-sm font-semibold text-red-800">Rejection Reason</label>
+                <label className="text-sm font-semibold text-red-800">❌ Rejection Reason</label>
                 <p className="text-sm text-red-600 mt-1">{partner.kycRejectionReason}</p>
+                <p className="text-xs text-red-500 mt-2">Please update your documents and resubmit KYC.</p>
+              </div>
+            )}
+            
+            {(!partner?.vehicleType || !partner?.aadharNumber || !partner?.drivingLicenseNumber) && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">📝 Complete your KYC verification to start accepting orders.</p>
+                <button 
+                  onClick={() => router.push('/profile/kyc')}
+                  className="mt-2 px-4 py-2 text-white rounded-lg text-sm"
+                  style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                >
+                  Complete KYC
+                </button>
               </div>
             )}
           </div>
