@@ -100,7 +100,7 @@ const Login = () => {
     <div className="h-screen flex flex-col bg-white px-4 sm:px-6 py-6 sm:py-8 overflow-hidden">
       <div className="flex flex-1 flex-col items-center">
         <h1 className="mb-4 sm:mb-6 self-start text-2xl sm:text-3xl font-bold text-black">
-          Let's log into your<br />account →
+          Please log in to continue →
         </h1>
         
         <div className="mb-4 sm:mb-6 w-full max-w-xs sm:max-w-sm">
@@ -114,7 +114,7 @@ const Login = () => {
         <div className="w-full max-w-sm sm:max-w-md space-y-3 sm:space-y-4">
           <div>
             <label className="mb-2 block text-left text-base sm:text-lg text-black font-medium">
-              Please enter your mobile no :
+              Please enter your mobile number :
             </label>
             <Input
               type="tel"

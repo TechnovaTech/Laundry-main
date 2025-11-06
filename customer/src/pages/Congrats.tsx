@@ -19,7 +19,7 @@ const Congrats = () => {
         </h1>
         
         <p className="mb-6 sm:mb-8 text-sm sm:text-base text-foreground px-2 sm:px-4">
-          Our Steam Ironing Service is available in your area. Let's get started with fresh, crisp clothes.
+          You're in. You can now focus on what matters. Your ironing is our problem now. Let's get started.
         </p>
         
         <div className="w-full space-y-3 sm:space-y-4">

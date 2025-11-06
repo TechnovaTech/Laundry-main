@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import laundryAppIllustration from "@/assets/Group (5).png";
+import laundryAppIllustration from "@/assets/get started app icon.png";
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -15,11 +15,11 @@ const Welcome = () => {
         />
         
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-          Welcome to LaundryMate
+          Urban Steam
         </h1>
         
         <p className="text-black text-base sm:text-lg font-normal mb-6 sm:mb-8 leading-relaxed">
-          Your laundry, simplified<br />and convenient
+          Reimagining ironing for the modern India
         </p>
         
         <Button 

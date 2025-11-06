@@ -16,9 +16,7 @@ const Wallet = () => {
     points: 0,
     dueAmount: 0
   });
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastAction, setToastAction] = useState('');
+
 
   useEffect(() => {
     fetchWalletSettings();
@@ -48,30 +46,7 @@ const Wallet = () => {
           dueAmount: data.data.dueAmount || 0
         });
         
-        console.log('lastAdjustmentReason:', data.data.lastAdjustmentReason);
-        console.log('lastAdjustmentAt:', data.data.lastAdjustmentAt);
-        console.log('lastAdjustmentAction:', data.data.lastAdjustmentAction);
-        
-        if (data.data.lastAdjustmentReason && data.data.lastAdjustmentAt) {
-          const adjustmentTime = new Date(data.data.lastAdjustmentAt).getTime();
-          const now = new Date().getTime();
-          const timeDiff = now - adjustmentTime;
-          
-          console.log('Time diff (ms):', timeDiff);
-          console.log('Time diff (hours):', timeDiff / 3600000);
-          
-          if (timeDiff < 86400000) {
-            console.log('Showing toast notification');
-            setToastMessage(data.data.lastAdjustmentReason);
-            setToastAction(data.data.lastAdjustmentAction || 'increase');
-            setShowToast(true);
-            setTimeout(() => setShowToast(false), 30000);
-          } else {
-            console.log('Adjustment too old, not showing notification');
-          }
-        } else {
-          console.log('No adjustment data found');
-        }
+
       }
     } catch (error) {
       console.error('Failed to fetch wallet data:', error);
@@ -384,41 +359,7 @@ const Wallet = () => {
         </button>
       </nav>
 
-      {showToast && (
-        <div style={{
-          position: 'fixed',
-          top: '80px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: toastAction === 'increase' ? '#10b981' : '#ef4444',
-          color: 'white',
-          padding: '1rem 1.5rem',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-          zIndex: 1000,
-          maxWidth: '90%',
-          textAlign: 'center',
-          fontWeight: '500'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '1.5rem' }}>{toastAction === 'increase' ? '🎉' : '😢'}</span>
-            <span>{toastMessage}</span>
-            <button 
-              onClick={() => setShowToast(false)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'white',
-                fontSize: '1.25rem',
-                cursor: 'pointer',
-                padding: '0 0.25rem'
-              }}
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

@@ -125,11 +125,6 @@ const BookingConfirmation = () => {
           Cancel Order
         </Button>
 
-        <button className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-primary transition px-4 text-center">
-          <span>Invite friends & get 20% off your next order.</span>
-          <Share2 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-        </button>
-
         <button 
           onClick={() => setShowCancellationModal(true)}
           className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 underline mt-4"

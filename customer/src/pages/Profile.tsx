@@ -34,7 +34,7 @@ const ReferAndEarn = () => {
   );
 };
 import { useNavigate, useLocation } from "react-router-dom";
-import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, MessageCircle, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2 } from "lucide-react";
+import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, MessageCircle, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2, Phone } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { API_URL } from '@/config/api';
 
@@ -171,13 +171,16 @@ const Profile = () => {
   };
 
   const supportOptions = [
-    { id: 1, title: "FAQ", icon: HelpCircle },
+    { id: 1, title: "Call Support", icon: Phone },
     { id: 2, title: "Mail", icon: Mail },
     { id: 3, title: "WhatsApp Support", icon: MessageCircle }
   ];
   
   const handleSupportClick = (optionId: number) => {
-    if (optionId === 2) {
+    if (optionId === 1) {
+      // Call support
+      window.open('tel:+919036754813', '_self');
+    } else if (optionId === 2) {
       // Open Gmail compose
       window.open('https://mail.google.com/mail/?view=cm&fs=1&to=acsgroup.global@gmail.com', '_blank');
     } else if (optionId === 3) {
