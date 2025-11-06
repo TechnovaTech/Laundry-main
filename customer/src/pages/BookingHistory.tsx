@@ -18,6 +18,9 @@ const BookingHistory = () => {
   }, []);
 
   const fetchOrders = async () => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 2000)
+    
     try {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) {
@@ -25,7 +28,10 @@ const BookingHistory = () => {
         return;
       }
       
-      const response = await fetch(`${API_URL}/api/orders?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/orders?customerId=${customerId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId)
       const data = await response.json();
       
       if (data.success) {
@@ -46,7 +52,7 @@ const BookingHistory = () => {
         setOrders(formattedOrders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      clearTimeout(timeoutId)
     } finally {
       setLoading(false);
     }

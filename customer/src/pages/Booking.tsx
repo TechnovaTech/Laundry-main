@@ -43,39 +43,36 @@ const Booking = () => {
     fetchPricingItems();
     fetchTimeSlots();
     fetchCustomerAddress();
-    fetchMinOrderPrice();
   }, []);
   
-  const fetchMinOrderPrice = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/wallet-settings`);
-      const data = await response.json();
-      console.log('Wallet settings response:', data);
-      if (data.success && data.data) {
-        const minPrice = data.data.minOrderPrice || 500;
-        console.log('Setting min order price to:', minPrice);
-        setMinOrderPrice(minPrice);
-      }
-    } catch (error) {
-      console.error('Failed to fetch min order price:', error);
-    }
-  };
-  
   const fetchPricingItems = async () => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 2000)
+    
     try {
-      const response = await fetch(`${API_URL}/api/pricing`);
-      const data = await response.json();
-      if (data.success) {
-        setPricingItems(data.data);
-        // Initialize quantities
+      const [pricingRes, settingsRes] = await Promise.all([
+        fetch(`${API_URL}/api/pricing`, { signal: controller.signal }),
+        fetch(`${API_URL}/api/wallet-settings`, { signal: controller.signal })
+      ]);
+      clearTimeout(timeoutId)
+      
+      const pricingData = await pricingRes.json();
+      const settingsData = await settingsRes.json();
+      
+      if (pricingData.success) {
+        setPricingItems(pricingData.data);
         const initialQuantities: {[key: string]: number} = {};
-        data.data.forEach((item: PricingItem) => {
+        pricingData.data.forEach((item: PricingItem) => {
           initialQuantities[item._id] = 0;
         });
         setQuantities(initialQuantities);
       }
+      
+      if (settingsData.success && settingsData.data) {
+        setMinOrderPrice(settingsData.data.minOrderPrice || 500);
+      }
     } catch (error) {
-      console.error('Failed to fetch pricing items:', error);
+      clearTimeout(timeoutId)
     }
   };
   
@@ -146,11 +143,17 @@ const Booking = () => {
   };
   
   const fetchCustomerAddress = async () => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 2000)
+    
     try {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId)
       const data = await response.json();
       
       if (data.success && data.data?.address) {
@@ -159,7 +162,7 @@ const Booking = () => {
         setCustomerAddress(primaryAddress);
       }
     } catch (error) {
-      console.error('Failed to fetch customer address:', error);
+      clearTimeout(timeoutId)
     }
   };
 

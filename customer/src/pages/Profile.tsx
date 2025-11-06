@@ -93,12 +93,11 @@ const Profile = () => {
 
   useEffect(() => {
     fetchCustomerProfile();
-    fetchWalletBalance();
   }, []);
 
   const fetchCustomerProfile = async () => {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 3000)
+    const timeoutId = setTimeout(() => controller.abort(), 2000)
     
     try {
       const customerId = localStorage.getItem('customerId');
@@ -126,7 +125,8 @@ const Profile = () => {
           state: customer.address?.[0]?.state || "Not provided"
         });
         
-        // Update addresses from database
+        setWalletBalance(`₹${customer.walletBalance || 0}`);
+        
         if (customer.address && customer.address.length > 0) {
           const dbAddresses = customer.address.map((addr, index) => ({
             id: index + 1,
@@ -137,10 +137,8 @@ const Profile = () => {
           setAddresses(dbAddresses);
         }
         
-        // Update payment options from database
         if (customer.paymentMethods && customer.paymentMethods.length > 0) {
           setPaymentOptions(customer.paymentMethods);
-        } else {
         }
       }
     } catch (error) {
@@ -153,32 +151,6 @@ const Profile = () => {
 
 
   const [walletBalance, setWalletBalance] = useState("₹0");
-
-  useEffect(() => {
-    fetchWalletBalance();
-  }, []);
-
-  const fetchWalletBalance = async () => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 2000)
-    
-    try {
-      const customerId = localStorage.getItem('customerId');
-      if (!customerId) return;
-      
-      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId)
-      const data = await response.json();
-      
-      if (data.success && data.data) {
-        setWalletBalance(`₹${data.data.walletBalance || 0}`);
-      }
-    } catch (error) {
-      clearTimeout(timeoutId)
-    }
-  };
 
   const supportOptions = [
     { id: 1, title: "Call Support", icon: Phone },

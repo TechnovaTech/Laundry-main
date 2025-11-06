@@ -40,10 +40,9 @@ const Home = () => {
     window.addEventListener('userNameChanged', handleStorageChange);
 
     fetchVouchers();
-    fetchCustomerAddress();
+    fetchCustomerData();
     fetchRecentOrders();
     fetchHeroItems();
-    fetchProfileImage();
     
     const claimed = localStorage.getItem('hasClaimedVoucher');
     if (claimed === 'true') {
@@ -68,37 +67,32 @@ const Home = () => {
     }
   };
   
-  const fetchCustomerAddress = async () => {
+  const fetchCustomerData = async () => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 2000)
+    
     try {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId)
       const data = await response.json();
       
-      if (data.success && data.data?.address?.[0]) {
-        const address = data.data.address[0];
-        const addressText = `${address.street || ''}, ${address.city || ''}, ${address.state || ''} - ${address.pincode || ''}`;
-        setCustomerAddress(addressText.replace(/^, |, $/, ''));
+      if (data.success && data.data) {
+        if (data.data.address?.[0]) {
+          const address = data.data.address[0];
+          const addressText = `${address.street || ''}, ${address.city || ''}, ${address.state || ''} - ${address.pincode || ''}`;
+          setCustomerAddress(addressText.replace(/^, |, $/, ''));
+        }
+        if (data.data.profileImage) {
+          setProfileImage(data.data.profileImage);
+        }
       }
     } catch (error) {
-      console.error('Error fetching customer address:', error);
-    }
-  };
-  
-  const fetchProfileImage = async () => {
-    try {
-      const customerId = localStorage.getItem('customerId');
-      if (!customerId) return;
-      
-      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
-      const data = await response.json();
-      
-      if (data.success && data.data?.profileImage) {
-        setProfileImage(data.data.profileImage);
-      }
-    } catch (error) {
-      console.error('Error fetching profile image:', error);
+      clearTimeout(timeoutId)
     }
   };
   
