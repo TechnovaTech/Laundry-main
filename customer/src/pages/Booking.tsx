@@ -33,8 +33,24 @@ const Booking = () => {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [showSlotError, setShowSlotError] = useState(false);
-  const [customerAddress, setCustomerAddress] = useState<Address | null>(null);
-  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [customerAddress, setCustomerAddress] = useState<Address | null>(() => {
+    const cached = localStorage.getItem('cachedBookingAddress');
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return null;
+  });
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>(() => {
+    const cached = localStorage.getItem('cachedSavedAddresses');
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+    return [];
+  });
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const [minOrderPrice, setMinOrderPrice] = useState(500);
@@ -160,6 +176,8 @@ const Booking = () => {
         setSavedAddresses(data.data.address);
         const primaryAddress = data.data.address.find((addr: Address) => addr.isDefault) || data.data.address[0];
         setCustomerAddress(primaryAddress);
+        localStorage.setItem('cachedSavedAddresses', JSON.stringify(data.data.address));
+        localStorage.setItem('cachedBookingAddress', JSON.stringify(primaryAddress));
       }
     } catch (error) {
       clearTimeout(timeoutId)

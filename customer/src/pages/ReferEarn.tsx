@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Users, ShoppingCart, Wallet, Share2, Copy, Home as HomeIcon, Tag, RotateCcw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
+import { Share } from '@capacitor/share';
 
 const ReferEarn = () => {
   const navigate = useNavigate();
@@ -123,16 +124,16 @@ const ReferEarn = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleShareCode = () => {
+  const handleShareCode = async () => {
     const shareText = `🎁 Join our laundry service and get FREE points on your first order!\n\nUse my referral code: ${referralData.userCode}\n\nSign up now: ${window.location.origin}\n\nDon't miss out on this exclusive offer! 🚀`;
     
-    if (navigator.share) {
-      navigator.share({
+    try {
+      await Share.share({
         title: 'Get Free Points - Laundry Service',
-        text: shareText
+        text: shareText,
+        dialogTitle: 'Share your referral code'
       });
-    } else {
-      // Fallback: copy to clipboard
+    } catch (error) {
       navigator.clipboard.writeText(shareText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

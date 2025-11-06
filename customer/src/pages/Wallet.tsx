@@ -19,82 +19,71 @@ const Wallet = () => {
 
 
   useEffect(() => {
-    fetchAllWalletData();
+    fetchWalletSettings();
+    fetchCustomerWallet();
+    fetchWalletTransactions();
   }, []);
+
+  const fetchCustomerWallet = async () => {
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) return;
+      
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        console.log('Customer data:', data.data);
+        console.log('Due Amount from API:', data.data.dueAmount);
+        setWalletData({
+          availableBalance: data.data.walletBalance || 0,
+          points: data.data.loyaltyPoints || 0,
+          dueAmount: data.data.dueAmount || 0
+        });
+        console.log('Wallet Data Set:', {
+          availableBalance: data.data.walletBalance || 0,
+          points: data.data.loyaltyPoints || 0,
+          dueAmount: data.data.dueAmount || 0
+        });
+        
+
+      }
+    } catch (error) {
+      console.error('Failed to fetch wallet data:', error);
+    }
+  };
+
+  const fetchWalletSettings = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/wallet-settings`);
+      const data = await response.json();
+      console.log('Wallet settings fetched:', data);
+      if (data.success) {
+        setPointsPerRupee(data.data.pointsPerRupee);
+        setMinRedeemPoints(data.data.minRedeemPoints);
+        setReferralPoints(data.data.referralPoints);
+        console.log('Points per rupee set to:', data.data.pointsPerRupee);
+      }
+    } catch (error) {
+      console.error('Failed to fetch wallet settings:', error);
+    }
+  };
 
   const [walletHistory, setWalletHistory] = useState([]);
   const [dueCharges, setDueCharges] = useState([]);
 
-  const fetchAllWalletData = async () => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 2000)
-    
-    try {
-      const customerId = localStorage.getItem('customerId');
-      if (!customerId) return;
-      
-      const [profileRes, settingsRes, transactionsRes] = await Promise.all([
-        fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, { signal: controller.signal }),
-        fetch(`${API_URL}/api/wallet-settings`, { signal: controller.signal }),
-        fetch(`${API_URL}/api/wallet-transactions?customerId=${customerId}`, { signal: controller.signal })
-      ]);
-      clearTimeout(timeoutId)
-      
-      const profileData = await profileRes.json();
-      const settingsData = await settingsRes.json();
-      const transactionsData = await transactionsRes.json();
-      
-      if (profileData.success && profileData.data) {
-        setWalletData({
-          availableBalance: profileData.data.walletBalance || 0,
-          points: profileData.data.loyaltyPoints || 0,
-          dueAmount: profileData.data.dueAmount || 0
-        });
-      }
-      
-      if (settingsData.success) {
-        setPointsPerRupee(settingsData.data.pointsPerRupee);
-        setMinRedeemPoints(settingsData.data.minRedeemPoints);
-        setReferralPoints(settingsData.data.referralPoints);
-      }
-      
-      if (transactionsData.success && transactionsData.data) {
-        const formattedTransactions = transactionsData.data.map((t: any) => ({
-          id: t._id,
-          title: `${t.type === 'balance' ? 'Balance' : 'Points'} ${t.action === 'increase' ? 'Added' : 'Deducted'}`,
-          subtitle: t.reason,
-          amount: `${t.action === 'increase' ? '+' : '-'}${t.type === 'balance' ? '₹' : ''}${t.amount}${t.type === 'points' ? ' pts' : ''}`,
-          type: t.action === 'increase' ? 'credit' : 'debit',
-          date: new Date(t.createdAt).toLocaleDateString(),
-          rawReason: t.reason
-        }));
-        setWalletHistory(formattedTransactions);
-        
-        const dueTransactions = formattedTransactions.filter((t: any) => 
-          t.rawReason && t.rawReason.toLowerCase().includes('added to due')
-        );
-        setDueCharges(dueTransactions);
-      }
-    } catch (error) {
-      clearTimeout(timeoutId)
-    }
-  };
-
   const fetchWalletTransactions = async () => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 2000)
-    
     try {
       const customerId = localStorage.getItem('customerId');
+      console.log('Fetching transactions for customer:', customerId);
       if (!customerId) return;
       
-      const response = await fetch(`${API_URL}/api/wallet-transactions?customerId=${customerId}`, {
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId)
+      const response = await fetch(`${API_URL}/api/wallet-transactions?customerId=${customerId}`);
       const data = await response.json();
+      console.log('Transactions response:', data);
       
       if (data.success && data.data) {
+        console.log('Raw transactions:', data.data);
         const formattedTransactions = data.data.map((t: any) => ({
           id: t._id,
           title: `${t.type === 'balance' ? 'Balance' : 'Points'} ${t.action === 'increase' ? 'Added' : 'Deducted'}`,
@@ -104,15 +93,19 @@ const Wallet = () => {
           date: new Date(t.createdAt).toLocaleDateString(),
           rawReason: t.reason
         }));
+        console.log('Formatted transactions:', formattedTransactions);
         setWalletHistory(formattedTransactions);
         
+        // Filter transactions that mention "added to due"
         const dueTransactions = formattedTransactions.filter((t: any) => 
           t.rawReason && t.rawReason.toLowerCase().includes('added to due')
         );
         setDueCharges(dueTransactions);
+      } else {
+        console.log('No transactions found or error:', data);
       }
     } catch (error) {
-      clearTimeout(timeoutId)
+      console.error('Failed to fetch transactions:', error);
     }
   };
 
@@ -128,11 +121,10 @@ const Wallet = () => {
       
       await updateWalletInDB(newBalance, newPoints, 100, cashValue);
       
-      setWalletData(prev => ({
-        ...prev,
+      setWalletData({
         points: newPoints,
         availableBalance: newBalance
-      }));
+      });
       
       fetchWalletTransactions();
     }
@@ -174,6 +166,8 @@ const Wallet = () => {
             reason: `Redeemed ${pointsRedeemed} points`
           })
         });
+        
+        await fetchCustomerWallet();
       }
     } catch (error) {
       console.error('Failed to update wallet:', error);

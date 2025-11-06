@@ -21,6 +21,7 @@ const AddAddress = () => {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchAddresses();
@@ -130,7 +131,9 @@ const AddAddress = () => {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     if (address.addressLine1.trim() && address.city.trim() && address.state && address.pincode.trim()) {
+      setIsSubmitting(true);
       try {
         // Check serviceability but don't block saving
         try {
@@ -168,6 +171,7 @@ const AddAddress = () => {
             console.error('Failed to save address:', saveResult.error);
             setToast({ show: true, message: 'Failed to save address', type: 'error' });
             setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+            setIsSubmitting(false);
             return;
           }
           
@@ -199,6 +203,7 @@ const AddAddress = () => {
         console.error('Error checking serviceable area:', error)
         setToast({ show: true, message: 'Failed to verify service area', type: 'error' });
         setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+        setIsSubmitting(false);
       }
     }
   };
@@ -364,11 +369,11 @@ const AddAddress = () => {
             </button>
             <button
               onClick={handleSubmit}
-              disabled={!isFormValid}
+              disabled={!isFormValid || isSubmitting}
               className="flex-1 py-3 sm:py-4 rounded-full font-semibold text-white text-sm sm:text-base transition-colors duration-200"
-              style={isFormValid ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#d1d5db', cursor: 'not-allowed' }}
+              style={isFormValid && !isSubmitting ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#d1d5db', cursor: 'not-allowed' }}
             >
-              Save Address
+              {isSubmitting ? 'Saving...' : 'Save Address'}
             </button>
           </div>
         </div>

@@ -47,6 +47,7 @@ const Profile = () => {
   const [paymentOptions, setPaymentOptions] = useState([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingPaymentIndex, setEditingPaymentIndex] = useState<number | null>(null);
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
   const [newPayment, setNewPayment] = useState({ 
     type: 'UPI', 
     upiId: '',
@@ -80,18 +81,36 @@ const Profile = () => {
     }
   }, [location.state, navigate]);
 
-  const [userProfile, setUserProfile] = useState({
-    name: "Loading...",
-    phone: "+91 XXXXXXXX",
-    email: "example@gmail.com",
-    avatar: "L",
-    profileImage: null,
-    pincode: "Loading...",
-    city: "Loading...",
-    state: "Loading..."
+  const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState(() => {
+    const cached = localStorage.getItem('cachedProfile');
+    if (cached) {
+      try {
+        return JSON.parse(cached).userProfile;
+      } catch (e) {}
+    }
+    return {
+      name: "User",
+      phone: "+91 XXXXXXXX",
+      email: "example@gmail.com",
+      avatar: "U",
+      profileImage: null,
+      pincode: "Not provided",
+      city: "Not provided",
+      state: "Not provided"
+    };
   });
 
   useEffect(() => {
+    const cachedProfile = localStorage.getItem('cachedProfile');
+    if (cachedProfile) {
+      try {
+        const cached = JSON.parse(cachedProfile);
+        if (cached.addresses) setAddresses(cached.addresses);
+        if (cached.paymentOptions) setPaymentOptions(cached.paymentOptions);
+      } catch (e) {}
+    }
+    setLoading(false);
     fetchCustomerProfile();
   }, []);
 
@@ -114,7 +133,7 @@ const Profile = () => {
       
       if (data.success && data.data) {
         const customer = data.data;
-        setUserProfile({
+        const profileData = {
           name: customer.name || "User",
           phone: customer.mobile || "+91 XXXXXXXX",
           email: customer.email || "Not provided",
@@ -123,12 +142,15 @@ const Profile = () => {
           pincode: customer.address?.[0]?.pincode || "Not provided",
           city: customer.address?.[0]?.city || "Not provided",
           state: customer.address?.[0]?.state || "Not provided"
-        });
+        };
+        setUserProfile(profileData);
+        const balance = `₹${customer.walletBalance || 0}`;
+        setWalletBalance(balance);
+        localStorage.setItem('cachedWalletBalance', balance);
         
-        setWalletBalance(`₹${customer.walletBalance || 0}`);
-        
+        let dbAddresses = [];
         if (customer.address && customer.address.length > 0) {
-          const dbAddresses = customer.address.map((addr, index) => ({
+          dbAddresses = customer.address.map((addr, index) => ({
             id: index + 1,
             title: addr.street || "Address",
             subtitle: `${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}`.replace(/^, |, $/, ''),
@@ -137,12 +159,22 @@ const Profile = () => {
           setAddresses(dbAddresses);
         }
         
+        let payments = [];
         if (customer.paymentMethods && customer.paymentMethods.length > 0) {
-          setPaymentOptions(customer.paymentMethods);
+          payments = customer.paymentMethods;
+          setPaymentOptions(payments);
         }
+        
+        localStorage.setItem('cachedProfile', JSON.stringify({
+          userProfile: profileData,
+          addresses: dbAddresses,
+          paymentOptions: payments
+        }));
+        setLoading(false);
       }
     } catch (error) {
       clearTimeout(timeoutId)
+      setLoading(false);
     }
   };
 
@@ -150,7 +182,10 @@ const Profile = () => {
 
 
 
-  const [walletBalance, setWalletBalance] = useState("₹0");
+  const [walletBalance, setWalletBalance] = useState(() => {
+    const cached = localStorage.getItem('cachedWalletBalance');
+    return cached || "₹0";
+  });
 
   const supportOptions = [
     { id: 1, title: "Call Support", icon: Phone },
@@ -225,6 +260,8 @@ const Profile = () => {
   };
 
   const handleAddPayment = async () => {
+    if (isSubmittingPayment) return;
+    setIsSubmittingPayment(true);
     try {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) {
@@ -288,7 +325,6 @@ const Profile = () => {
         setEditingPaymentIndex(null);
         setShowPaymentModal(false);
         console.log('Payment method saved successfully');
-        // Refresh profile data to confirm save
         setTimeout(() => {
           fetchCustomerProfile();
         }, 500);
@@ -297,6 +333,8 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Failed to add payment method:', error);
+    } finally {
+      setIsSubmittingPayment(false);
     }
   };
 
@@ -369,6 +407,14 @@ const Profile = () => {
   };
 
 
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#452D9B' }}></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
@@ -658,10 +704,11 @@ const Profile = () => {
                   </button>
                   <button
                     onClick={handleAddPayment}
+                    disabled={isSubmittingPayment}
                     className="flex-1 py-2.5 sm:py-3 rounded-xl font-semibold text-white text-sm sm:text-base shadow-lg"
-                    style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                    style={isSubmittingPayment ? { background: '#9ca3af' } : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
                   >
-                    {editingPaymentIndex !== null ? 'Update' : 'Add'}
+                    {isSubmittingPayment ? 'Saving...' : (editingPaymentIndex !== null ? 'Update' : 'Add')}
                   </button>
                 </div>
               </div>

@@ -17,11 +17,13 @@
     "mobile:dev": "vite build --mode development && npx cap sync && npx cap run android"
   },
   "dependencies": {
+    "@capacitor-community/http": "^1.4.1",
     "@capacitor/android": "^7.4.3",
     "@capacitor/app": "^7.1.0",
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "@capacitor/keyboard": "^7.0.3",
+    "@capacitor/share": "^7.0.2",
     "@capacitor/splash-screen": "^7.0.3",
     "@capacitor/status-bar": "^7.0.3",
     "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",

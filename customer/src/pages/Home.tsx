@@ -14,7 +14,10 @@ const Home = () => {
   const [currentVoucher, setCurrentVoucher] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [vouchers, setVouchers] = useState([]);
-  const [customerAddress, setCustomerAddress] = useState('No address added yet');
+  const [customerAddress, setCustomerAddress] = useState(() => {
+    const cached = localStorage.getItem('cachedAddress');
+    return cached || 'No address added yet';
+  });
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
@@ -85,7 +88,9 @@ const Home = () => {
         if (data.data.address?.[0]) {
           const address = data.data.address[0];
           const addressText = `${address.street || ''}, ${address.city || ''}, ${address.state || ''} - ${address.pincode || ''}`;
-          setCustomerAddress(addressText.replace(/^, |, $/, ''));
+          const finalAddress = addressText.replace(/^, |, $/, '');
+          setCustomerAddress(finalAddress);
+          localStorage.setItem('cachedAddress', finalAddress);
         }
         if (data.data.profileImage) {
           setProfileImage(data.data.profileImage);

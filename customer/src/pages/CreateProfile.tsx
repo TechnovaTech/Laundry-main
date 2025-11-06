@@ -83,9 +83,11 @@ const CreateProfile = () => {
   };
 
   const handleSubmit = async () => {
+    if (isLoading) return
+    
     setIsLoading(true)
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000)
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
     
     try {
       const actualCustomerId = customerId || localStorage.getItem('customerId')
