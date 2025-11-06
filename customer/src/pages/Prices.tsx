@@ -42,7 +42,7 @@ const Prices = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
-      <header className="px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+      <header className="px-4 sm:px-6 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', paddingTop: 'calc(1rem + env(safe-area-inset-top))', paddingBottom: '1rem' }}>
         <button onClick={() => navigate(-1)} className="flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>

@@ -97,6 +97,9 @@ const Profile = () => {
   }, []);
 
   const fetchCustomerProfile = async () => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 3000)
+    
     try {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) {
@@ -104,7 +107,10 @@ const Profile = () => {
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId)
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -133,14 +139,12 @@ const Profile = () => {
         
         // Update payment options from database
         if (customer.paymentMethods && customer.paymentMethods.length > 0) {
-          console.log('Loaded payment methods:', customer.paymentMethods);
           setPaymentOptions(customer.paymentMethods);
         } else {
-          console.log('No payment methods found in database');
         }
       }
     } catch (error) {
-      console.error('Failed to fetch profile:', error);
+      clearTimeout(timeoutId)
     }
   };
 
@@ -155,18 +159,24 @@ const Profile = () => {
   }, []);
 
   const fetchWalletBalance = async () => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 2000)
+    
     try {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId)
       const data = await response.json();
       
       if (data.success && data.data) {
         setWalletBalance(`₹${data.data.walletBalance || 0}`);
       }
     } catch (error) {
-      console.error('Failed to fetch wallet balance:', error);
+      clearTimeout(timeoutId)
     }
   };
 
@@ -389,8 +399,8 @@ const Profile = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
-      <header className="px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+    <div className="min-h-screen bg-gray-50" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
+      <header className="px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}>
         <h1 className="text-lg sm:text-xl font-bold text-white">Profile</h1>
         <button>
           <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />

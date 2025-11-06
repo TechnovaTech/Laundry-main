@@ -19,6 +19,7 @@ const CreateProfile = () => {
   });
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const storedCustomerId = localStorage.getItem('customerId')
@@ -30,10 +31,15 @@ const CreateProfile = () => {
     
     const actualCustomerId = customerId || storedCustomerId
     
-    // Fetch existing customer data from database
     const fetchCustomerData = async () => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 3000)
+      
       try {
-        const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${actualCustomerId}`)
+        const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${actualCustomerId}`, {
+          signal: controller.signal
+        })
+        clearTimeout(timeoutId)
         const data = await response.json()
         
         if (data.success && data.data) {
@@ -47,13 +53,12 @@ const CreateProfile = () => {
           if (customer.profileImage) {
             setProfileImage(customer.profileImage)
           }
-          // Auto-check terms when editing existing profile
           if (customer.name) {
             setAgreedToTerms(true)
           }
         }
       } catch (error) {
-        console.log('No existing customer data found')
+        clearTimeout(timeoutId)
       }
     }
     
@@ -78,9 +83,12 @@ const CreateProfile = () => {
   };
 
   const handleSubmit = async () => {
+    setIsLoading(true)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
+    
     try {
       const actualCustomerId = customerId || localStorage.getItem('customerId')
-      console.log('Saving profile for customer:', actualCustomerId)
       
       const updateData: any = {
         name: formData.fullName,
@@ -96,32 +104,33 @@ const CreateProfile = () => {
         updateData.referredBy = formData.referralCode
       }
       
-      console.log('Update data:', updateData)
-      console.log('API URL:', `${API_URL}/api/mobile/profile?customerId=${actualCustomerId}`)
-      
       const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${actualCustomerId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify(updateData),
+        signal: controller.signal
       })
       
-      console.log('Response status:', response.status)
+      clearTimeout(timeoutId)
       const data = await response.json()
-      console.log('Response data:', data)
       
       if (data.success) {
         localStorage.setItem('customerId', actualCustomerId)
         localStorage.setItem('userName', formData.fullName)
         window.dispatchEvent(new Event('userNameChanged'))
-        alert('Profile saved successfully!')
         navigate("/home")
       } else {
-        console.error('Profile save failed:', data.error)
+        setIsLoading(false)
         alert('Failed to save profile: ' + (data.error || 'Unknown error'))
       }
-    } catch (error) {
-      console.error('Profile save failed:', error)
-      alert('Failed to save profile: ' + error.message)
+    } catch (error: any) {
+      clearTimeout(timeoutId)
+      setIsLoading(false)
+      if (error.name === 'AbortError') {
+        alert('Request timeout. Please check your connection.')
+      } else {
+        alert('Failed to save profile: ' + (error.message || 'Network error'))
+      }
     }
   };
 
@@ -146,12 +155,19 @@ const CreateProfile = () => {
             />
             <label
               htmlFor="profile-image"
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition"
+              className="block w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 cursor-pointer hover:bg-gray-300 transition relative"
             >
               {profileImage ? (
-                <img src={profileImage} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                <>
+                  <img src={profileImage} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                  <div className="absolute inset-0 rounded-full bg-black bg-opacity-0 hover:bg-opacity-20 transition flex items-center justify-center">
+                    <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-white opacity-0 hover:opacity-100 transition" strokeWidth={3} />
+                  </div>
+                </>
               ) : (
-                <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" strokeWidth={3} />
+                <div className="w-full h-full flex items-center justify-center">
+                  <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" strokeWidth={3} />
+                </div>
               )}
             </label>
           </div>
@@ -226,11 +242,11 @@ const CreateProfile = () => {
 
         <Button
           onClick={handleSubmit}
-          disabled={!formData.fullName || !formData.email || !formData.phone}
+          disabled={!formData.fullName || !formData.email || !formData.phone || isLoading}
           className="w-full h-10 sm:h-12 rounded-xl text-white text-sm sm:text-base font-semibold mt-4 disabled:cursor-not-allowed"
-          style={!formData.fullName || !formData.email || !formData.phone ? { background: '#9ca3af' } : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+          style={!formData.fullName || !formData.email || !formData.phone || isLoading ? { background: '#9ca3af' } : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
         >
-          Save & Continue
+          {isLoading ? 'Saving...' : 'Save & Continue'}
         </Button>
       </div>
 
