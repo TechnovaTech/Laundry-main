@@ -38,8 +38,6 @@ interface Hub {
   contactNumber?: string;
 }
 
-export const dynamic = 'force-dynamic';
-
 export default function PickupConfirm() {
   const params = useParams();
   const router = useRouter();

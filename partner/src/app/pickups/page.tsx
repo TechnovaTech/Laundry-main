@@ -35,7 +35,16 @@ export default function Pickups() {
 
   useEffect(() => {
     checkKYCStatus();
-  }, []);
+    
+    // Auto-refresh every 30 seconds for new orders
+    const interval = setInterval(() => {
+      if (!loading && !startingPickup) {
+        fetchPickups();
+      }
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [loading, startingPickup]);
 
   const checkKYCStatus = async () => {
     try {
@@ -100,14 +109,25 @@ export default function Pickups() {
     }
   };
   return (
-    <div className="pb-24 bg-gray-50 min-h-screen">
+    <div className="pb-24 bg-gray-50 min-h-screen relative">
+
       {/* Header */}
       <header className="px-4 pt-6 pb-4 bg-white shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900">Today&apos;s Pickups</h2>
-          <button className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
-            <span className="text-xl">🔔</span>
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => !loading && fetchPickups()}
+              disabled={loading}
+              className="w-10 h-10 rounded-full flex items-center justify-center" 
+              style={{ backgroundColor: loading ? '#e5e7eb' : '#f0ebf8' }}
+            >
+              <span className="text-xl">{loading ? '⏳' : '🔄'}</span>
+            </button>
+            <button className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
+              <span className="text-xl">🔔</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -153,7 +173,10 @@ export default function Pickups() {
                   Call
                 </a>
                 <button
-                  onClick={async () => {
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     if (startingPickup) return; // Prevent multiple clicks
                     
                     setStartingPickup(p._id);
@@ -178,8 +201,12 @@ export default function Pickups() {
                       });
                       
                       if (assignRes.ok) {
-                        // Navigate to start pickup page
-                        router.push(`/pickups/start/${p._id}`);
+                        // Navigate to start pickup page - use window.location for Capacitor compatibility
+                        if (typeof window !== 'undefined') {
+                          window.location.href = `/pickups/start/${p._id}`;
+                        } else {
+                          router.push(`/pickups/start/${p._id}`);
+                        }
                       } else {
                         alert('Failed to assign order. Please try again.');
                         setStartingPickup(null);
@@ -198,7 +225,14 @@ export default function Pickups() {
                       : 'linear-gradient(to right, #452D9B, #07C8D0)' 
                   }}
                 >
-                  {startingPickup === p._id ? 'Starting...' : 'Start Pickup →'}
+                  {startingPickup === p._id ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Starting...
+                    </div>
+                  ) : (
+                    'Start Pickup →'
+                  )}
                 </button>
               </div>
             </div>

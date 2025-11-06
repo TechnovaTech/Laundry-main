@@ -26,8 +26,6 @@ interface Order {
   specialInstructions?: string;
 }
 
-export const dynamic = 'force-dynamic';
-
 export default function StartPickup() {
   const params = useParams();
   const router = useRouter();
@@ -46,7 +44,11 @@ export default function StartPickup() {
       
       if (data.success) {
         const foundOrder = data.data.find((o: any) => o._id === params.id);
-        setOrder(foundOrder);
+        if (foundOrder) {
+          setOrder(foundOrder);
+        } else {
+          console.error('Order not found with ID:', params.id);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch order:', error);
@@ -157,7 +159,12 @@ export default function StartPickup() {
             const result = await response.json();
             console.log('Update response:', result);
             if (response.ok) {
-              router.push(`/pickups/confirm/${order._id}`);
+              // Use window.location for Capacitor compatibility
+              if (typeof window !== 'undefined') {
+                window.location.href = `/pickups/confirm/${order._id}`;
+              } else {
+                router.push(`/pickups/confirm/${order._id}`);
+              }
             } else {
               setToast({ message: 'Failed to update order', type: 'error' });
             }
@@ -177,7 +184,13 @@ export default function StartPickup() {
               });
               if (response.ok) {
                 setToast({ message: 'Pickup stopped. Order unassigned.', type: 'success' });
-                setTimeout(() => router.push('/pickups'), 1500);
+                setTimeout(() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/pickups';
+                  } else {
+                    router.push('/pickups');
+                  }
+                }, 1500);
               } else {
                 setToast({ message: 'Failed to stop pickup', type: 'error' });
               }
