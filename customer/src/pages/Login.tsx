@@ -42,13 +42,17 @@ const Login = () => {
 
   const handleGoogleLoginMobile = async () => {
     try {
+      console.log('Starting Google Sign-In...');
       const result = await GoogleAuth.signIn();
+      console.log('Google Sign-In Result:', JSON.stringify(result));
       
       if (!result?.authentication?.idToken) {
+        console.error('No idToken received');
         alert('Failed to get authentication token');
         return;
       }
 
+      console.log('Calling API:', `${API_URL}/api/auth/google-login`);
       const response = await fetch(`${API_URL}/api/auth/google-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,18 +62,25 @@ const Login = () => {
         })
       });
       
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('API Response:', JSON.stringify(data));
       
       if (data.success) {
         localStorage.setItem('customerId', data.data.customerId);
         localStorage.setItem('authToken', data.token);
         navigate(data.data.isNewUser ? '/create-profile' : '/home');
       } else {
-        alert(data.error || 'Login failed');
+        alert(`Login failed: ${data.error || 'Unknown error'}`);
       }
     } catch (error: any) {
       console.error('Google Sign-In Error:', error);
-      alert(error.message || 'Something went wrong');
+      console.error('Error details:', JSON.stringify(error));
+      if (error.message?.includes('10')) {
+        alert('Google Sign-In configuration error. Check SHA-1 in Google Cloud Console.');
+      } else {
+        alert(`Error: ${error.message || 'Something went wrong'}`);
+      }
     }
   };
 
