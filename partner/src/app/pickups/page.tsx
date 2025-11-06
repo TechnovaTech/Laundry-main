@@ -32,7 +32,6 @@ export default function Pickups() {
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [loading, setLoading] = useState(true);
   const [startingPickup, setStartingPickup] = useState<string | null>(null);
-  const [assignedOrders, setAssignedOrders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     checkKYCStatus();
@@ -98,17 +97,10 @@ export default function Pickups() {
             const isInPartnerArea = order.pickupAddress?.pincode === partnerPincode;
             const isPending = order.status === 'pending';
             const isNotFailed = order.paymentStatus !== 'failed';
-            const isAssignedToCurrentPartner = order.partnerId === partnerId;
             const isUnassigned = !order.partnerId;
             
-            return isPending && isInPartnerArea && isNotFailed && (isUnassigned || isAssignedToCurrentPartner);
+            return isPending && isInPartnerArea && isNotFailed && isUnassigned;
           });
-          
-          // Update assignedOrders state for orders assigned to current partner
-          const currentPartnerAssigned = pendingPickups
-            .filter(order => order.partnerId === partnerId)
-            .map(order => order._id);
-          setAssignedOrders(new Set(currentPartnerAssigned));
           
           setPickups(pendingPickups);
         }
@@ -188,33 +180,22 @@ export default function Pickups() {
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    if (assignedOrders.has(p._id)) {
-                      // Navigate to start pickup page
-                      if (typeof window !== 'undefined') {
-                        window.location.href = `/pickups/start/${p._id}`;
-                      } else {
-                        router.push(`/pickups/start/${p._id}`);
-                      }
-                      return;
-                    }
-                    
-                    if (startingPickup) return; // Prevent multiple clicks
+                    if (startingPickup) return;
                     
                     setStartingPickup(p._id);
                     try {
                       const partnerId = localStorage.getItem('partnerId');
                       
-                      // Check if order is still available
                       const checkRes = await fetch(`${API_URL}/api/orders/${p._id}`);
                       const checkData = await checkRes.json();
                       
-                      if (checkData.data?.partnerId) {
+                      if (checkData.data?.partnerId && checkData.data.partnerId !== partnerId) {
                         alert('This order was just assigned to another partner');
                         fetchPickups();
+                        setStartingPickup(null);
                         return;
                       }
                       
-                      // Assign partner to order
                       const assignRes = await fetch(`${API_URL}/api/orders/${p._id}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
@@ -222,9 +203,11 @@ export default function Pickups() {
                       });
                       
                       if (assignRes.ok) {
-                        // Mark as assigned and change button to Go
-                        setAssignedOrders(prev => new Set([...prev, p._id]));
-                        setStartingPickup(null);
+                        if (typeof window !== 'undefined') {
+                          window.location.href = `/pickups/start/${p._id}`;
+                        } else {
+                          router.push(`/pickups/start/${p._id}`);
+                        }
                       } else {
                         alert('Failed to assign order. Please try again.');
                         setStartingPickup(null);
@@ -246,10 +229,8 @@ export default function Pickups() {
                   {startingPickup === p._id ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Assigning...
+                      Starting...
                     </div>
-                  ) : assignedOrders.has(p._id) ? (
-                    'Go →'
                   ) : (
                     'Start Pickup'
                   )}

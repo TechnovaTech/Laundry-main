@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export',
-  distDir: 'out',
+  output: process.env.BUILD_MODE === 'mobile' ? 'export' : undefined,
+  distDir: process.env.BUILD_MODE === 'mobile' ? 'out' : '.next',
   images: {
     unoptimized: true,
   },
@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  trailingSlash: true,
 };
 
 export default nextConfig;
