@@ -108,7 +108,7 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white px-4 sm:px-6 py-6 sm:py-8 overflow-hidden">
+    <div className="h-screen flex flex-col bg-white px-4 sm:px-6 py-6 sm:py-8 overflow-hidden" style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}>
       <div className="flex flex-1 flex-col items-center">
         <h1 className="mb-4 sm:mb-6 self-start text-2xl sm:text-3xl font-bold text-black">
           Please log in to continue →

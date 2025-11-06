@@ -1,15 +1,18 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function CapacitorInit() {
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     (async () => {
       try {
         const { Capacitor } = await import("@capacitor/core");
         if (!Capacitor.isNativePlatform()) return;
+        
+        console.log('Initializing Capacitor for Android...');
         
         // Initialize Google Auth
         const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
@@ -19,28 +22,38 @@ export default function CapacitorInit() {
             scopes: ['profile', 'email'],
             grantOfflineAccess: true,
           });
-          console.log('Google Auth initialized successfully');
+          console.log('✓ Google Auth initialized');
         } catch (error) {
-          console.error('Google Auth initialization failed:', error);
+          console.error('✗ Google Auth failed:', error);
         }
         
+        // Status Bar
         const { StatusBar, Style } = await import("@capacitor/status-bar");
         await StatusBar.setOverlaysWebView({ overlay: false });
-        await StatusBar.setStyle({ style: Style.Dark });
+        await StatusBar.setStyle({ style: Style.Light });
+        await StatusBar.setBackgroundColor({ color: '#452D9B' });
+        console.log('✓ Status Bar configured');
         
+        // Back Button Handler
         const { App } = await import("@capacitor/app");
         App.addListener("backButton", ({ canGoBack }) => {
-          if (canGoBack) {
+          const noBackPages = ['/', '/pickups', '/check-availability'];
+          if (noBackPages.includes(pathname)) {
+            App.exitApp();
+          } else if (canGoBack) {
             router.back();
           } else {
             App.exitApp();
           }
         });
+        console.log('✓ Back button handler registered');
+        
+        console.log('✓ Capacitor initialization complete');
       } catch (e) {
         console.warn("Capacitor init skipped:", e);
       }
     })();
-  }, [router]);
+  }, [router, pathname]);
 
   return null;
 }

@@ -102,6 +102,7 @@ All colors MUST be HSL.
     height: 100dvh; /* Dynamic viewport height for mobile */
     margin: 0;
     padding: 0;
+    padding-top: env(safe-area-inset-top);
     overflow: hidden;
     overscroll-behavior: none;
     position: fixed;
@@ -173,6 +174,13 @@ All colors MUST be HSL.
   /* Safe area padding */
   .safe-area-top {
     padding-top: env(safe-area-inset-top);
+  }
+  
+  /* Page container with top safe area */
+  .page-container {
+    padding-top: env(safe-area-inset-top);
+    min-height: 100vh;
+    min-height: 100dvh;
   }
   
   .safe-area-bottom {

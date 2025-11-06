@@ -14,11 +14,11 @@ const Welcome = () => {
           className="w-64 h-64 sm:w-80 sm:h-80 mb-4 sm:mb-6 object-contain"
         />
         
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           Urban Steam
         </h1>
         
-        <p className="text-black text-base sm:text-lg font-normal mb-6 sm:mb-8 leading-relaxed">
+        <p className="text-base sm:text-lg font-normal mb-6 sm:mb-8 leading-relaxed" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           Reimagining ironing for the modern India
         </p>
         

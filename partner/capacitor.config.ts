@@ -3,30 +3,21 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.ironstream.deliverypartner',
   appName: 'Urban Steam Captain',
-  webDir: '.next',
+  webDir: 'out',
   server: {
     androidScheme: 'https',
-    hostname: 'localhost',
-    iosScheme: 'capacitor',
     cleartext: true
   },
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: true,
-    overrideUserAgent: 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
-    appendUserAgent: 'CapacitorApp'
+    webContentsDebuggingEnabled: true
   },
   plugins: {
     StatusBar: {
       style: 'dark',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#452D9B',
       overlaysWebView: false
-    },
-    Keyboard: {
-      resize: 'native',
-      style: 'dark',
-      resizeOnFullScreen: true
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],
@@ -34,12 +25,9 @@ const config: CapacitorConfig = {
       forceCodeForRefreshToken: true
     },
     SplashScreen: {
-      launchShowDuration: 1000,
+      launchShowDuration: 0,
       launchAutoHide: true,
-      showSpinner: false,
-      androidSplashResourceName: 'splash',
-      splashFullScreen: false,
-      splashImmersive: false
+      showSpinner: false
     }
   }
 };
