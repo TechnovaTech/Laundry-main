@@ -1,12 +1,10 @@
 'use client'
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Toast from "@/components/Toast";
 import { API_URL } from '@/config/api';
-import { Capacitor } from '@capacitor/core';
 
 interface Order {
   _id: string;
@@ -27,35 +25,25 @@ interface Order {
   specialInstructions?: string;
 }
 
-export default function StartPickup() {
-  const params = useParams();
-  const router = useRouter();
+function StartPickupContent() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('id');
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   useEffect(() => {
-    // Force hide splash screen for Capacitor
-    if (Capacitor.isNativePlatform()) {
-      import('@capacitor/splash-screen').then(({ SplashScreen }) => {
-        SplashScreen.hide();
-      }).catch(() => {});
-    }
-    fetchOrder();
-  }, []);
+    if (orderId) fetchOrder(orderId);
+  }, [orderId]);
 
-  const fetchOrder = async () => {
+  const fetchOrder = async (id: string) => {
     try {
       const response = await fetch(`${API_URL}/api/orders`);
       const data = await response.json();
       
       if (data.success) {
-        const foundOrder = data.data.find((o: any) => o._id === params.id);
-        if (foundOrder) {
-          setOrder(foundOrder);
-        } else {
-          console.error('Order not found with ID:', params.id);
-        }
+        const foundOrder = data.data.find((o: any) => o._id === id);
+        setOrder(foundOrder);
       }
     } catch (error) {
       console.error('Failed to fetch order:', error);
@@ -67,7 +55,6 @@ export default function StartPickup() {
   if (loading) return <div className="p-8 text-center">Loading...</div>;
   if (!order) return <div className="p-8 text-center">Order not found</div>;
   
-  // Check if order is cancelled
   if (order.status === 'cancelled') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -89,10 +76,10 @@ export default function StartPickup() {
       </div>
     );
   }
+
   return (
     <div className="pb-6">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {/* Header */}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/pickups" className="text-2xl leading-none text-black">←</Link>
@@ -101,7 +88,6 @@ export default function StartPickup() {
         </div>
       </header>
 
-      {/* Map with overlay */}
       <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-48">
         <iframe
           src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}, ${order.pickupAddress.state}`)}&zoom=15`}
@@ -118,7 +104,6 @@ export default function StartPickup() {
         </div>
       </div>
 
-      {/* Customer card */}
       <div className="mt-4 mx-4 rounded-xl border border-gray-200 bg-white shadow-sm p-4">
         <p className="text-base font-semibold text-black">{order.customerId?.name || 'Customer'}</p>
         <p className="text-xs text-black mt-1">{order.customerId?.mobile}</p>
@@ -135,7 +120,6 @@ export default function StartPickup() {
         </div>
       </div>
 
-      {/* Order Details */}
       <div className="mt-4 mx-4 rounded-xl border-2 bg-white p-4" style={{ borderColor: '#452D9B' }}>
         <p className="text-base font-semibold text-black">Order Details</p>
         <div className="mt-2 text-sm text-black">
@@ -146,26 +130,21 @@ export default function StartPickup() {
         </div>
       </div>
 
-      {/* CTA */}
       <div className="mx-4">
         <Link
           href={`/pickups/confirm?id=${order._id}`}
           onClick={async (e) => {
             const partnerId = localStorage.getItem('partnerId');
-            console.log('Partner ID from localStorage:', partnerId);
             const updateData = { 
               status: 'reached_location',
               reachedLocationAt: new Date().toISOString(),
               partnerId: partnerId
             };
-            console.log('Updating order with:', updateData);
             const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(updateData)
             });
-            const result = await response.json();
-            console.log('Update response:', result);
             if (!response.ok) {
               e.preventDefault();
               setToast({ message: 'Failed to update order', type: 'error' });
@@ -176,31 +155,15 @@ export default function StartPickup() {
         >
           Reached Location
         </Link>
-        <Link
-          href="/pickups"
-          onClick={async (e) => {
-            if (confirm('Are you sure you want to stop this pickup? The order will be unassigned and available for other partners.')) {
-              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ partnerId: null })
-              });
-              if (response.ok) {
-                setToast({ message: 'Pickup stopped. Order unassigned.', type: 'success' });
-              } else {
-                e.preventDefault();
-                setToast({ message: 'Failed to stop pickup', type: 'error' });
-              }
-            } else {
-              e.preventDefault();
-            }
-          }}
-          className="mt-3 w-full inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold border-2"
-          style={{ borderColor: '#dc2626', color: '#dc2626', backgroundColor: 'white' }}
-        >
-          Stop Pickup
-        </Link>
       </div>
     </div>
+  );
+}
+
+export default function StartPickup() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <StartPickupContent />
+    </Suspense>
   );
 }

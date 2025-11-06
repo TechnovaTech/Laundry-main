@@ -175,12 +175,13 @@ export default function Pickups() {
                   <span>📞</span>
                   Call
                 </a>
-                <button
+                <Link
+                  href={`/pickups/start?id=${p._id}`}
                   onClick={async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (startingPickup) return;
+                    if (startingPickup) {
+                      e.preventDefault();
+                      return;
+                    }
                     
                     setStartingPickup(p._id);
                     try {
@@ -190,6 +191,7 @@ export default function Pickups() {
                       const checkData = await checkRes.json();
                       
                       if (checkData.data?.partnerId && checkData.data.partnerId !== partnerId) {
+                        e.preventDefault();
                         alert('This order was just assigned to another partner');
                         fetchPickups();
                         setStartingPickup(null);
@@ -202,28 +204,24 @@ export default function Pickups() {
                         body: JSON.stringify({ partnerId })
                       });
                       
-                      if (assignRes.ok) {
-                        if (typeof window !== 'undefined') {
-                          window.location.href = `/pickups/start/${p._id}`;
-                        } else {
-                          router.push(`/pickups/start/${p._id}`);
-                        }
-                      } else {
+                      if (!assignRes.ok) {
+                        e.preventDefault();
                         alert('Failed to assign order. Please try again.');
                         setStartingPickup(null);
                       }
                     } catch (error) {
+                      e.preventDefault();
                       console.error('Error starting pickup:', error);
                       alert('Network error. Please try again.');
                       setStartingPickup(null);
                     }
                   }}
-                  disabled={startingPickup === p._id}
                   className="flex-1 inline-flex justify-center items-center text-white rounded-xl py-2.5 text-sm font-bold shadow-md btn-press"
                   style={{ 
                     background: startingPickup === p._id 
                       ? '#9ca3af' 
-                      : 'linear-gradient(to right, #452D9B, #07C8D0)' 
+                      : 'linear-gradient(to right, #452D9B, #07C8D0)',
+                    pointerEvents: startingPickup === p._id ? 'none' : 'auto'
                   }}
                 >
                   {startingPickup === p._id ? (
@@ -234,7 +232,7 @@ export default function Pickups() {
                   ) : (
                     'Start Pickup'
                   )}
-                </button>
+                </Link>
               </div>
             </div>
           ))

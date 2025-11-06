@@ -6,12 +6,15 @@ const config: CapacitorConfig = {
   webDir: 'out',
   server: {
     androidScheme: 'https',
-    cleartext: true
+    cleartext: true,
+    hostname: 'localhost'
   },
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: true
+    webContentsDebuggingEnabled: true,
+    overrideUserAgent: 'CapacitorApp',
+    appendUserAgent: 'CapacitorApp'
   },
   plugins: {
     StatusBar: {
