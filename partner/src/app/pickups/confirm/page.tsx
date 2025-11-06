@@ -60,7 +60,7 @@ function PickupConfirmContent() {
   if (!order) return <div className="p-8 text-center">Order not found</div>;
 
   return (
-    <div className="pb-6">
+    <div className="pb-20 min-h-screen overflow-y-auto">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -85,8 +85,8 @@ function PickupConfirmContent() {
       </div>
 
       <div className="mt-4 mx-4">
-        <p className="text-base font-semibold text-black">Upload Clothes Photos (Min 2)</p>
-        <div className="mt-3 grid grid-cols-3 gap-3">
+        <p className="text-base font-semibold text-black mb-3">Upload Clothes Photos (Min 2)</p>
+        <div className="grid grid-cols-3 gap-3 mb-4">
           {photos.map((photo, i) => (
             <div key={i} className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center relative overflow-hidden">
               <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
@@ -98,8 +98,11 @@ function PickupConfirmContent() {
               </button>
             </div>
           ))}
-          <label className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center cursor-pointer relative overflow-hidden">
-            <span style={{ color: '#452D9B' }}>📷</span>
+          <label className="aspect-square rounded-xl bg-gray-100 border-2 border-dashed flex items-center justify-center cursor-pointer" style={{ borderColor: '#452D9B' }}>
+            <div className="text-center">
+              <span className="text-2xl block mb-1" style={{ color: '#452D9B' }}>📷</span>
+              <span className="text-xs" style={{ color: '#452D9B' }}>Add Photo</span>
+            </div>
             <input
               type="file"
               accept="image/*"
@@ -118,8 +121,37 @@ function PickupConfirmContent() {
           </label>
         </div>
 
+        <button
+          onClick={async () => {
+            if (photos.length < 2) {
+              setToast({ message: 'Please upload at least 2 photos', type: 'warning' });
+              return;
+            }
+            try {
+              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pickupPhotos: photos })
+              });
+              if (response.ok) {
+                setToast({ message: 'Images uploaded successfully!', type: 'success' });
+              } else {
+                setToast({ message: 'Failed to upload images', type: 'error' });
+              }
+            } catch (error) {
+              console.error('Failed to upload images:', error);
+              setToast({ message: 'Failed to upload images', type: 'error' });
+            }
+          }}
+          disabled={photos.length < 2}
+          className="w-full inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold mb-4"
+          style={photos.length >= 2 ? { background: 'linear-gradient(to right, #16a34a, #15803d)', color: 'white' } : { background: '#9ca3af', color: 'white' }}
+        >
+          Upload Images ({photos.length}/2)
+        </button>
+
         <input
-          className="mt-4 w-full rounded-xl border border-gray-300 px-3 py-3 text-base text-black placeholder:text-gray-600 outline-none"
+          className="w-full rounded-xl border border-gray-300 px-3 py-3 text-base text-black placeholder:text-gray-600 outline-none"
           placeholder="Add Notes (optional)…"
           type="text"
           value={notes}
@@ -132,36 +164,45 @@ function PickupConfirmContent() {
           <input type="checkbox" className="h-4 w-4" style={{ accentColor: '#452D9B' }} checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
           I have collected all items from customer.
         </label>
-        <button
-          onClick={async () => {
-            if (!confirmed) {
-              setToast({ message: 'Please confirm you have collected all items', type: 'warning' });
-              return;
-            }
-            try {
-              const updateData = { 
-                status: 'picked_up',
-                pickupNotes: notes,
-                pickedUpAt: new Date().toISOString()
-              };
-              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updateData)
-              });
-              if (response.ok) {
-                router.push('/hub/drop');
+        {order.status === 'reached_location' ? (
+          <button
+            onClick={async () => {
+              if (!confirmed) {
+                setToast({ message: 'Please confirm you have collected all items', type: 'warning' });
+                return;
               }
-            } catch (error) {
-              console.error('Failed to update order:', error);
-            }
-          }}
-          disabled={!confirmed || order.status !== 'reached_location'}
-          className="mt-5 w-full inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"
-          style={confirmed && order.status === 'reached_location' ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af' }}
-        >
-          {order.status === 'reached_location' ? 'Confirm & Proceed' : 'Already Picked Up'}
-        </button>
+              try {
+                const updateData = { 
+                  status: 'picked_up',
+                  pickupNotes: notes,
+                  pickedUpAt: new Date().toISOString()
+                };
+                const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(updateData)
+                });
+                if (response.ok) {
+                  router.push('/hub/drop');
+                } else {
+                  setToast({ message: 'Failed to update order', type: 'error' });
+                }
+              } catch (error) {
+                console.error('Failed to update order:', error);
+                setToast({ message: 'Failed to update order', type: 'error' });
+              }
+            }}
+            disabled={!confirmed}
+            className="mt-5 w-full inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"
+            style={confirmed ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af' }}
+          >
+            Confirm & Proceed
+          </button>
+        ) : (
+          <div className="mt-5 w-full inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold" style={{ background: '#16a34a', color: 'white' }}>
+            ✅ Pickup Completed
+          </div>
+        )}
       </div>
     </div>
   );

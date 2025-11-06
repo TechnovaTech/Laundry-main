@@ -78,7 +78,7 @@ function StartPickupContent() {
   }
 
   return (
-    <div className="pb-6">
+    <div className="pb-20 min-h-screen overflow-y-auto">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -154,6 +154,31 @@ function StartPickupContent() {
           style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
         >
           Reached Location
+        </Link>
+        
+        <Link
+          href="/pickups"
+          onClick={async (e) => {
+            if (confirm('Are you sure you want to stop this pickup? The order will be unassigned and available for other partners.')) {
+              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ partnerId: null })
+              });
+              if (response.ok) {
+                setToast({ message: 'Pickup stopped. Order unassigned.', type: 'success' });
+              } else {
+                e.preventDefault();
+                setToast({ message: 'Failed to stop pickup', type: 'error' });
+              }
+            } else {
+              e.preventDefault();
+            }
+          }}
+          className="mt-3 w-full inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold border-2"
+          style={{ borderColor: '#dc2626', color: '#dc2626', backgroundColor: 'white' }}
+        >
+          Stop Pickup
         </Link>
       </div>
     </div>
