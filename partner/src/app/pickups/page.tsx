@@ -32,6 +32,7 @@ export default function Pickups() {
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [loading, setLoading] = useState(true);
   const [startingPickup, setStartingPickup] = useState<string | null>(null);
+  const [assignedOrders, setAssignedOrders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     checkKYCStatus();
@@ -93,12 +94,22 @@ export default function Pickups() {
         const data = await response.json();
         
         if (data.success) {
-          const pendingPickups = data.data.filter((order: any) => 
-            order.status === 'pending' &&
-            order.pickupAddress?.pincode === partnerPincode &&
-            !order.partnerId &&
-            order.paymentStatus !== 'failed'
-          );
+          const pendingPickups = data.data.filter((order: any) => {
+            const isInPartnerArea = order.pickupAddress?.pincode === partnerPincode;
+            const isPending = order.status === 'pending';
+            const isNotFailed = order.paymentStatus !== 'failed';
+            const isAssignedToCurrentPartner = order.partnerId === partnerId;
+            const isUnassigned = !order.partnerId;
+            
+            return isPending && isInPartnerArea && isNotFailed && (isUnassigned || isAssignedToCurrentPartner);
+          });
+          
+          // Update assignedOrders state for orders assigned to current partner
+          const currentPartnerAssigned = pendingPickups
+            .filter(order => order.partnerId === partnerId)
+            .map(order => order._id);
+          setAssignedOrders(new Set(currentPartnerAssigned));
+          
           setPickups(pendingPickups);
         }
       }
@@ -177,6 +188,16 @@ export default function Pickups() {
                     e.preventDefault();
                     e.stopPropagation();
                     
+                    if (assignedOrders.has(p._id)) {
+                      // Navigate to start pickup page
+                      if (typeof window !== 'undefined') {
+                        window.location.href = `/pickups/start/${p._id}`;
+                      } else {
+                        router.push(`/pickups/start/${p._id}`);
+                      }
+                      return;
+                    }
+                    
                     if (startingPickup) return; // Prevent multiple clicks
                     
                     setStartingPickup(p._id);
@@ -201,12 +222,9 @@ export default function Pickups() {
                       });
                       
                       if (assignRes.ok) {
-                        // Navigate to start pickup page - use window.location for Capacitor compatibility
-                        if (typeof window !== 'undefined') {
-                          window.location.href = `/pickups/start/${p._id}`;
-                        } else {
-                          router.push(`/pickups/start/${p._id}`);
-                        }
+                        // Mark as assigned and change button to Go
+                        setAssignedOrders(prev => new Set([...prev, p._id]));
+                        setStartingPickup(null);
                       } else {
                         alert('Failed to assign order. Please try again.');
                         setStartingPickup(null);
@@ -228,10 +246,12 @@ export default function Pickups() {
                   {startingPickup === p._id ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Starting...
+                      Assigning...
                     </div>
+                  ) : assignedOrders.has(p._id) ? (
+                    'Go →'
                   ) : (
-                    'Start Pickup →'
+                    'Start Pickup'
                   )}
                 </button>
               </div>
