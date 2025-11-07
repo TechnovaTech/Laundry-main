@@ -2,6 +2,9 @@ import jsPDF from 'jspdf';
 import acsLogo from '@/assets/ACS LOGO.png';
 import usLogo from '@/assets/LOGO MARK GRADIENT.png';
 import { API_URL } from '@/config/api';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 export const generateInvoicePDF = async (order: any) => {
   if (!order) return;
@@ -225,5 +228,29 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setTextColor(80, 80, 80);
   doc.text('In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yPos + 5);
   
-  doc.save(`Invoice-${order.orderId || 'order'}.pdf`);
+  // Check if running on mobile (Capacitor)
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      const fileName = `Invoice_${order.orderId || 'order'}_${Date.now()}.pdf`;
+      
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: pdfBase64,
+        directory: Directory.Cache
+      });
+      
+      await Share.share({
+        title: `Invoice #${order.orderId}`,
+        text: `Invoice for Order #${order.orderId}`,
+        url: result.uri,
+        dialogTitle: 'Share Invoice'
+      });
+    } catch (error: any) {
+      console.error('Invoice error:', error);
+      alert(`Failed to generate invoice: ${error.message || 'Unknown error'}`);
+    }
+  } else {
+    doc.save(`Invoice-${order.orderId || 'order'}.pdf`);
+  }
 };

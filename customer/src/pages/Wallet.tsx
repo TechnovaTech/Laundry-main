@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, Share2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
+import { ArrowLeft, CreditCard, Share2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
+import { fetchWithCache, parallelFetch } from '@/utils/apiOptimizer';
 
 const Wallet = () => {
   const navigate = useNavigate();
@@ -16,53 +17,83 @@ const Wallet = () => {
     points: 0,
     dueAmount: 0
   });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
 
   useEffect(() => {
-    fetchWalletSettings();
-    fetchCustomerWallet();
-    fetchWalletTransactions();
+    loadAllData();
   }, []);
 
-  const fetchCustomerWallet = async () => {
+  const loadAllData = async (forceRefresh = false) => {
+    if (forceRefresh) setIsRefreshing(true);
+    else setIsLoading(true);
+    
+    try {
+      await parallelFetch([
+        fetchWalletSettings(forceRefresh),
+        fetchCustomerWallet(forceRefresh),
+        fetchWalletTransactions(forceRefresh)
+      ]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const fetchCustomerWallet = async (forceRefresh = false) => {
     try {
       const customerId = localStorage.getItem('customerId');
       if (!customerId) return;
       
-      const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
-      const data = await response.json();
+      const fetcher = async () => {
+        const response = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
+        const data = await response.json();
+        return data;
+      };
+      
+      let data;
+      if (forceRefresh) {
+        data = await fetcher();
+      } else {
+        try {
+          data = await fetchWithCache(`wallet_${customerId}`, fetcher, 60000);
+        } catch (cacheError) {
+          // Clear cache if quota exceeded and fetch directly
+          localStorage.removeItem(`wallet_${customerId}`);
+          data = await fetcher();
+        }
+      }
       
       if (data.success && data.data) {
-        console.log('Customer data:', data.data);
-        console.log('Due Amount from API:', data.data.dueAmount);
         setWalletData({
           availableBalance: data.data.walletBalance || 0,
           points: data.data.loyaltyPoints || 0,
           dueAmount: data.data.dueAmount || 0
         });
-        console.log('Wallet Data Set:', {
-          availableBalance: data.data.walletBalance || 0,
-          points: data.data.loyaltyPoints || 0,
-          dueAmount: data.data.dueAmount || 0
-        });
-        
-
       }
     } catch (error) {
       console.error('Failed to fetch wallet data:', error);
     }
   };
 
-  const fetchWalletSettings = async () => {
+  const fetchWalletSettings = async (forceRefresh = false) => {
     try {
-      const response = await fetch(`${API_URL}/api/wallet-settings`);
-      const data = await response.json();
-      console.log('Wallet settings fetched:', data);
+      const fetcher = async () => {
+        const response = await fetch(`${API_URL}/api/wallet-settings`);
+        return await response.json();
+      };
+      
+      const data = forceRefresh
+        ? await fetcher()
+        : await fetchWithCache('wallet_settings', fetcher, 300000);
+      
       if (data.success) {
         setPointsPerRupee(data.data.pointsPerRupee);
         setMinRedeemPoints(data.data.minRedeemPoints);
         setReferralPoints(data.data.referralPoints);
-        console.log('Points per rupee set to:', data.data.pointsPerRupee);
       }
     } catch (error) {
       console.error('Failed to fetch wallet settings:', error);
@@ -72,18 +103,30 @@ const Wallet = () => {
   const [walletHistory, setWalletHistory] = useState([]);
   const [dueCharges, setDueCharges] = useState([]);
 
-  const fetchWalletTransactions = async () => {
+  const fetchWalletTransactions = async (forceRefresh = false) => {
     try {
       const customerId = localStorage.getItem('customerId');
-      console.log('Fetching transactions for customer:', customerId);
       if (!customerId) return;
       
-      const response = await fetch(`${API_URL}/api/wallet-transactions?customerId=${customerId}`);
-      const data = await response.json();
-      console.log('Transactions response:', data);
+      const fetcher = async () => {
+        const response = await fetch(`${API_URL}/api/wallet-transactions?customerId=${customerId}`);
+        return await response.json();
+      };
+      
+      let data;
+      if (forceRefresh) {
+        data = await fetcher();
+      } else {
+        try {
+          data = await fetchWithCache(`transactions_${customerId}`, fetcher, 60000);
+        } catch (cacheError) {
+          // Clear cache if quota exceeded and fetch directly
+          localStorage.removeItem(`transactions_${customerId}`);
+          data = await fetcher();
+        }
+      }
       
       if (data.success && data.data) {
-        console.log('Raw transactions:', data.data);
         const formattedTransactions = data.data.map((t: any) => ({
           id: t._id,
           title: `${t.type === 'balance' ? 'Balance' : 'Points'} ${t.action === 'increase' ? 'Added' : 'Deducted'}`,
@@ -93,7 +136,6 @@ const Wallet = () => {
           date: new Date(t.createdAt).toLocaleDateString(),
           rawReason: t.reason
         }));
-        console.log('Formatted transactions:', formattedTransactions);
         setWalletHistory(formattedTransactions);
         
         // Filter transactions that mention "added to due"
@@ -101,8 +143,6 @@ const Wallet = () => {
           t.rawReason && t.rawReason.toLowerCase().includes('added to due')
         );
         setDueCharges(dueTransactions);
-      } else {
-        console.log('No transactions found or error:', data);
       }
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
@@ -176,13 +216,27 @@ const Wallet = () => {
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
-      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 flex items-center shadow-lg" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))', paddingBottom: '1rem' }}>
-        <button onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-6 h-6 text-white" />
+      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 flex items-center justify-between shadow-lg" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))', paddingBottom: '1rem' }}>
+        <div className="flex items-center">
+          <button onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-6 h-6 text-white" />
+          </button>
+          <h1 className="text-xl font-bold ml-4 text-white">Wallet</h1>
+        </div>
+        <button 
+          onClick={() => loadAllData(true)}
+          disabled={isRefreshing}
+          className="p-2 rounded-full hover:bg-white/20 transition-colors"
+        >
+          <RefreshCw className={`w-5 h-5 text-white ${isRefreshing ? 'animate-spin' : ''}`} />
         </button>
-        <h1 className="text-xl font-bold ml-4 text-white">Wallet</h1>
       </header>
 
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+        </div>
+      ) : (
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-4xl mx-auto">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 sm:p-8 shadow-lg text-center border-2 border-blue-200">
           <div className="flex items-center justify-center gap-2 mb-2">
@@ -246,7 +300,7 @@ const Wallet = () => {
                   background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(redeemPoints / walletData.points) * 100}%, #e5e7eb ${(redeemPoints / walletData.points) * 100}%, #e5e7eb 100%)`
                 }}
               />
-              <style jsx>{`
+              <style>{`
                 input[type="range"]::-webkit-slider-thumb {
                   appearance: none;
                   width: 16px;
@@ -338,9 +392,8 @@ const Wallet = () => {
             <Share2 className="w-5 h-5 text-white" />
           </button>
         </div>
-      </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl border-t">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl border-t">
         <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
           <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
@@ -358,9 +411,9 @@ const Wallet = () => {
         <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
           <User className="w-5 h-5 sm:w-7 sm:h-7 text-blue-500" />
         </button>
-      </nav>
-
-
+        </nav>
+      </div>
+      )}
     </div>
   );
 };
