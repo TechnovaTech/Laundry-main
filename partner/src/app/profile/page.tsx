@@ -100,7 +100,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24" suppressHydrationWarning>
+    <div className="page-content bg-gray-50" suppressHydrationWarning>
       <div className="p-4">
         <button onClick={() => router.back()} className="mb-4 flex items-center gap-2 text-gray-600">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

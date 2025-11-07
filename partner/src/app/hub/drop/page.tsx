@@ -159,7 +159,7 @@ export default function DropToHub() {
   };
 
   return (
-    <div className="pb-6">
+    <div className="page-content">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Refresh Indicator */}
       {refreshing && (

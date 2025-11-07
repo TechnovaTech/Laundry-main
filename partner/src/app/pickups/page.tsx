@@ -177,7 +177,7 @@ export default function Pickups() {
   };
 
   return (
-    <div className="pb-24 bg-gray-50 min-h-screen relative">
+    <div className="page-content bg-gray-50 relative">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Refresh Indicator */}
       {refreshing && (

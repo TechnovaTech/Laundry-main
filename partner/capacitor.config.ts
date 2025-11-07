@@ -16,6 +16,9 @@ const config: CapacitorConfig = {
     overrideUserAgent: 'CapacitorApp',
     appendUserAgent: 'CapacitorApp'
   },
+  ios: {
+    contentInset: 'always'
+  },
   plugins: {
     StatusBar: {
       style: 'dark',

@@ -128,7 +128,7 @@ export default function BottomNav() {
   ] as const;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200" style={{ paddingBottom: "env(safe-area-inset-bottom)", zIndex: 50 }}>
+    <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 bottom-nav-safe" style={{ zIndex: 50 }}>
       <div className="mx-auto max-w-md px-4 py-3">
         <ul className="grid grid-cols-5 items-center gap-1">
           {items.map((it) => (

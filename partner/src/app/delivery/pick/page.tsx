@@ -150,7 +150,7 @@ export default function PickForDelivery() {
   };
 
   return (
-    <div className="pb-24" suppressHydrationWarning>
+    <div className="page-content" suppressHydrationWarning>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Refresh Indicator */}
       {refreshing && (

@@ -1,10 +1,11 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function CapacitorInit() {
   const router = useRouter();
   const pathname = usePathname();
+  const listenerAdded = useRef(false);
 
   useEffect(() => {
     (async () => {
@@ -34,26 +35,29 @@ export default function CapacitorInit() {
         await StatusBar.setBackgroundColor({ color: '#452D9B' });
         console.log('✓ Status Bar configured');
         
-        // Back Button Handler
-        const { App } = await import("@capacitor/app");
-        App.addListener("backButton", ({ canGoBack }) => {
-          const noBackPages = ['/', '/pickups', '/check-availability'];
-          if (noBackPages.includes(pathname)) {
-            App.exitApp();
-          } else if (canGoBack) {
-            router.back();
-          } else {
-            App.exitApp();
-          }
-        });
-        console.log('✓ Back button handler registered');
+        // Back Button Handler - Register only once
+        if (!listenerAdded.current) {
+          const { App } = await import("@capacitor/app");
+          App.addListener("backButton", () => {
+            const currentPath = window.location.pathname;
+            const exitPages = ['/', '/pickups', '/check-availability'];
+            
+            if (exitPages.includes(currentPath)) {
+              App.exitApp();
+            } else {
+              window.history.back();
+            }
+          });
+          listenerAdded.current = true;
+          console.log('✓ Back button handler registered');
+        }
         
         console.log('✓ Capacitor initialization complete');
       } catch (e) {
         console.warn("Capacitor init skipped:", e);
       }
     })();
-  }, [router, pathname]);
+  }, []);
 
   return null;
 }
