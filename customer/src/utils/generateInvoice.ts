@@ -9,9 +9,10 @@ import { Share } from '@capacitor/share';
 export const generateInvoicePDF = async (order: any) => {
   if (!order) return;
 
-  const doc = new jsPDF('p', 'mm', 'a4');
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
+  try {
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
   
   let hubAddress = {
     name: 'Urban Steam',
@@ -42,9 +43,21 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Add logos
-  doc.addImage(acsLogo, 'PNG', 15, 12, 30, 12);
-  doc.addImage(usLogo, 'PNG', pageWidth - 45, 12, 30, 12);
+  // Add logos - skip on mobile to prevent crashes
+  if (!Capacitor.isNativePlatform()) {
+    try {
+      doc.addImage(acsLogo, 'PNG', 15, 12, 30, 12);
+      doc.addImage(usLogo, 'PNG', pageWidth - 45, 12, 30, 12);
+    } catch (imgError) {
+      console.log('Logo loading skipped:', imgError);
+    }
+  } else {
+    // Add text logos for mobile
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ACS Group', 15, 20);
+    doc.text('Urban Steam', pageWidth - 45, 20);
+  }
   doc.setTextColor(0, 0, 0);
   
   // Invoice header section
@@ -228,29 +241,53 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setTextColor(80, 80, 80);
   doc.text('In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yPos + 5);
   
-  // Check if running on mobile (Capacitor)
-  if (Capacitor.isNativePlatform()) {
-    try {
-      const pdfBase64 = doc.output('datauristring').split(',')[1];
-      const fileName = `Invoice_${order.orderId || 'order'}_${Date.now()}.pdf`;
-      
-      const result = await Filesystem.writeFile({
-        path: fileName,
-        data: pdfBase64,
-        directory: Directory.Cache
-      });
-      
-      await Share.share({
-        title: `Invoice #${order.orderId}`,
-        text: `Invoice for Order #${order.orderId}`,
-        url: result.uri,
-        dialogTitle: 'Share Invoice'
-      });
-    } catch (error: any) {
-      console.error('Invoice error:', error);
-      alert(`Failed to generate invoice: ${error.message || 'Unknown error'}`);
+    // Check if running on mobile (Capacitor)
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const pdfBlob = doc.output('blob');
+        const reader = new FileReader();
+        
+        reader.onloadend = async () => {
+          try {
+            const base64 = (reader.result as string).split(',')[1];
+            const fileName = `Invoice_${order.orderId || Date.now()}.pdf`;
+            
+            const result = await Filesystem.writeFile({
+              path: fileName,
+              data: base64,
+              directory: Directory.Cache
+            });
+            
+            const canShare = await Share.canShare();
+            if (canShare.value) {
+              await Share.share({
+                title: `Invoice #${order.orderId}`,
+                url: result.uri,
+                dialogTitle: 'Save Invoice'
+              });
+            } else {
+              alert(`Invoice saved to: ${result.uri}`);
+            }
+          } catch (shareError: any) {
+            console.error('Share error:', shareError);
+            alert(`Invoice generated but share failed: ${shareError.message}`);
+          }
+        };
+        
+        reader.onerror = () => {
+          alert('Failed to read PDF data');
+        };
+        
+        reader.readAsDataURL(pdfBlob);
+      } catch (error: any) {
+        console.error('Invoice error:', error);
+        alert(`Error: ${error.message || 'Failed to generate invoice'}`);
+      }
+    } else {
+      doc.save(`Invoice-${order.orderId || 'order'}.pdf`);
     }
-  } else {
-    doc.save(`Invoice-${order.orderId || 'order'}.pdf`);
+  } catch (error: any) {
+    console.error('PDF generation error:', error);
+    alert(`Failed to create invoice: ${error.message || 'Unknown error'}`);
   }
 };

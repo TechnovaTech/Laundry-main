@@ -22,8 +22,9 @@ org.gradle.java.home=C:\\Program Files\\Java\\jdk-21
 # https://developer.android.com/topic/libraries/support-library/androidx-rn
 android.useAndroidX=true
 
-# Signing configuration
-PARTNER_RELEASE_STORE_FILE=../../partner-release-key-new.keystore
-PARTNER_RELEASE_KEY_ALIAS=partner-key
-PARTNER_RELEASE_STORE_PASSWORD=laundry123
-PARTNER_RELEASE_KEY_PASSWORD=laundry123
+# ===== SIGNING CONFIGURATION =====
+# Add these lines after generating your keystore
+# PARTNER_RELEASE_STORE_FILE=../partner-release-key.keystore
+# PARTNER_RELEASE_KEY_ALIAS=partner-key
+# PARTNER_RELEASE_STORE_PASSWORD=your_keystore_password
+# PARTNER_RELEASE_KEY_PASSWORD=your_key_password

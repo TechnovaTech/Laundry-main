@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { generateInvoicePDF } from "@/utils/generateInvoice";
 import { API_URL } from '@/config/api';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem } from '@capacitor/filesystem';
 
 const OrderDetails = () => {
   const navigate = useNavigate();
