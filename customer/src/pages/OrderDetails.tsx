@@ -288,20 +288,19 @@ const OrderDetails = () => {
                 <p className="text-xs sm:text-sm text-blue-700 font-semibold">
                   {order.hub.name || 'Urban Steam'}
                 </p>
-                <p className="text-xs sm:text-sm text-blue-600 mt-1">
-                  {order.hub.address || ''}{order.hub.address2 ? `, ${order.hub.address2}` : ''}
-                </p>
-                <p className="text-xs sm:text-sm text-blue-600">
-                  {order.hub.city || ''} - {order.hub.pincode || ''}
-                </p>
-                {order.hub.phone && (
-                  <p className="text-xs sm:text-sm text-blue-600 mt-1">
-                    📞 {order.hub.phone}
-                  </p>
+                {order.hub.address && (
+                  <>
+                    <p className="text-xs sm:text-sm text-blue-600 mt-1">
+                      {order.hub.address.street || ''}
+                    </p>
+                    <p className="text-xs sm:text-sm text-blue-600">
+                      {order.hub.address.city || ''}, {order.hub.address.state || ''} - {order.hub.address.pincode || ''}
+                    </p>
+                  </>
                 )}
-                {order.hub.email && (
-                  <p className="text-xs sm:text-sm text-blue-600">
-                    ✉️ {order.hub.email}
+                {order.hub.contactNumber && (
+                  <p className="text-xs sm:text-sm text-blue-600 mt-1">
+                    📞 {order.hub.contactNumber}
                   </p>
                 )}
               </div>

@@ -251,7 +251,7 @@ export async function GET(request: NextRequest) {
     const orders = await Order.find(query)
       .populate('customerId', 'name mobile email')
       .populate('partnerId', 'name mobile email')
-      .populate('hub', 'name address address2 city pincode phone email gstNumber')
+      .populate('hub', 'name address contactPerson contactNumber')
       .sort({ createdAt: -1 })
     
     console.log('Orders found:', orders.length)

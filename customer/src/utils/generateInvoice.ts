@@ -70,25 +70,47 @@ export const generateInvoicePDF = async (order: any) => {
   
   // Fetch hub details from MongoDB if hub ID exists
   if (order.hub) {
-    try {
-      const hubId = typeof order.hub === 'string' ? order.hub : order.hub._id || order.hub;
-      const hubResponse = await fetch(`${API_URL}/api/hubs/${hubId}`);
-      const hubData = await hubResponse.json();
-      
-      if (hubData.success && hubData.data) {
-        const hub = hubData.data;
-        hubAddress = {
-          name: hub.name || 'Urban Steam',
-          address: hub.address || hubAddress.address,
-          address2: hub.address2 || hubAddress.address2,
-          address3: hub.city ? `${hub.city} - ${hub.pincode}` : hubAddress.address3,
-          email: hub.email || hubAddress.email,
-          gst: hub.gstNumber || hubAddress.gst
-        };
+    console.log('Hub found in order:', order.hub);
+    
+    // Check if hub is already populated with full data
+    if (typeof order.hub === 'object' && order.hub.name) {
+      console.log('Hub already populated');
+      const hub = order.hub;
+      hubAddress = {
+        name: hub.name || 'Urban Steam',
+        address: hub.address?.street || hubAddress.address,
+        address2: '',
+        address3: hub.address ? `${hub.address.city}, ${hub.address.state} - ${hub.address.pincode}` : hubAddress.address3,
+        email: hub.contactNumber || hubAddress.email,
+        gst: hubAddress.gst
+      };
+    } else {
+      // Hub is just an ID, fetch from API
+      try {
+        const hubId = typeof order.hub === 'string' ? order.hub : order.hub._id || order.hub;
+        console.log('Fetching hub from API:', hubId);
+        const hubResponse = await fetch(`${API_URL}/api/hubs/${hubId}`);
+        const hubData = await hubResponse.json();
+        console.log('Hub API response:', hubData);
+        
+        if (hubData.success && hubData.data) {
+          const hub = hubData.data;
+          hubAddress = {
+            name: hub.name || 'Urban Steam',
+            address: hub.address?.street || hubAddress.address,
+            address2: '',
+            address3: hub.address ? `${hub.address.city}, ${hub.address.state} - ${hub.address.pincode}` : hubAddress.address3,
+            email: hub.contactNumber || hubAddress.email,
+            gst: hubAddress.gst
+          };
+          console.log('Hub address set:', hubAddress);
+        }
+      } catch (error) {
+        console.log('Could not fetch hub data, using default:', error);
       }
-    } catch (error) {
-      console.log('Could not fetch hub data, using default');
     }
+  } else {
+    console.log('No hub in order');
   }
   
   doc.setFillColor(255, 255, 255);

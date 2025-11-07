@@ -111,10 +111,36 @@ export default function DropToHub() {
     const partnerRes = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
     const partnerData = await partnerRes.json();
     
+    console.log('Partner data:', partnerData);
+    console.log('Partner pincode:', partnerData.data?.address?.pincode);
+    
+    // Try to fetch hub by pincode first
     if (partnerData.success && partnerData.data.address?.pincode) {
       const hubRes = await fetch(`${API_URL}/api/hubs?pincode=${partnerData.data.address.pincode}`);
       const hubData = await hubRes.json();
-      if (hubData.success && hubData.data.length > 0) setHub(hubData.data[0]);
+      console.log('Hub API response:', hubData);
+      console.log('Hubs found:', hubData.data?.length || 0);
+      if (hubData.success && hubData.data.length > 0) {
+        console.log('Setting hub:', hubData.data[0]);
+        setHub(hubData.data[0]);
+      } else {
+        console.log('No hub found for pincode:', partnerData.data.address.pincode);
+        // Fallback: fetch any active hub
+        const fallbackRes = await fetch(`${API_URL}/api/hubs`);
+        const fallbackData = await fallbackRes.json();
+        if (fallbackData.success && fallbackData.data.length > 0) {
+          console.log('Using fallback hub:', fallbackData.data[0]);
+          setHub(fallbackData.data[0]);
+        }
+      }
+    } else {
+      console.log('Partner has no pincode set, fetching any hub');
+      // Fetch any active hub
+      const hubRes = await fetch(`${API_URL}/api/hubs`);
+      const hubData = await hubRes.json();
+      if (hubData.success && hubData.data.length > 0) {
+        setHub(hubData.data[0]);
+      }
     }
 
     const ordersRes = await fetch(`${API_URL}/api/orders`);
@@ -291,6 +317,7 @@ export default function DropToHub() {
             try {
               const ordersToUpdate = selectedOrders.length > 0 ? selectedOrders : orders.map(o => o._id);
               console.log('Orders to update:', ordersToUpdate);
+              console.log('Hub to assign:', hub?._id);
               
               let hasFailedOrders = false;
               
@@ -326,6 +353,7 @@ export default function DropToHub() {
                       returnToHubRequested: true,
                       returnToHubRequestedAt: new Date().toISOString(),
                       deliveryFailureFee: deliveryFailureFee,
+                      hub: hub?._id,
                       ...(isRedeliveryFailure && { 
                         redeliveryReturnRequested: true,
                         redeliveryReturnRequestedAt: new Date().toISOString()
@@ -341,7 +369,8 @@ export default function DropToHub() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                       status: 'delivered_to_hub',
-                      deliveredToHubAt: new Date().toISOString()
+                      deliveredToHubAt: new Date().toISOString(),
+                      hub: hub?._id
                     })
                   });
                   const result = await response.json();
