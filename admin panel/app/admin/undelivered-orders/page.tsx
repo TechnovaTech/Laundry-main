@@ -34,7 +34,8 @@ export default function UndeliveredOrdersPage() {
       if (data.success) {
         const undelivered = (data.data as any[]).filter((order: any) => 
           (order.status === 'delivery_failed' && !order.orderSuspended) || 
-          (order.status === 'delivered_to_hub' && order.returnToHubApproved === true && order.redeliveryScheduled !== true && !order.orderSuspended)
+          (order.status === 'delivered_to_hub' && order.returnToHubApproved === true && order.redeliveryScheduled !== true && !order.orderSuspended) ||
+          (order.status === 'delivered_to_hub' && order.redeliveryReturnApproved === true && !order.orderSuspended)
         )
         const pending = (data.data as any[]).filter((order: any) => 
           order.status === 'process_completed' && order.redeliveryScheduled === true
@@ -54,14 +55,17 @@ export default function UndeliveredOrdersPage() {
   }
 
   const formatOrderForDisplay = (order: any) => {
+    // Calculate total delivery failure fees
+    const totalFee = (order.deliveryFailureFee || 0);
+    
     return {
       id: order.orderId,
       customer: order.customerId?.name || 'Unknown Customer',
       mobile: order.customerId?.mobile || 'N/A',
       items: order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
       price: `₹${order.totalAmount}`,
-      reason: (order.redeliveryScheduled ? '[REDELIVERY] ' : '') + (order.deliveryFailureReason || 'Not specified'),
-      fee: `₹${order.deliveryFailureFee || 0}`,
+      reason: (order.redeliveryScheduled || order.redeliveryReturnApproved ? '[REDELIVERY] ' : '') + (order.deliveryFailureReason || 'Not specified'),
+      fee: `₹${totalFee}`,
       failedAt: order.deliveryFailedAt ? new Date(order.deliveryFailedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveryFailedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A',
       partner: order.partnerId?.name || 'Not Assigned',
       address: order.deliveryAddress ? `${order.deliveryAddress.street}, ${order.deliveryAddress.city}` : order.pickupAddress ? `${order.pickupAddress.street}, ${order.pickupAddress.city}` : 'N/A'

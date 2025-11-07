@@ -305,12 +305,27 @@ export default function DropToHub() {
                   // Check if it's a redelivery failure
                   const isRedeliveryFailure = order.redeliveryScheduled === true;
                   
+                  // Fetch delivery failure fee if not already set
+                  let deliveryFailureFee = order.deliveryFailureFee || 0;
+                  if (deliveryFailureFee === 0) {
+                    try {
+                      const chargesRes = await fetch(`${API_URL}/api/order-charges`);
+                      const chargesData = await chargesRes.json();
+                      if (chargesData.success && chargesData.data) {
+                        deliveryFailureFee = chargesData.data.deliveryFailureFee || 0;
+                      }
+                    } catch (error) {
+                      console.error('Failed to fetch delivery failure fee:', error);
+                    }
+                  }
+                  
                   const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                       returnToHubRequested: true,
                       returnToHubRequestedAt: new Date().toISOString(),
+                      deliveryFailureFee: deliveryFailureFee,
                       ...(isRedeliveryFailure && { 
                         redeliveryReturnRequested: true,
                         redeliveryReturnRequestedAt: new Date().toISOString()
