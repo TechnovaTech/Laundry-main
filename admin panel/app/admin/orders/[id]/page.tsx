@@ -317,6 +317,88 @@ export default function OrderDetails() {
             </div>
           </div>
 
+          {/* Charges & Refund Summary */}
+          {((order?.deliveryFailureFee && order.deliveryFailureFee > 0) || (order?.cancellationFee && order.cancellationFee > 0) || order?.refunded) && (
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              border: '2px solid ' + (order?.refunded ? '#10b981' : '#dc2626')
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0', color: order?.refunded ? '#10b981' : '#dc2626' }}>
+                {order?.refunded ? '✓ Charges & Refund Summary' : '⚠️ Charges Applied'}
+              </h3>
+              
+              {/* Charges Details */}
+              {(order?.deliveryFailureFee > 0 || order?.cancellationFee > 0) && (
+                <div style={{ backgroundColor: '#fef2f2', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+                  <p style={{ fontWeight: '600', marginBottom: '0.75rem', color: '#dc2626' }}>Charges Breakdown:</p>
+                  {order?.deliveryFailureFee > 0 && (
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                        <span>Delivery Failure Fee:</span>
+                        <strong style={{ color: '#dc2626' }}>₹{order.deliveryFailureFee}</strong>
+                      </div>
+                      {order?.deliveryFailureReason && (
+                        <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                          Reason: {order.deliveryFailureReason}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {order?.cancellationFee > 0 && (
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                        <span>Cancellation Fee:</span>
+                        <strong style={{ color: '#dc2626' }}>₹{order.cancellationFee}</strong>
+                      </div>
+                      {order?.cancellationReason && (
+                        <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                          Reason: {order.cancellationReason}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <hr style={{ border: 'none', borderTop: '1px solid #fecaca', margin: '0.75rem 0' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '1rem', color: '#dc2626' }}>
+                    <span>Total Charges:</span>
+                    <span>₹{(order?.deliveryFailureFee || 0) + (order?.cancellationFee || 0)}</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Refund Status */}
+              {order?.refunded ? (
+                <div style={{ backgroundColor: '#dcfce7', padding: '1rem', borderRadius: '8px', border: '1px solid #10b981' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '1.5rem' }}>✓</span>
+                    <p style={{ fontWeight: '700', color: '#166534', fontSize: '1rem', margin: 0 }}>Refund Processed</p>
+                  </div>
+                  <div style={{ fontSize: '0.9rem', color: '#166534', lineHeight: '1.6' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                      <span>Refund Amount:</span>
+                      <strong>₹{order.refundAmount || order.totalAmount}</strong>
+                    </div>
+                    {order?.refundedAt && (
+                      <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                        Refunded on: {new Date(order.refundedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at {new Date(order.refundedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ backgroundColor: '#fef3c7', padding: '1rem', borderRadius: '8px', border: '1px solid #f59e0b' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.5rem' }}>⏳</span>
+                    <p style={{ fontWeight: '600', color: '#92400e', fontSize: '0.9rem', margin: 0 }}>Refund Pending</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Payment Information */}
           <div style={{
             backgroundColor: 'white',
