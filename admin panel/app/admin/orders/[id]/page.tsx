@@ -9,6 +9,8 @@ export default function OrderDetails() {
   const orderId = params.id
   const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [showRefundModal, setShowRefundModal] = useState(false)
+  const [refundCalculation, setRefundCalculation] = useState<any>(null)
 
   useEffect(() => {
     fetchOrderDetails()
@@ -48,61 +50,44 @@ export default function OrderDetails() {
             {(order?.status === 'cancelled' || order?.status === 'delivery_failed') && !order?.refunded && (
               <button 
                 onClick={async () => {
-                  if (confirm(`Refund ₹${order.totalAmount} to customer?`)) {
-                    try {
-                      const customerRes = await fetch(`/api/customers/${order.customerId._id}`);
-                      const customerData = await customerRes.json();
+                  try {
+                    const customerRes = await fetch(`/api/customers/${order.customerId._id}`);
+                    const customerData = await customerRes.json();
+                    
+                    if (customerData.success) {
+                      const customer = customerData.data;
+                      const orderAmount = order.totalAmount || 0;
+                      const chargeAmount = order.cancellationFee || order.deliveryFailureFee || 0;
+                      const currentDue = customer.dueAmount || 0;
+                      const currentWallet = customer.walletBalance || 0;
                       
-                      if (customerData.success) {
-                        const customer = customerData.data;
-                        const orderAmount = order.totalAmount || 0;
-                        const chargeAmount = order.cancellationFee || order.deliveryFailureFee || 0;
-                        const currentDue = customer.dueAmount || 0;
-                        const currentWallet = customer.walletBalance || 0;
-                        
-                        let refundAmount = orderAmount;
-                        let newDue = currentDue;
-                        
-                        // If there's a due, clear it from refund
-                        if (currentDue > 0) {
-                          const dueCleared = Math.min(currentDue, chargeAmount);
-                          newDue = currentDue - dueCleared;
-                          refundAmount = orderAmount - (chargeAmount - dueCleared);
-                        }
-                        
-                        const newWallet = currentWallet + refundAmount;
-                        
-                        // Update customer wallet
-                        const updateRes = await fetch(`/api/customers/${order.customerId._id}/adjust`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            walletBalance: newWallet,
-                            dueAmount: newDue,
-                            reason: `Refund for order #${order.orderId}`,
-                            action: 'refund'
-                          })
-                        });
-                        
-                        // Mark order as refunded
-                        await fetch(`/api/orders/${order._id}`, {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            refunded: true,
-                            refundedAt: new Date().toISOString(),
-                            refundAmount: refundAmount
-                          })
-                        });
-                        
-                        if (updateRes.ok) {
-                          alert(`Refund successful! ₹${refundAmount} credited to wallet.`);
-                          window.location.reload();
-                        }
+                      let refundAmount = orderAmount;
+                      let newDue = currentDue;
+                      let dueCleared = 0;
+                      
+                      if (currentDue > 0) {
+                        dueCleared = Math.min(currentDue, chargeAmount);
+                        newDue = currentDue - dueCleared;
+                        refundAmount = orderAmount - (chargeAmount - dueCleared);
                       }
-                    } catch (error) {
-                      alert('Refund failed. Please try again.');
+                      
+                      const newWallet = currentWallet + refundAmount;
+                      
+                      setRefundCalculation({
+                        customer,
+                        orderAmount,
+                        chargeAmount,
+                        currentDue,
+                        currentWallet,
+                        dueCleared,
+                        newDue,
+                        refundAmount,
+                        newWallet
+                      });
+                      setShowRefundModal(true);
                     }
+                  } catch (error) {
+                    alert('Failed to calculate refund. Please try again.');
                   }
                 }}
                 style={{
@@ -910,6 +895,172 @@ export default function OrderDetails() {
             </button>
           </div>
           </div>
+          )}
+
+          {/* Refund Modal */}
+          {showRefundModal && refundCalculation && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000
+            }} onClick={() => setShowRefundModal(false)}>
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '2rem',
+                maxWidth: '600px',
+                width: '90%',
+                maxHeight: '90vh',
+                overflow: 'auto'
+              }} onClick={(e) => e.stopPropagation()}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem', color: '#10b981' }}>💰 Refund Confirmation</h2>
+                
+                {/* Order Details */}
+                <div style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem' }}>Order Details</h3>
+                  <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.8' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>Order ID:</span>
+                      <strong>#{order.orderId}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>Customer:</span>
+                      <strong>{refundCalculation.customer.name}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e5e7eb' }}>
+                      <span>Items:</span>
+                      <span>{order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ')}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600', color: '#2563eb' }}>
+                      <span>Order Amount:</span>
+                      <span>₹{refundCalculation.orderAmount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Charges */}
+                {refundCalculation.chargeAmount > 0 && (
+                  <div style={{ backgroundColor: '#fef2f2', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #fecaca' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: '#dc2626' }}>Charges Applied</h3>
+                    <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.8' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>{order.status === 'cancelled' ? 'Cancellation Fee' : 'Delivery Failure Fee'}:</span>
+                        <strong style={{ color: '#dc2626' }}>₹{refundCalculation.chargeAmount}</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Wallet & Due Status */}
+                <div style={{ backgroundColor: '#eff6ff', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #bfdbfe' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: '#2563eb' }}>Current Wallet Status</h3>
+                  <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.8' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>Current Wallet Balance:</span>
+                      <strong>₹{refundCalculation.currentWallet}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>Current Due Amount:</span>
+                      <strong style={{ color: refundCalculation.currentDue > 0 ? '#dc2626' : '#10b981' }}>₹{refundCalculation.currentDue}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Refund Calculation */}
+                <div style={{ backgroundColor: '#dcfce7', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', border: '2px solid #10b981' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: '#166534' }}>Refund Breakdown</h3>
+                  <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.8' }}>
+                    {refundCalculation.dueCleared > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669' }}>
+                        <span>✓ Due Cleared:</span>
+                        <strong>₹{refundCalculation.dueCleared}</strong>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: '700', color: '#166534', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #86efac' }}>
+                      <span>Amount to Credit:</span>
+                      <span>₹{refundCalculation.refundAmount}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                      <span>New Wallet Balance:</span>
+                      <strong style={{ color: '#10b981' }}>₹{refundCalculation.newWallet}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>New Due Amount:</span>
+                      <strong style={{ color: refundCalculation.newDue > 0 ? '#dc2626' : '#10b981' }}>₹{refundCalculation.newDue}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    onClick={() => setShowRefundModal(false)}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      border: '2px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      backgroundColor: 'white'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const updateRes = await fetch(`/api/customers/${order.customerId._id}/adjust`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            walletBalance: refundCalculation.newWallet,
+                            dueAmount: refundCalculation.newDue,
+                            reason: `Refund for order #${order.orderId}`,
+                            action: 'refund'
+                          })
+                        });
+                        
+                        await fetch(`/api/orders/${order._id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            refunded: true,
+                            refundedAt: new Date().toISOString(),
+                            refundAmount: refundCalculation.refundAmount
+                          })
+                        });
+                        
+                        if (updateRes.ok) {
+                          alert(`Refund successful! ₹${refundCalculation.refundAmount} credited to wallet.`);
+                          window.location.reload();
+                        }
+                      } catch (error) {
+                        alert('Refund failed. Please try again.');
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      backgroundColor: '#10b981',
+                      color: 'white'
+                    }}
+                  >
+                    ✓ Confirm Refund
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
     </ResponsiveLayout>
