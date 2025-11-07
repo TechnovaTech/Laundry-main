@@ -182,6 +182,23 @@ const OrderDetails = () => {
           })}
         </div>
 
+        {order?.deliveryFailureFee > 0 && (
+          <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fef3c7, #fde68a)', borderColor: '#f59e0b' }}>
+            <div className="flex items-start gap-2">
+              <span className="text-2xl">💳</span>
+              <div className="flex-1">
+                <p className="text-sm sm:text-base font-bold text-amber-800 mb-1">Charges Applied</p>
+                <p className="text-xs sm:text-sm text-amber-700 font-semibold mb-1">
+                  ₹{order.deliveryFailureFee} deducted from your wallet balance
+                </p>
+                <p className="text-xs sm:text-sm text-amber-600">
+                  <strong>Reason:</strong> {order.deliveryFailureReason || 'Delivery failure charge'}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {order?.status === 'delivery_failed' && (
           <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fee2e2, #fecaca)', borderColor: '#ef4444' }}>
             <div className="flex items-start gap-2">
@@ -191,16 +208,28 @@ const OrderDetails = () => {
                 <p className="text-xs sm:text-sm text-red-600 font-medium">
                   <strong>Reason:</strong> {order.deliveryFailureReason || 'Not specified'}
                 </p>
-                {order.deliveryFailureFee > 0 && (
-                  <p className="text-xs sm:text-sm text-red-600 font-medium mt-1">
-                    ₹{order.deliveryFailureFee} charges deducted from your wallet balance
-                  </p>
-                )}
                 {order.redeliveryScheduled && (
                   <p className="text-xs sm:text-sm text-red-600 font-medium mt-1">
                     This order failed delivery multiple times.
                   </p>
                 )}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {order?.cancellationFee > 0 && (
+          <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fef3c7, #fde68a)', borderColor: '#f59e0b' }}>
+            <div className="flex items-start gap-2">
+              <span className="text-2xl">💳</span>
+              <div className="flex-1">
+                <p className="text-sm sm:text-base font-bold text-amber-800 mb-1">Charges Applied</p>
+                <p className="text-xs sm:text-sm text-amber-700 font-semibold mb-1">
+                  ₹{order.cancellationFee} deducted from your wallet balance
+                </p>
+                <p className="text-xs sm:text-sm text-amber-600">
+                  <strong>Reason:</strong> {order.cancellationReason || 'Order cancellation charge'}
+                </p>
               </div>
             </div>
           </Card>
@@ -215,11 +244,6 @@ const OrderDetails = () => {
                 {order.cancellationReason && (
                   <p className="text-xs sm:text-sm text-red-600 font-medium">
                     <strong>Reason:</strong> {order.cancellationReason}
-                  </p>
-                )}
-                {order.cancellationFee > 0 && (
-                  <p className="text-xs sm:text-sm text-red-600 font-medium mt-1">
-                    ₹{order.cancellationFee} charges deducted from your wallet balance
                   </p>
                 )}
               </div>
