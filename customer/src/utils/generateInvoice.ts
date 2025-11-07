@@ -94,11 +94,17 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Use text headers instead of images to prevent crashes
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('ACS Group', 15, 20);
-  doc.text('Urban Steam', pageWidth - 45, 20);
+  // Add compressed logos (400x400px, ~20KB total)
+  try {
+    doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 40, 18);
+    doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 55, 8, 40, 18);
+  } catch (imgError) {
+    console.log('Logo error:', imgError);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ACS Group', 15, 20);
+    doc.text('Urban Steam', pageWidth - 45, 20);
+  }
   doc.setTextColor(0, 0, 0);
   
   // Invoice header section
