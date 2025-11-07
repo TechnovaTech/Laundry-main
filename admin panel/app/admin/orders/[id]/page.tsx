@@ -45,6 +45,95 @@ export default function OrderDetails() {
           <div>
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+            {(order?.status === 'cancelled' || order?.status === 'delivery_failed') && !order?.refunded && (
+              <button 
+                onClick={async () => {
+                  if (confirm(`Refund ₹${order.totalAmount} to customer?`)) {
+                    try {
+                      const customerRes = await fetch(`/api/customers/${order.customerId._id}`);
+                      const customerData = await customerRes.json();
+                      
+                      if (customerData.success) {
+                        const customer = customerData.data;
+                        const orderAmount = order.totalAmount || 0;
+                        const chargeAmount = order.cancellationFee || order.deliveryFailureFee || 0;
+                        const currentDue = customer.dueAmount || 0;
+                        const currentWallet = customer.walletBalance || 0;
+                        
+                        let refundAmount = orderAmount;
+                        let newDue = currentDue;
+                        
+                        // If there's a due, clear it from refund
+                        if (currentDue > 0) {
+                          const dueCleared = Math.min(currentDue, chargeAmount);
+                          newDue = currentDue - dueCleared;
+                          refundAmount = orderAmount - (chargeAmount - dueCleared);
+                        }
+                        
+                        const newWallet = currentWallet + refundAmount;
+                        
+                        // Update customer wallet
+                        const updateRes = await fetch(`/api/customers/${order.customerId._id}/adjust`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            walletBalance: newWallet,
+                            dueAmount: newDue,
+                            reason: `Refund for order #${order.orderId}`,
+                            action: 'refund'
+                          })
+                        });
+                        
+                        // Mark order as refunded
+                        await fetch(`/api/orders/${order._id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            refunded: true,
+                            refundedAt: new Date().toISOString(),
+                            refundAmount: refundAmount
+                          })
+                        });
+                        
+                        if (updateRes.ok) {
+                          alert(`Refund successful! ₹${refundAmount} credited to wallet.`);
+                          window.location.reload();
+                        }
+                      }
+                    } catch (error) {
+                      alert('Refund failed. Please try again.');
+                    }
+                  }
+                }}
+                style={{
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                💰 Confirm Refund
+              </button>
+            )}
+            {order?.refunded && (
+              <div style={{
+                backgroundColor: '#dcfce7',
+                color: '#166534',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                ✓ Refunded ₹{order.refundAmount || order.totalAmount}
+              </div>
+            )}
             <button 
               onClick={async () => {
                 if (confirm('Are you sure you want to cancel this order?')) {
@@ -438,7 +527,6 @@ export default function OrderDetails() {
               <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0', color: '#ef4444' }}>⚠ Delivery Failed</h3>
               <div style={{ padding: '0.75rem', backgroundColor: '#fef2f2', borderRadius: '8px', marginBottom: '0.5rem' }}>
                 <p style={{ color: '#374151' }}><strong>Reason:</strong> {order.deliveryFailureReason || 'Not specified'}</p>
-                <p style={{ color: '#374151', marginTop: '0.5rem' }}><strong>Delivery Fee Charged:</strong> ₹{order.deliveryFailureFee || 0}</p>
               </div>
               <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
                 Failed on: {order.deliveryFailedAt ? new Date(order.deliveryFailedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveryFailedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
