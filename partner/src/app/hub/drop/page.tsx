@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Toast from "@/components/Toast";
 import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
@@ -15,6 +16,8 @@ export default function DropToHub() {
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [deliveredOrders, setDeliveredOrders] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -103,6 +106,7 @@ export default function DropToHub() {
   };
 
   const fetchHubAndOrders = async () => {
+    setLoading(true);
     const partnerId = localStorage.getItem('partnerId');
     const partnerRes = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
     const partnerData = await partnerRes.json();
@@ -134,9 +138,10 @@ export default function DropToHub() {
       const filtered = ordersData.data.filter((o: any) => {
         const isPartnerMatch = o.partnerId?._id === partnerId;
         const isPickedUp = o.status === 'picked_up';
-        const isDeliveryFailed = o.status === 'delivery_failed' && !o.returnToHubApproved;
+        const isDeliveryFailed = o.status === 'delivery_failed' && !o.redeliveryScheduled && !o.returnToHubApproved;
+        const isRedeliveryFailed = o.status === 'delivery_failed' && o.redeliveryScheduled && !o.redeliveryReturnApproved;
         
-        return isPartnerMatch && (isPickedUp || isDeliveryFailed);
+        return isPartnerMatch && (isPickedUp || isDeliveryFailed || isRedeliveryFailed);
       });
       
       // Check for delivered orders
@@ -150,10 +155,12 @@ export default function DropToHub() {
       setOrders(filtered);
       setDeliveredOrders(delivered);
     }
+    setLoading(false);
   };
 
   return (
     <div className="pb-6">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Refresh Indicator */}
       {refreshing && (
         <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
@@ -165,7 +172,7 @@ export default function DropToHub() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 bg-white shadow-sm">
+      <header className="sticky top-0 bg-white shadow-sm z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <h2 className="text-lg font-semibold text-black">Drop To Hub</h2>
           <span style={{ color: '#452D9B' }}>🔔</span>
@@ -173,28 +180,26 @@ export default function DropToHub() {
       </header>
 
       {/* Delivered Orders Alert */}
-      {deliveredOrders.length > 0 && (
-        <button
-          onClick={() => router.push('/hub/delivered')}
-          className="w-full text-white py-2.5 px-4 flex items-center justify-between"
-          style={{ 
-            background: 'linear-gradient(to right, #10b981, #059669)',
-            transition: 'opacity 0.2s'
-          }}
-          onTouchStart={(e) => e.currentTarget.style.opacity = '0.9'}
-          onTouchEnd={(e) => e.currentTarget.style.opacity = '1'}
-        >
-          <div className="flex items-center gap-3 flex-1">
-            <div className="w-8 h-8 rounded-full bg-white bg-opacity-25 flex items-center justify-center flex-shrink-0">
-              <span className="text-lg">✅</span>
-            </div>
-            <div className="text-left flex-1">
-              <p className="text-sm font-bold">Orders Delivered to Hub</p>
-              <p className="text-xs opacity-90">{deliveredOrders.length} order(s) • Tap to view details</p>
-            </div>
+      <button
+        onClick={() => router.push('/hub/delivered')}
+        className="w-full text-white py-2.5 px-4 flex items-center justify-between"
+        style={{ 
+          background: 'linear-gradient(to right, #10b981, #059669)',
+          transition: 'opacity 0.2s'
+        }}
+        onTouchStart={(e) => e.currentTarget.style.opacity = '0.9'}
+        onTouchEnd={(e) => e.currentTarget.style.opacity = '1'}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          <div className="w-8 h-8 rounded-full bg-white bg-opacity-25 flex items-center justify-center flex-shrink-0">
+            <span className="text-lg">✅</span>
           </div>
-        </button>
-      )}
+          <div className="text-left flex-1">
+            <p className="text-sm font-bold">Orders Delivered to Hub</p>
+            <p className="text-xs opacity-90">{deliveredOrders.length > 0 ? `${deliveredOrders.length} order(s) • ` : ''}Tap to view details</p>
+          </div>
+        </div>
+      </button>
 
       {/* Map */}
       {hub && (
@@ -218,7 +223,25 @@ export default function DropToHub() {
       {/* Orders to Drop */}
       <div className="mt-4 mx-4">
         <p className="text-base font-semibold text-black">Orders to Drop ({orders.length})</p>
-        {orders.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="mb-4" style={{
+              width: '48px',
+              height: '48px',
+              border: '4px solid #f3f4f6',
+              borderTop: '4px solid #10b981',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <p className="text-gray-600">Loading orders...</p>
+            <style jsx>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
+        ) : orders.length > 0 ? (
           orders.map((order) => (
             <div key={order._id} className="mt-3 rounded-xl border border-gray-200 bg-white shadow-sm p-4">
               <div className="flex items-start justify-between">
@@ -239,8 +262,10 @@ export default function DropToHub() {
                   <div>
                     <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
                     <p className="text-xs text-black mt-1">{order.items?.length || 0} items</p>
-                    <span className="mt-1 text-xs" style={{ color: order.status === 'delivery_failed' ? '#dc2626' : '#452D9B' }}>
-                      {order.status === 'delivery_failed' ? (order.redeliveryScheduled ? '⚠ Redelivery Failed' : '⚠ Delivery Failed') : 'Picked Up'}
+                    <span className="mt-1 text-xs" style={{ color: order.status === 'delivery_failed' || (order.status === 'out_for_delivery' && order.redeliveryScheduled) ? '#dc2626' : '#452D9B' }}>
+                      {order.status === 'delivery_failed' ? (order.redeliveryScheduled ? '⚠ Redelivery Failed' : '⚠ Delivery Failed') : 
+                       order.status === 'out_for_delivery' && order.redeliveryScheduled ? '🔄 Redelivery Order' : 
+                       'Picked Up'}
                     </span>
                   </div>
                 </div>
@@ -249,10 +274,12 @@ export default function DropToHub() {
             </div>
           ))
         ) : (
-          <div className="mt-6 text-center">
-            <Image src="/window.svg" alt="Hub" width={200} height={140} className="mx-auto" />
-            <p className="mt-2 text-base font-semibold">No orders to deliver.</p>
-            <p className="text-xs text-black">Pickups will appear here after collection.</p>
+          <div className="mt-12 text-center px-6">
+            <div className="mx-auto w-32 h-32 rounded-full flex items-center justify-center mb-6" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+              <span className="text-6xl">📦</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">All Clear!</h3>
+            <p className="text-gray-600 text-sm">No orders ready to drop at the hub right now. Orders will appear here after you complete pickups.</p>
           </div>
         )}
       </div>
@@ -274,12 +301,20 @@ export default function DropToHub() {
                 if (order?.status === 'delivery_failed') {
                   hasFailedOrders = true;
                   console.log('Sending return request for failed delivery order:', orderId);
+                  
+                  // Check if it's a redelivery failure
+                  const isRedeliveryFailure = order.redeliveryScheduled === true;
+                  
                   const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                       returnToHubRequested: true,
-                      returnToHubRequestedAt: new Date().toISOString()
+                      returnToHubRequestedAt: new Date().toISOString(),
+                      ...(isRedeliveryFailure && { 
+                        redeliveryReturnRequested: true,
+                        redeliveryReturnRequestedAt: new Date().toISOString()
+                      })
                     })
                   });
                   const result = await response.json();
@@ -300,15 +335,24 @@ export default function DropToHub() {
               }
               
               if (hasFailedOrders) {
-                alert('Return request sent to admin for approval');
+                const hasRedeliveryFailures = ordersToUpdate.some(id => {
+                  const order = orders.find(o => o._id === id);
+                  return order?.redeliveryScheduled === true;
+                });
+                
+                if (hasRedeliveryFailures) {
+                  setToast({ message: 'Redelivery return request sent to admin', type: 'success' });
+                } else {
+                  setToast({ message: 'Return request sent to admin for approval', type: 'success' });
+                }
               } else {
-                alert('Orders delivered to hub successfully');
+                setToast({ message: 'Orders delivered to hub successfully', type: 'success' });
               }
               
-              router.push('/hub/delivered');
+              setTimeout(() => router.push('/hub/delivered'), 1500);
             } catch (error) {
               console.error('Error dropping orders:', error);
-              alert('Failed to drop orders. Check console for details.');
+              setToast({ message: 'Failed to drop orders. Please try again.', type: 'error' });
             }
           }}
           disabled={orders.length === 0}

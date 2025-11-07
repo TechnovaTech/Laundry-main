@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Toast from "@/components/Toast";
 import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 
@@ -12,6 +13,7 @@ export default function PickForDelivery() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeDelivery, setActiveDelivery] = useState<any>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -149,6 +151,7 @@ export default function PickForDelivery() {
 
   return (
     <div className="pb-24" suppressHydrationWarning>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Refresh Indicator */}
       {refreshing && (
         <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
@@ -248,7 +251,7 @@ export default function PickForDelivery() {
               const firstOrderId = Array.from(selected)[0];
               router.push(`/delivery/details?id=${firstOrderId}`);
             } else {
-              alert('Please select at least one order');
+              setToast({ message: 'Please select at least one order', type: 'warning' });
             }
           }}
           disabled={orders.length === 0}

@@ -22,9 +22,8 @@ export default function DeliveredToHub() {
       if (data.success) {
         const filteredOrders = data.data.filter((order: any) => {
           const isMyOrder = order.partnerId?._id === partnerId || order.partnerId === partnerId;
-          const isDeliveredToHub = order.status === 'delivered_to_hub' || order.status === 'ready' || order.status === 'delivered';
-          const isReturnApproved = order.status === 'delivery_failed' && order.returnToHubApproved;
-          return isMyOrder && (isDeliveredToHub || isReturnApproved);
+          const hasDeliveredToHub = order.deliveredToHubAt;
+          return isMyOrder && hasDeliveredToHub;
         });
         setDelivered(filteredOrders);
       }
@@ -74,25 +73,24 @@ export default function DeliveredToHub() {
                   <p className="text-xs text-gray-600 mt-2">
                     Delivered: {order.deliveredToHubAt ? new Date(order.deliveredToHubAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.deliveredToHubAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
                   </p>
-                  {(order.status === 'ready' || order.status === 'delivered') && order.hubApprovedAt && (
-                    <p className="text-xs text-green-600 mt-1">
-                      ✓ Approved: {new Date(order.hubApprovedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.hubApprovedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                    </p>
-                  )}
-                  {order.status === 'delivery_failed' && order.returnToHubApproved && (
-                    <p className="text-xs text-green-600 mt-1">
-                      ✓ Return Approved: {order.returnToHubApprovedAt ? new Date(order.returnToHubApprovedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + new Date(order.returnToHubApprovedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A'}
-                    </p>
-                  )}
+                  <p className="text-xs font-semibold mt-2" style={{ color: '#452D9B' }}>
+                    Status: {order.status.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                  </p>
                 </div>
                 <span className={`rounded-full text-white px-3 py-1 text-xs font-semibold whitespace-nowrap ${
-                  order.status === 'ready' || order.status === 'delivered' ? 'bg-green-500' : 
-                  order.status === 'delivery_failed' && order.returnToHubApproved ? 'bg-blue-500' :
-                  'bg-orange-500'
+                  order.status === 'delivered' ? 'bg-green-500' : 
+                  order.status === 'ready' ? 'bg-blue-500' :
+                  order.status === 'out_for_delivery' ? 'bg-purple-500' :
+                  order.status === 'delivered_to_hub' ? 'bg-orange-500' :
+                  order.status === 'delivery_failed' ? 'bg-red-500' :
+                  'bg-gray-500'
                 }`}>
-                  {order.status === 'ready' || order.status === 'delivered' ? 'Approved' : 
-                   order.status === 'delivery_failed' && order.returnToHubApproved ? 'Return OK' :
-                   'Pending'}
+                  {order.status === 'delivered' ? 'Delivered' : 
+                   order.status === 'ready' ? 'Ready' :
+                   order.status === 'out_for_delivery' ? 'Out for Delivery' :
+                   order.status === 'delivered_to_hub' ? 'At Hub' :
+                   order.status === 'delivery_failed' ? 'Failed' :
+                   order.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </span>
               </div>
             </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
+import ConfirmModal from "@/components/ConfirmModal";
 import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 
@@ -13,6 +14,7 @@ function DeliveryDetailsContent() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showFailureModal, setShowFailureModal] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [failureReasons, setFailureReasons] = useState({
     customerUnavailable: false,
     incorrectAddress: false,
@@ -139,25 +141,7 @@ function DeliveryDetailsContent() {
               {order.redeliveryScheduled ? 'Start Redelivery' : 'Start Delivery'}
             </button>
             <button
-              onClick={async () => {
-                if (confirm('Are you sure you want to cancel this delivery? The order will be available for other partners.')) {
-                  const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                      status: 'process_completed',
-                      partnerId: null,
-                      outForDeliveryAt: null
-                    })
-                  });
-                  if (response.ok) {
-                    setToast({ message: 'Delivery cancelled successfully', type: 'success' });
-                    setTimeout(() => router.push('/delivery/pick'), 1500);
-                  } else {
-                    setToast({ message: 'Failed to cancel delivery', type: 'error' });
-                  }
-                }
-              }}
+              onClick={() => setShowCancelConfirm(true)}
               className="flex-1 inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold border-2"
               style={{ borderColor: '#dc2626', color: '#dc2626', backgroundColor: 'white' }}
             >
@@ -203,6 +187,33 @@ function DeliveryDetailsContent() {
       </div>
 
       <BottomNav />
+
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        title="Cancel Delivery"
+        message="Are you sure you want to cancel this delivery? The order will be available for other partners."
+        onConfirm={async () => {
+          setShowCancelConfirm(false);
+          const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              status: 'process_completed',
+              partnerId: null,
+              outForDeliveryAt: null
+            })
+          });
+          if (response.ok) {
+            setToast({ message: 'Delivery cancelled successfully', type: 'success' });
+            setTimeout(() => router.push('/delivery/pick'), 1500);
+          } else {
+            setToast({ message: 'Failed to cancel delivery', type: 'error' });
+          }
+        }}
+        onCancel={() => setShowCancelConfirm(false)}
+        confirmText="Cancel Delivery"
+        cancelText="Go Back"
+      />
 
       {/* Failure Modal */}
       {showFailureModal && (

@@ -206,51 +206,24 @@ export default function UndeliveredOrdersPage() {
                 <div onClick={(e) => e.stopPropagation()}>
                   {dbOrder.returnToHubRequested === true && dbOrder.returnToHubApproved !== true ? (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {dbOrder.redeliveryScheduled ? (
-                        <button
-                          onClick={async () => {
-                            if (confirm('Suspend this order due to multiple delivery failures?')) {
-                              const response = await fetch(`/api/orders/${dbOrder._id}`, {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ 
-                                  status: 'suspended',
-                                  orderSuspended: true,
-                                  suspensionReason: 'Multiple delivery failures',
-                                  suspendedAt: new Date().toISOString()
-                                })
-                              });
-                              if (response.ok) {
-                                alert('Order suspended successfully');
-                                fetchUndeliveredOrders();
-                              }
-                            }
-                          }}
-                          style={{
-                            backgroundColor: '#f59e0b',
-                            color: 'white',
-                            border: 'none',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '6px',
-                            fontSize: '0.8rem',
-                            fontWeight: '500',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          SUSPEND ORDER
-                        </button>
-                      ) : null}
                       <button
                         onClick={async () => {
+                          const updateData: any = {
+                            returnToHubApproved: true,
+                            returnToHubApprovedAt: new Date().toISOString(),
+                            status: 'delivered_to_hub',
+                            deliveredToHubAt: new Date().toISOString()
+                          };
+                          
+                          if (dbOrder.redeliveryReturnRequested) {
+                            updateData.redeliveryReturnApproved = true;
+                            updateData.redeliveryReturnApprovedAt = new Date().toISOString();
+                          }
+                          
                           const response = await fetch(`/api/orders/${dbOrder._id}`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                              returnToHubApproved: true,
-                              returnToHubApprovedAt: new Date().toISOString(),
-                              status: 'delivered_to_hub',
-                              deliveredToHubAt: new Date().toISOString()
-                            })
+                            body: JSON.stringify(updateData)
                           });
                           if (response.ok) fetchUndeliveredOrders();
                         }}
@@ -269,13 +242,20 @@ export default function UndeliveredOrdersPage() {
                       </button>
                       <button
                         onClick={async () => {
+                          const updateData: any = {
+                            returnToHubRequested: false,
+                            returnToHubRequestedAt: null
+                          };
+                          
+                          if (dbOrder.redeliveryReturnRequested) {
+                            updateData.redeliveryReturnRequested = false;
+                            updateData.redeliveryReturnRequestedAt = null;
+                          }
+                          
                           const response = await fetch(`/api/orders/${dbOrder._id}`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                              returnToHubRequested: false,
-                              returnToHubRequestedAt: null
-                            })
+                            body: JSON.stringify(updateData)
                           });
                           if (response.ok) fetchUndeliveredOrders();
                         }}
@@ -293,7 +273,65 @@ export default function UndeliveredOrdersPage() {
                         DECLINE
                       </button>
                     </div>
-                  ) : dbOrder.returnToHubApproved === true && dbOrder.status === 'delivered_to_hub' ? (
+                  ) : dbOrder.returnToHubApproved === true && dbOrder.redeliveryReturnApproved !== true && dbOrder.status === 'delivered_to_hub' ? (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={async () => {
+                          if (confirm('Suspend this order due to multiple delivery failures?')) {
+                            const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ 
+                                status: 'suspended',
+                                orderSuspended: true,
+                                suspensionReason: 'Multiple delivery failures',
+                                suspendedAt: new Date().toISOString()
+                              })
+                            });
+                            if (response.ok) {
+                              alert('Order suspended successfully');
+                              fetchUndeliveredOrders();
+                            }
+                          }
+                        }}
+                        style={{
+                          backgroundColor: '#f59e0b',
+                          color: 'white',
+                          border: 'none',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '6px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        SUSPEND
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedOrder(dbOrder);
+                          setRedeliveryData({
+                            newAddress: dbOrder.deliveryAddress ? `${dbOrder.deliveryAddress.street}, ${dbOrder.deliveryAddress.city}` : '',
+                            newTimeSlot: '',
+                            redeliveryDate: ''
+                          });
+                          setShowRedeliveryModal(true);
+                        }}
+                        style={{
+                          backgroundColor: '#2563eb',
+                          color: 'white',
+                          border: 'none',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '6px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        SETUP REDELIVERY
+                      </button>
+                    </div>
+                  ) : dbOrder.returnToHubApproved === true && dbOrder.redeliveryReturnApproved === true && dbOrder.status === 'delivered_to_hub' ? (
                     <button
                       onClick={() => {
                         setSelectedOrder(dbOrder);

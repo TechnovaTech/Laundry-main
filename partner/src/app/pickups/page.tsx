@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Toast from "@/components/Toast";
 import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 
@@ -34,6 +35,7 @@ export default function Pickups() {
   const [startingPickup, setStartingPickup] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activePickup, setActivePickup] = useState<any>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   useEffect(() => {
     checkKYCStatus();
@@ -176,6 +178,7 @@ export default function Pickups() {
 
   return (
     <div className="pb-24 bg-gray-50 min-h-screen relative">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Refresh Indicator */}
       {refreshing && (
         <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
@@ -291,7 +294,7 @@ export default function Pickups() {
                       const checkData = await checkRes.json();
                       
                       if (checkData.data?.partnerId && checkData.data.partnerId !== partnerId) {
-                        alert('This order was just assigned to another partner');
+                        setToast({ message: 'This order was just assigned to another partner', type: 'warning' });
                         fetchPickups();
                         setStartingPickup(null);
                         return;
@@ -304,7 +307,7 @@ export default function Pickups() {
                       });
                       
                       if (!assignRes.ok) {
-                        alert('Failed to assign order. Please try again.');
+                        setToast({ message: 'Failed to assign order. Please try again.', type: 'error' });
                         setStartingPickup(null);
                         return;
                       }
@@ -313,7 +316,7 @@ export default function Pickups() {
                       router.push(`/pickups/start?id=${p._id}`);
                     } catch (error) {
                       console.error('Error starting pickup:', error);
-                      alert('Network error. Please try again.');
+                      setToast({ message: 'Network error. Please try again.', type: 'error' });
                       setStartingPickup(null);
                     }
                   }}

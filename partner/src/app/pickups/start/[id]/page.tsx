@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
+import ConfirmModal from "@/components/ConfirmModal";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 
@@ -33,6 +34,7 @@ export default function StartPickup() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
+  const [showStopConfirm, setShowStopConfirm] = useState(false);
 
   useEffect(() => {
     // Force hide splash screen for Capacitor
@@ -178,27 +180,36 @@ export default function StartPickup() {
           Reached Location
         </button>
         <button
-          onClick={async () => {
-            if (confirm('Are you sure you want to stop this pickup? The order will be unassigned and available for other partners.')) {
-              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ partnerId: null })
-              });
-              if (response.ok) {
-                setToast({ message: 'Pickup stopped. Order unassigned.', type: 'success' });
-                setTimeout(() => router.push('/pickups'), 1000);
-              } else {
-                setToast({ message: 'Failed to stop pickup', type: 'error' });
-              }
-            }
-          }}
+          onClick={() => setShowStopConfirm(true)}
           className="mt-3 w-full inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold border-2"
           style={{ borderColor: '#dc2626', color: '#dc2626', backgroundColor: 'white' }}
         >
           Stop Pickup
         </button>
       </div>
+
+      <ConfirmModal
+        isOpen={showStopConfirm}
+        title="Stop Pickup"
+        message="Are you sure you want to stop this pickup? The order will be unassigned and available for other partners."
+        onConfirm={async () => {
+          setShowStopConfirm(false);
+          const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ partnerId: null })
+          });
+          if (response.ok) {
+            setToast({ message: 'Pickup stopped. Order unassigned.', type: 'success' });
+            setTimeout(() => router.push('/pickups'), 1000);
+          } else {
+            setToast({ message: 'Failed to stop pickup', type: 'error' });
+          }
+        }}
+        onCancel={() => setShowStopConfirm(false)}
+        confirmText="Stop Pickup"
+        cancelText="Cancel"
+      />
     </div>
   );
 }
