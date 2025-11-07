@@ -26,17 +26,22 @@ export const generateInvoicePDF = async (order: any) => {
   if (!order) return;
 
   try {
-    // Fetch customer name if not populated
-    let customerName = order.customer?.name || order.customerName || 'Customer';
-    if (!customerName || customerName === 'Customer') {
+    // Fetch customer data if not populated
+    let customerName = order.customerId?.name || order.customer?.name || 'Customer';
+    let customerMobile = order.customerId?.mobile || order.customer?.mobile || '';
+    let customerEmail = order.customerId?.email || order.customer?.email || '';
+    
+    if (!customerName || customerName === 'Customer' || !customerMobile) {
       try {
-        const response = await fetch(`${API_URL}/api/customers/${order.customerId}`);
+        const response = await fetch(`${API_URL}/api/customers/${order.customerId?._id || order.customerId}`);
         const data = await response.json();
         if (data.success && data.data) {
-          customerName = data.data.name || 'Customer';
+          customerName = data.data.name || customerName;
+          customerMobile = data.data.mobile || customerMobile;
+          customerEmail = data.data.email || customerEmail;
         }
       } catch (error) {
-        console.log('Could not fetch customer name');
+        console.log('Could not fetch customer data');
       }
     }
     
@@ -137,11 +142,11 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setTextColor(80, 80, 80);
   const address = doc.splitTextToSize(order.pickupAddress?.street || 'Customer address', 58);
   doc.text(address, 64, sectionY + 15);
-  doc.text(`${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'State'}`, 64, sectionY + 19);
-  doc.text(`Pincode: ${order.pickupAddress?.pincode || '000000'}`, 64, sectionY + 23);
+  doc.text(`${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'State'} - ${order.pickupAddress?.pincode || '000000'}`, 64, sectionY + 19);
   doc.setTextColor(0, 0, 0);
-  doc.setFontSize(8);
-  doc.text(`Order ID: ${order.orderId || 'N/A'}`, 64, sectionY + 28);
+  doc.setFontSize(7.5);
+  doc.text(`Contact Number: ${customerMobile || 'N/A'}`, 64, sectionY + 28);
+  doc.text(`Order Id: ${order.orderId || 'N/A'}`, 64, sectionY + 32);
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
