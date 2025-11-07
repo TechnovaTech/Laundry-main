@@ -10,15 +10,24 @@ const loadImageAsBase64 = (url: string): Promise<string> => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        } else {
+          reject(new Error('Canvas context failed'));
+        }
+      } catch (e) {
+        reject(e);
+      }
     };
-    img.onerror = reject;
+    img.onerror = () => reject(new Error('Image load failed'));
     img.src = url;
+    setTimeout(() => reject(new Error('Image load timeout')), 5000);
   });
 };
 
@@ -73,20 +82,27 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Add logos with base64 for mobile compatibility
-  try {
-    const acsLogoUrl = new URL('@/assets/ACS LOGO.png', import.meta.url).href;
-    const usLogoUrl = new URL('@/assets/LOGO MARK GRADIENT.png', import.meta.url).href;
-    
-    const [acsBase64, usBase64] = await Promise.all([
-      loadImageAsBase64(acsLogoUrl),
-      loadImageAsBase64(usLogoUrl)
-    ]);
-    
-    doc.addImage(acsBase64, 'PNG', 15, 12, 30, 12);
-    doc.addImage(usBase64, 'PNG', pageWidth - 45, 12, 30, 12);
-  } catch (imgError) {
-    console.log('Logo loading failed, using text:', imgError);
+  // Add logos - skip on mobile to avoid crashes
+  if (!Capacitor.isNativePlatform()) {
+    try {
+      const acsLogoUrl = new URL('@/assets/ACS LOGO.png', import.meta.url).href;
+      const usLogoUrl = new URL('@/assets/LOGO MARK GRADIENT.png', import.meta.url).href;
+      
+      const [acsBase64, usBase64] = await Promise.all([
+        loadImageAsBase64(acsLogoUrl),
+        loadImageAsBase64(usLogoUrl)
+      ]);
+      
+      doc.addImage(acsBase64, 'PNG', 15, 12, 30, 12);
+      doc.addImage(usBase64, 'PNG', pageWidth - 45, 12, 30, 12);
+    } catch (imgError) {
+      console.log('Logo loading failed, using text:', imgError);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('ACS Group', 15, 20);
+      doc.text('Urban Steam', pageWidth - 45, 20);
+    }
+  } else {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('ACS Group', 15, 20);
