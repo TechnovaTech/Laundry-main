@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         isActive: true 
       })
       if (hub) {
-        assignedHub = hub.name
+        assignedHub = hub._id
       }
     }
     
@@ -251,6 +251,7 @@ export async function GET(request: NextRequest) {
     const orders = await Order.find(query)
       .populate('customerId', 'name mobile email')
       .populate('partnerId', 'name mobile email')
+      .populate('hub', 'name address address2 city pincode phone email gstNumber')
       .sort({ createdAt: -1 })
     
     console.log('Orders found:', orders.length)

@@ -18,11 +18,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     let order = await Order.findOne({ orderId: id })
       .populate('customerId', 'name mobile email address')
       .populate('partnerId', 'name mobile email')
+      .populate('hub', 'name address address2 city pincode phone email gstNumber')
     
     if (!order) {
       order = await Order.findById(id)
         .populate('customerId', 'name mobile email address')
         .populate('partnerId', 'name mobile email')
+        .populate('hub', 'name address address2 city pincode phone email gstNumber')
     }
     
     if (!order) {

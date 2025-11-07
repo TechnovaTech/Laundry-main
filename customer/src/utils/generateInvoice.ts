@@ -26,6 +26,20 @@ export const generateInvoicePDF = async (order: any) => {
   if (!order) return;
 
   try {
+    // Fetch customer name if not populated
+    let customerName = order.customer?.name || order.customerName || 'Customer';
+    if (!customerName || customerName === 'Customer') {
+      try {
+        const response = await fetch(`${API_URL}/api/customers/${order.customerId}`);
+        const data = await response.json();
+        if (data.success && data.data) {
+          customerName = data.data.name || 'Customer';
+        }
+      } catch (error) {
+        console.log('Could not fetch customer name');
+      }
+    }
+    
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -119,7 +133,7 @@ export const generateInvoicePDF = async (order: any) => {
   doc.text('Billed to', 64, sectionY + 6);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.text(order.customer?.name || 'Customer Name', 64, sectionY + 11);
+  doc.text(customerName, 64, sectionY + 11);
   doc.setTextColor(80, 80, 80);
   const address = doc.splitTextToSize(order.pickupAddress?.street || 'Customer address', 58);
   doc.text(address, 64, sectionY + 15);

@@ -470,6 +470,41 @@ export default function OrderDetails() {
             )}
           </div>
 
+          {/* Hub Information */}
+          {order?.hub && (
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              border: '2px solid #3b82f6'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0', color: '#2563eb' }}>🏢 Processing Hub</h3>
+              <div style={{ color: '#374151', lineHeight: '1.8' }}>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong>Hub Name:</strong> {order.hub.name || 'N/A'}
+                </div>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong>Address:</strong> {order.hub.address || 'N/A'}{order.hub.address2 ? `, ${order.hub.address2}` : ''}
+                </div>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong>City:</strong> {order.hub.city || 'N/A'} - {order.hub.pincode || 'N/A'}
+                </div>
+                {order.hub.phone && (
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <strong>Phone:</strong> {order.hub.phone}
+                  </div>
+                )}
+                {order.hub.email && (
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <strong>Email:</strong> {order.hub.email}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Assigned Partner */}
           <div style={{
             backgroundColor: 'white',

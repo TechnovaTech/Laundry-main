@@ -4,7 +4,7 @@ const OrderSchema = new mongoose.Schema({
   orderId: { type: String, required: true, unique: true },
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   partnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner' },
-  hub: { type: String },
+  hub: { type: mongoose.Schema.Types.ObjectId, ref: 'Hub' },
   items: [{
     name: String,
     quantity: Number,
