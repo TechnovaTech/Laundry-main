@@ -67,16 +67,27 @@ export const generateInvoicePDF = async (order: any) => {
     gst: '29ACLFAA519M1ZW'
   };
   
-  // Get hub from order's hub field (where it was dropped)
+  // Fetch hub details from MongoDB if hub ID exists
   if (order.hub) {
-    hubAddress = {
-      name: order.hub.name || 'Urban Steam',
-      address: order.hub.address || hubAddress.address,
-      address2: order.hub.address2 || hubAddress.address2,
-      address3: order.hub.city ? `${order.hub.city} - ${order.hub.pincode}` : hubAddress.address3,
-      email: order.hub.email || hubAddress.email,
-      gst: order.hub.gstNumber || hubAddress.gst
-    };
+    try {
+      const hubId = typeof order.hub === 'string' ? order.hub : order.hub._id || order.hub;
+      const hubResponse = await fetch(`${API_URL}/api/hubs/${hubId}`);
+      const hubData = await hubResponse.json();
+      
+      if (hubData.success && hubData.data) {
+        const hub = hubData.data;
+        hubAddress = {
+          name: hub.name || 'Urban Steam',
+          address: hub.address || hubAddress.address,
+          address2: hub.address2 || hubAddress.address2,
+          address3: hub.city ? `${hub.city} - ${hub.pincode}` : hubAddress.address3,
+          email: hub.email || hubAddress.email,
+          gst: hub.gstNumber || hubAddress.gst
+        };
+      }
+    } catch (error) {
+      console.log('Could not fetch hub data, using default');
+    }
   }
   
   doc.setFillColor(255, 255, 255);
