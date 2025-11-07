@@ -1,10 +1,26 @@
 import jsPDF from 'jspdf';
-import acsLogo from '@/assets/ACS LOGO.png';
-import usLogo from '@/assets/LOGO MARK GRADIENT.png';
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+
+// Convert images to base64 for mobile compatibility
+const loadImageAsBase64 = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+};
 
 export const generateInvoicePDF = async (order: any) => {
   if (!order) return;
@@ -23,36 +39,35 @@ export const generateInvoicePDF = async (order: any) => {
     gst: '29ACLFAA519M1ZW'
   };
   
-  try {
-    const response = await fetch(`${API_URL}/api/check-serviceable?pincode=${order.pickupAddress?.pincode}`);
-    const data = await response.json();
-    if (data.serviceable && data.hub) {
-      hubAddress = {
-        name: data.hub.name || 'Urban Steam',
-        address: data.hub.address || hubAddress.address,
-        address2: data.hub.address2 || hubAddress.address2,
-        address3: data.hub.city ? `${data.hub.city} - ${data.hub.pincode}` : hubAddress.address3,
-        email: data.hub.email || hubAddress.email,
-        gst: data.hub.gstNumber || hubAddress.gst
-      };
-    }
-  } catch (error) {
-    console.log('Using default hub address');
+  // Get hub from order's hub field (where it was dropped)
+  if (order.hub) {
+    hubAddress = {
+      name: order.hub.name || 'Urban Steam',
+      address: order.hub.address || hubAddress.address,
+      address2: order.hub.address2 || hubAddress.address2,
+      address3: order.hub.city ? `${order.hub.city} - ${order.hub.pincode}` : hubAddress.address3,
+      email: order.hub.email || hubAddress.email,
+      gst: order.hub.gstNumber || hubAddress.gst
+    };
   }
   
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Add logos - skip on mobile to prevent crashes
-  if (!Capacitor.isNativePlatform()) {
-    try {
-      doc.addImage(acsLogo, 'PNG', 15, 12, 30, 12);
-      doc.addImage(usLogo, 'PNG', pageWidth - 45, 12, 30, 12);
-    } catch (imgError) {
-      console.log('Logo loading skipped:', imgError);
-    }
-  } else {
-    // Add text logos for mobile
+  // Add logos with base64 for mobile compatibility
+  try {
+    const acsLogoUrl = new URL('@/assets/ACS LOGO.png', import.meta.url).href;
+    const usLogoUrl = new URL('@/assets/LOGO MARK GRADIENT.png', import.meta.url).href;
+    
+    const [acsBase64, usBase64] = await Promise.all([
+      loadImageAsBase64(acsLogoUrl),
+      loadImageAsBase64(usLogoUrl)
+    ]);
+    
+    doc.addImage(acsBase64, 'PNG', 15, 12, 30, 12);
+    doc.addImage(usBase64, 'PNG', pageWidth - 45, 12, 30, 12);
+  } catch (imgError) {
+    console.log('Logo loading failed, using text:', imgError);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('ACS Group', 15, 20);

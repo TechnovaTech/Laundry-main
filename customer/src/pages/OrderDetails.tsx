@@ -279,6 +279,36 @@ const OrderDetails = () => {
           </p>
         </Card>
 
+        {order?.hub && (
+          <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #e0f2fe, #dbeafe)', borderColor: '#3b82f6' }}>
+            <div className="flex items-start gap-2">
+              <span className="text-2xl">🏢</span>
+              <div className="flex-1">
+                <p className="text-sm sm:text-base font-bold text-blue-800 mb-2">Processing Hub</p>
+                <p className="text-xs sm:text-sm text-blue-700 font-semibold">
+                  {order.hub.name || 'Urban Steam'}
+                </p>
+                <p className="text-xs sm:text-sm text-blue-600 mt-1">
+                  {order.hub.address || ''}{order.hub.address2 ? `, ${order.hub.address2}` : ''}
+                </p>
+                <p className="text-xs sm:text-sm text-blue-600">
+                  {order.hub.city || ''} - {order.hub.pincode || ''}
+                </p>
+                {order.hub.phone && (
+                  <p className="text-xs sm:text-sm text-blue-600 mt-1">
+                    📞 {order.hub.phone}
+                  </p>
+                )}
+                {order.hub.email && (
+                  <p className="text-xs sm:text-sm text-blue-600">
+                    ✉️ {order.hub.email}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
         <div className="flex gap-2 sm:gap-3">
           <Button variant="outline" className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm border-2 shadow-md" style={{ borderColor: '#452D9B', color: '#452D9B' }}>
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
