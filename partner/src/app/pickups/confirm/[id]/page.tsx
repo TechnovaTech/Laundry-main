@@ -55,11 +55,12 @@ export default function PickupConfirm() {
 
   const fetchOrder = async () => {
     try {
+      const resolvedParams = await params;
       const response = await fetch(`${API_URL}/api/orders`);
       const data = await response.json();
       
       if (data.success) {
-        const foundOrder = data.data.find((o: any) => o._id === params.id);
+        const foundOrder = data.data.find((o: any) => o._id === resolvedParams.id);
         setOrder(foundOrder);
       }
     } catch (error) {
@@ -77,7 +78,7 @@ export default function PickupConfirm() {
       {/* Header */}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
-          <Link href={`/pickups/start/${params.id}`} className="text-2xl leading-none text-black">←</Link>
+          <button onClick={() => router.back()} className="text-2xl leading-none text-black">←</button>
           <h2 className="text-lg font-semibold text-black">Confirm</h2>
           <span className="w-6" />
         </div>

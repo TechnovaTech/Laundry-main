@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 
 export default function DropToHub() {
+  const router = useRouter();
   const [hub, setHub] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
@@ -21,7 +23,7 @@ export default function DropToHub() {
     try {
       const partnerId = localStorage.getItem('partnerId');
       if (!partnerId) {
-        window.location.href = '/login';
+        router.push('/login');
         return;
       }
       
@@ -32,12 +34,12 @@ export default function DropToHub() {
         const kycStatus = data.data.kycStatus;
         
         if (kycStatus === 'rejected') {
-          window.location.href = '/profile/kyc';
+          router.push('/profile/kyc');
           return;
         }
         
         if (kycStatus === 'pending') {
-          window.location.href = '/profile/kyc-details';
+          router.push('/profile/kyc-details');
           return;
         }
         
@@ -211,7 +213,7 @@ export default function DropToHub() {
                 alert('Orders delivered to hub successfully');
               }
               
-              window.location.href = '/hub/delivered';
+              router.push('/hub/delivered');
             } catch (error) {
               console.error('Error dropping orders:', error);
               alert('Failed to drop orders. Check console for details.');

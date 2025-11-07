@@ -175,13 +175,9 @@ export default function Pickups() {
                   <span>📞</span>
                   Call
                 </a>
-                <Link
-                  href={`/pickups/start?id=${p._id}`}
-                  onClick={async (e) => {
-                    if (startingPickup) {
-                      e.preventDefault();
-                      return;
-                    }
+                <button
+                  onClick={async () => {
+                    if (startingPickup) return;
                     
                     setStartingPickup(p._id);
                     try {
@@ -191,7 +187,6 @@ export default function Pickups() {
                       const checkData = await checkRes.json();
                       
                       if (checkData.data?.partnerId && checkData.data.partnerId !== partnerId) {
-                        e.preventDefault();
                         alert('This order was just assigned to another partner');
                         fetchPickups();
                         setStartingPickup(null);
@@ -205,12 +200,14 @@ export default function Pickups() {
                       });
                       
                       if (!assignRes.ok) {
-                        e.preventDefault();
                         alert('Failed to assign order. Please try again.');
                         setStartingPickup(null);
+                        return;
                       }
+                      
+                      // Use router.push for proper SPA navigation
+                      router.push(`/pickups/start?id=${p._id}`);
                     } catch (error) {
-                      e.preventDefault();
                       console.error('Error starting pickup:', error);
                       alert('Network error. Please try again.');
                       setStartingPickup(null);
@@ -232,7 +229,7 @@ export default function Pickups() {
                   ) : (
                     'Start Pickup'
                   )}
-                </Link>
+                </button>
               </div>
             </div>
           ))

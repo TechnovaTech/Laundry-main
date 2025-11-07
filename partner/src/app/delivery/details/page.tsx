@@ -1,16 +1,15 @@
 'use client'
 
-import Link from "next/link";
-import Image from "next/image";
-import BottomNav from "@/components/BottomNav";
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
+import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 
-export default function DeliveryDetails() {
-  const params = useParams();
+function DeliveryDetailsContent() {
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const orderId = searchParams.get('id');
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showFailureModal, setShowFailureModal] = useState(false);
@@ -22,13 +21,12 @@ export default function DeliveryDetails() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   useEffect(() => {
-    fetchOrder();
-  }, []);
+    if (orderId) fetchOrder();
+  }, [orderId]);
 
   const fetchOrder = async () => {
     try {
-      const resolvedParams = await params;
-      const response = await fetch(`${API_URL}/api/orders/${resolvedParams.id}`);
+      const response = await fetch(`${API_URL}/api/orders/${orderId}`);
       const data = await response.json();
       
       if (data.success) {
@@ -47,10 +45,11 @@ export default function DeliveryDetails() {
   return (
     <div className="pb-24">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      
       {/* Header */}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
-          <Link href="/delivery/pick" className="text-2xl leading-none text-black">←</Link>
+          <button onClick={() => router.push('/delivery/pick')} className="text-2xl leading-none text-black">←</button>
           <h2 className="text-lg font-semibold text-black">Delivery Details</h2>
           <span style={{ color: '#452D9B' }}>🔔</span>
         </div>
@@ -72,27 +71,6 @@ export default function DeliveryDetails() {
           </div>
         </div>
         <p className="mt-2 text-sm text-black">📍 {order.deliveryAddress?.street || order.pickupAddress?.street}, {order.deliveryAddress?.city || order.pickupAddress?.city}</p>
-        <a 
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.deliveryAddress?.street || order.pickupAddress?.street}, ${order.deliveryAddress?.city || order.pickupAddress?.city}`)}`} 
-          target="_blank" 
-          className="mt-2 text-sm"
-          style={{ color: '#452D9B' }}
-        >
-          Open in Maps
-        </a>
-      </div>
-
-      {/* Map banner */}
-      <div className="mt-3 mx-4 relative rounded-xl overflow-hidden border border-gray-200 h-48">
-        <iframe
-          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(`${order.deliveryAddress?.street || order.pickupAddress?.street}, ${order.deliveryAddress?.city || order.pickupAddress?.city}`)}&zoom=15`}
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
       </div>
 
       {/* Items card */}
@@ -112,36 +90,63 @@ export default function DeliveryDetails() {
       {/* CTA */}
       <div className="mx-4 mb-6">
         {order.status === 'process_completed' ? (
-          <button
-            onClick={async () => {
-              const partnerId = localStorage.getItem('partnerId');
-              const updateData: any = {
-                status: 'out_for_delivery',
-                partnerId: partnerId
-              };
-              
-              if (order.redeliveryScheduled) {
-                updateData.outForRedeliveryAt = new Date().toISOString();
-              } else {
-                updateData.outForDeliveryAt = new Date().toISOString();
-              }
-              
-              const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updateData)
-              });
-              if (response.ok) {
-                fetchOrder();
-              } else {
-                setToast({ message: 'Failed to start delivery', type: 'error' });
-              }
-            }}
-            className="mt-5 w-full inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"
-            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
-          >
-            {order.redeliveryScheduled ? 'Start Redelivery' : 'Start Delivery'}
-          </button>
+          <div className="mt-5 flex gap-3">
+            <button
+              onClick={async () => {
+                const partnerId = localStorage.getItem('partnerId');
+                const updateData: any = {
+                  status: 'out_for_delivery',
+                  partnerId: partnerId
+                };
+                
+                if (order.redeliveryScheduled) {
+                  updateData.outForRedeliveryAt = new Date().toISOString();
+                } else {
+                  updateData.outForDeliveryAt = new Date().toISOString();
+                }
+                
+                const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(updateData)
+                });
+                if (response.ok) {
+                  fetchOrder();
+                } else {
+                  setToast({ message: 'Failed to start delivery', type: 'error' });
+                }
+              }}
+              className="flex-1 inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"
+              style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+            >
+              {order.redeliveryScheduled ? 'Start Redelivery' : 'Start Delivery'}
+            </button>
+            <button
+              onClick={async () => {
+                if (confirm('Are you sure you want to cancel this delivery? The order will be available for other partners.')) {
+                  const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                      status: 'process_completed',
+                      partnerId: null,
+                      outForDeliveryAt: null
+                    })
+                  });
+                  if (response.ok) {
+                    setToast({ message: 'Delivery cancelled successfully', type: 'success' });
+                    setTimeout(() => router.push('/delivery/pick'), 1500);
+                  } else {
+                    setToast({ message: 'Failed to cancel delivery', type: 'error' });
+                  }
+                }
+              }}
+              className="flex-1 inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold border-2"
+              style={{ borderColor: '#dc2626', color: '#dc2626', backgroundColor: 'white' }}
+            >
+              Cancel Delivery
+            </button>
+          </div>
         ) : order.status === 'out_for_delivery' ? (
           <div className="mt-5 flex gap-3">
             <button
@@ -182,13 +187,12 @@ export default function DeliveryDetails() {
 
       <BottomNav />
 
-      {/* Failure Reason Modal */}
+      {/* Failure Modal */}
       {showFailureModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(255, 255, 255, 0.3)' }}>
           <div className="bg-white rounded-xl w-full max-w-md">
             <div className="p-4 border-b">
               <h3 className="text-lg font-bold text-black">Delivery Failure Reason</h3>
-              <p className="text-sm text-gray-600 mt-1">Select reason(s) for failed delivery</p>
             </div>
             <div className="p-4 space-y-3">
               <label className="flex items-start gap-3 cursor-pointer">
@@ -200,7 +204,6 @@ export default function DeliveryDetails() {
                 />
                 <div>
                   <p className="font-semibold text-black">Customer Unavailable</p>
-                  <p className="text-sm text-gray-600">Customer not present at delivery location</p>
                 </div>
               </label>
               <label className="flex items-start gap-3 cursor-pointer">
@@ -212,7 +215,6 @@ export default function DeliveryDetails() {
                 />
                 <div>
                   <p className="font-semibold text-black">Incorrect Address</p>
-                  <p className="text-sm text-gray-600">Address details are wrong or incomplete</p>
                 </div>
               </label>
               <label className="flex items-start gap-3 cursor-pointer">
@@ -224,21 +226,12 @@ export default function DeliveryDetails() {
                 />
                 <div>
                   <p className="font-semibold text-black">Refusal to Accept</p>
-                  <p className="text-sm text-gray-600">Customer refused to accept the order</p>
                 </div>
               </label>
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-gray-700">
-                  <strong>Note:</strong> Customer will be charged ₹100-₹250 delivery fee for failed delivery attempts.
-                </p>
-              </div>
             </div>
             <div className="p-4 border-t flex gap-3">
               <button
-                onClick={() => {
-                  setShowFailureModal(false);
-                  setFailureReasons({ customerUnavailable: false, incorrectAddress: false, refusalToAccept: false });
-                }}
+                onClick={() => setShowFailureModal(false)}
                 className="flex-1 py-2.5 rounded-lg border-2 border-gray-300 font-semibold text-gray-700"
               >
                 Cancel
@@ -246,52 +239,28 @@ export default function DeliveryDetails() {
               <button
                 onClick={async () => {
                   const selectedReasons = [];
-                  const fees = [];
-                  
-                  // Fetch charge settings
-                  const chargesRes = await fetch(`${API_URL}/api/order-charges`);
-                  const chargesData = await chargesRes.json();
-                  const charges = chargesData.data;
-                  
-                  if (failureReasons.customerUnavailable) {
-                    selectedReasons.push('/Customer Unavailable');
-                    fees.push(charges.customerUnavailable);
-                  }
-                  if (failureReasons.incorrectAddress) {
-                    selectedReasons.push('/Incorrect Address');
-                    fees.push(charges.incorrectAddress);
-                  }
-                  if (failureReasons.refusalToAccept) {
-                    selectedReasons.push('/Refusal to Accept');
-                    fees.push(charges.refusalToAccept);
-                  }
+                  if (failureReasons.customerUnavailable) selectedReasons.push('Customer Unavailable');
+                  if (failureReasons.incorrectAddress) selectedReasons.push('Incorrect Address');
+                  if (failureReasons.refusalToAccept) selectedReasons.push('Refusal to Accept');
 
                   if (selectedReasons.length === 0) {
                     setToast({ message: 'Please select at least one reason', type: 'warning' });
                     return;
                   }
 
-                  const deliveryFee = Math.max(...fees); // Highest charge
-                  const failureReason = selectedReasons.join(', ');
-
                   const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                       status: 'delivery_failed',
-                      deliveryFailureReason: failureReason,
-                      deliveryFailureFee: deliveryFee,
-                      deliveryFailedAt: new Date().toISOString(),
-                      returnToHubRequested: false,
-                      returnToHubApproved: false,
-                      returnToHubRequestedAt: null,
-                      returnToHubApprovedAt: null
+                      deliveryFailureReason: selectedReasons.join(', '),
+                      deliveryFailedAt: new Date().toISOString()
                     })
                   });
 
                   if (response.ok) {
                     setShowFailureModal(false);
-                    setToast({ message: `Order marked as delivery failed. Customer will be charged ₹${deliveryFee}`, type: 'success' });
+                    setToast({ message: 'Order marked as delivery failed', type: 'success' });
                     setTimeout(() => router.push('/delivery/pick'), 2000);
                   } else {
                     setToast({ message: 'Failed to update order', type: 'error' });
@@ -307,5 +276,13 @@ export default function DeliveryDetails() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DeliveryDetails() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <DeliveryDetailsContent />
+    </Suspense>
   );
 }

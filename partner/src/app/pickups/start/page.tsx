@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import { API_URL } from '@/config/api';
 
@@ -27,6 +27,7 @@ interface Order {
 
 function StartPickupContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const orderId = searchParams.get('id');
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -131,9 +132,8 @@ function StartPickupContent() {
       </div>
 
       <div className="mx-4">
-        <Link
-          href={`/pickups/confirm?id=${order._id}`}
-          onClick={async (e) => {
+        <button
+          onClick={async () => {
             const partnerId = localStorage.getItem('partnerId');
             const updateData = { 
               status: 'reached_location',
@@ -145,8 +145,9 @@ function StartPickupContent() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(updateData)
             });
-            if (!response.ok) {
-              e.preventDefault();
+            if (response.ok) {
+              router.push(`/pickups/confirm?id=${order._id}`);
+            } else {
               setToast({ message: 'Failed to update order', type: 'error' });
             }
           }}
@@ -154,11 +155,10 @@ function StartPickupContent() {
           style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
         >
           Reached Location
-        </Link>
+        </button>
         
-        <Link
-          href="/pickups"
-          onClick={async (e) => {
+        <button
+          onClick={async () => {
             if (confirm('Are you sure you want to stop this pickup? The order will be unassigned and available for other partners.')) {
               const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                 method: 'PATCH',
@@ -167,19 +167,17 @@ function StartPickupContent() {
               });
               if (response.ok) {
                 setToast({ message: 'Pickup stopped. Order unassigned.', type: 'success' });
+                setTimeout(() => router.push('/pickups'), 1000);
               } else {
-                e.preventDefault();
                 setToast({ message: 'Failed to stop pickup', type: 'error' });
               }
-            } else {
-              e.preventDefault();
             }
           }}
           className="mt-3 w-full inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold border-2"
           style={{ borderColor: '#dc2626', color: '#dc2626', backgroundColor: 'white' }}
         >
           Stop Pickup
-        </Link>
+        </button>
       </div>
     </div>
   );

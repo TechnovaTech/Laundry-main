@@ -1,10 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
 
 export default function PickForDelivery() {
+  const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ export default function PickForDelivery() {
     try {
       const partnerId = localStorage.getItem('partnerId');
       if (!partnerId) {
-        window.location.href = '/login';
+        router.push('/login');
         return;
       }
       
@@ -30,12 +32,12 @@ export default function PickForDelivery() {
         const kycStatus = data.data.kycStatus;
         
         if (kycStatus === 'rejected') {
-          window.location.href = '/profile/kyc';
+          router.push('/profile/kyc');
           return;
         }
         
         if (kycStatus === 'pending') {
-          window.location.href = '/profile/kyc-details';
+          router.push('/profile/kyc-details');
           return;
         }
         
@@ -152,7 +154,7 @@ export default function PickForDelivery() {
           onClick={() => {
             if (selected.size > 0) {
               const firstOrderId = Array.from(selected)[0];
-              window.location.href = `/delivery/${firstOrderId}`;
+              router.push(`/delivery/details?id=${firstOrderId}`);
             } else {
               alert('Please select at least one order');
             }

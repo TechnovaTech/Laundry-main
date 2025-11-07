@@ -46,15 +46,16 @@ export default function StartPickup() {
 
   const fetchOrder = async () => {
     try {
+      const resolvedParams = await params;
       const response = await fetch(`${API_URL}/api/orders`);
       const data = await response.json();
       
       if (data.success) {
-        const foundOrder = data.data.find((o: any) => o._id === params.id);
+        const foundOrder = data.data.find((o: any) => o._id === resolvedParams.id);
         if (foundOrder) {
           setOrder(foundOrder);
         } else {
-          console.error('Order not found with ID:', params.id);
+          console.error('Order not found with ID:', resolvedParams.id);
         }
       }
     } catch (error) {
@@ -148,9 +149,8 @@ export default function StartPickup() {
 
       {/* CTA */}
       <div className="mx-4">
-        <Link
-          href={`/pickups/confirm?id=${order._id}`}
-          onClick={async (e) => {
+        <button
+          onClick={async () => {
             const partnerId = localStorage.getItem('partnerId');
             console.log('Partner ID from localStorage:', partnerId);
             const updateData = { 
@@ -166,8 +166,9 @@ export default function StartPickup() {
             });
             const result = await response.json();
             console.log('Update response:', result);
-            if (!response.ok) {
-              e.preventDefault();
+            if (response.ok) {
+              router.push(`/pickups/confirm?id=${order._id}`);
+            } else {
               setToast({ message: 'Failed to update order', type: 'error' });
             }
           }}
@@ -175,10 +176,9 @@ export default function StartPickup() {
           style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
         >
           Reached Location
-        </Link>
-        <Link
-          href="/pickups"
-          onClick={async (e) => {
+        </button>
+        <button
+          onClick={async () => {
             if (confirm('Are you sure you want to stop this pickup? The order will be unassigned and available for other partners.')) {
               const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
                 method: 'PATCH',
@@ -187,19 +187,17 @@ export default function StartPickup() {
               });
               if (response.ok) {
                 setToast({ message: 'Pickup stopped. Order unassigned.', type: 'success' });
+                setTimeout(() => router.push('/pickups'), 1000);
               } else {
-                e.preventDefault();
                 setToast({ message: 'Failed to stop pickup', type: 'error' });
               }
-            } else {
-              e.preventDefault();
             }
           }}
           className="mt-3 w-full inline-flex justify-center items-center rounded-xl py-3 text-base font-semibold border-2"
           style={{ borderColor: '#dc2626', color: '#dc2626', backgroundColor: 'white' }}
         >
           Stop Pickup
-        </Link>
+        </button>
       </div>
     </div>
   );
