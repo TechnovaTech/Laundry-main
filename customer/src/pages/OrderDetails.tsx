@@ -182,7 +182,7 @@ const OrderDetails = () => {
           })}
         </div>
 
-        {(order?.status === 'delivery_failed' || (order?.deliveryFailureFee && order.deliveryFailureFee > 0)) && (
+        {order?.status === 'delivery_failed' && (
           <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fee2e2, #fecaca)', borderColor: '#ef4444' }}>
             <div className="flex items-start gap-2">
               <span className="text-2xl">⚠️</span>
@@ -191,9 +191,9 @@ const OrderDetails = () => {
                 <p className="text-xs sm:text-sm text-red-600 font-medium">
                   <strong>Reason:</strong> {order.deliveryFailureReason || 'Not specified'}
                 </p>
-                {order.deliveryFailureFee && order.deliveryFailureFee > 0 && (
+                {order.deliveryFailureFee > 0 && (
                   <p className="text-xs sm:text-sm text-red-600 font-medium mt-1">
-                    <strong>Delivery Fee Charged:</strong> ₹{order.deliveryFailureFee}
+                    ₹{order.deliveryFailureFee} charges deducted from your wallet balance
                   </p>
                 )}
                 {order.redeliveryScheduled && (
@@ -206,7 +206,7 @@ const OrderDetails = () => {
           </Card>
         )}
 
-        {(order?.status === 'cancelled' || (order?.cancellationFee && order.cancellationFee > 0)) && (
+        {order?.status === 'cancelled' && (
           <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fee2e2, #fecaca)', borderColor: '#ef4444' }}>
             <div className="flex items-start gap-2">
               <span className="text-2xl">❌</span>
@@ -217,9 +217,9 @@ const OrderDetails = () => {
                     <strong>Reason:</strong> {order.cancellationReason}
                   </p>
                 )}
-                {order.cancellationFee && order.cancellationFee > 0 && (
+                {order.cancellationFee > 0 && (
                   <p className="text-xs sm:text-sm text-red-600 font-medium mt-1">
-                    <strong>Cancellation Fee Charged:</strong> ₹{order.cancellationFee}
+                    ₹{order.cancellationFee} charges deducted from your wallet balance
                   </p>
                 )}
               </div>

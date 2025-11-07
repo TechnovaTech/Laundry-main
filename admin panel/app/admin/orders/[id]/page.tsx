@@ -525,8 +525,8 @@ export default function OrderDetails() {
             </div>
           </div>
 
-          {/* Hub Delivery Approval */}
-          {order?.status === 'delivered_to_hub' && (
+          {/* Hub Delivery Approval - HIDDEN */}
+          {/* {order?.status === 'delivered_to_hub' && (
             <div style={{
               backgroundColor: 'white',
               borderRadius: '12px',
@@ -590,10 +590,10 @@ export default function OrderDetails() {
                 </button>
               </div>
             </div>
-          )}
+          )} */}
 
-          {/* Ready to Process */}
-          {order?.status === 'ready' && (
+          {/* Ready to Process - HIDDEN */}
+          {/* {order?.status === 'ready' && (
             <div style={{
               backgroundColor: 'white',
               borderRadius: '12px',
@@ -627,7 +627,7 @@ export default function OrderDetails() {
                 Start Processing
               </button>
             </div>
-          )}
+          )} */}
 
           {/* Delivery Failure */}
           {order?.status === 'delivery_failed' && (
