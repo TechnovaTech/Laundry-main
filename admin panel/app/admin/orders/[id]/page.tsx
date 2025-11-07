@@ -1015,17 +1015,34 @@ export default function OrderDetails() {
                   <button
                     onClick={async () => {
                       try {
-                        const updateRes = await fetch(`/api/customers/${order.customerId._id}/adjust`, {
+                        // Update wallet balance
+                        const walletRes = await fetch(`/api/customers/${order.customerId._id}/adjust`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
-                            walletBalance: refundCalculation.newWallet,
-                            dueAmount: refundCalculation.newDue,
+                            type: 'balance',
+                            action: 'increase',
+                            amount: refundCalculation.refundAmount,
                             reason: `Refund for order #${order.orderId}`,
-                            action: 'refund'
+                            adjustedBy: 'Admin'
                           })
                         });
                         
+                        if (!walletRes.ok) {
+                          const errorData = await walletRes.json();
+                          throw new Error(errorData.error || 'Failed to update wallet');
+                        }
+                        
+                        // Update customer due amount directly
+                        await fetch(`/api/customers/${order.customerId._id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                            dueAmount: refundCalculation.newDue
+                          })
+                        });
+                        
+                        // Mark order as refunded
                         await fetch(`/api/orders/${order._id}`, {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json' },
@@ -1036,12 +1053,11 @@ export default function OrderDetails() {
                           })
                         });
                         
-                        if (updateRes.ok) {
-                          alert(`Refund successful! ₹${refundCalculation.refundAmount} credited to wallet.`);
-                          window.location.reload();
-                        }
-                      } catch (error) {
-                        alert('Refund failed. Please try again.');
+                        alert(`Refund successful! ₹${refundCalculation.refundAmount} credited to wallet.`);
+                        window.location.reload();
+                      } catch (error: any) {
+                        console.error('Refund error:', error);
+                        alert(`Refund failed: ${error.message || 'Please try again.'}`);
                       }
                     }}
                     style={{
