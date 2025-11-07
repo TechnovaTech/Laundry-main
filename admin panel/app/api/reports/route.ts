@@ -20,8 +20,22 @@ export async function GET() {
     // Active Partners
     const activePartners = await Partner.countDocuments()
     
-    // Average Delivery Time (mock for now)
-    const avgDeliveryTime = '38 mins'
+    // Average Delivery Time - calculate from delivered orders
+    const deliveredOrders = await Order.find({ 
+      status: 'delivered',
+      deliveredAt: { $exists: true },
+      createdAt: { $exists: true }
+    }).select('createdAt deliveredAt')
+    
+    let avgDeliveryTime = '0 mins'
+    if (deliveredOrders.length > 0) {
+      const totalMinutes = deliveredOrders.reduce((sum, order) => {
+        const diff = new Date(order.deliveredAt).getTime() - new Date(order.createdAt).getTime()
+        return sum + (diff / (1000 * 60)) // Convert to minutes
+      }, 0)
+      const avgMinutes = Math.round(totalMinutes / deliveredOrders.length)
+      avgDeliveryTime = `${avgMinutes} mins`
+    }
     
     // Orders Trend (last 7 days)
     const ordersTrend = await Order.aggregate([
@@ -68,11 +82,23 @@ export async function GET() {
       { $limit: 5 }
     ])
     
-    // Customer Loyalty Points (mock data)
+    // Customer Loyalty Points - real data from customers
+    const customers = await Customer.find().select('loyaltyPoints')
+    const totalPoints = customers.reduce((sum, c) => sum + (c.loyaltyPoints || 0), 0)
+    
+    // Calculate redeemed points from wallet transactions
+    const WalletTransaction = (await import('@/models/WalletTransaction')).default
+    const redemptions = await WalletTransaction.aggregate([
+      { $match: { type: 'points', action: 'decrease' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ])
+    const redeemedPoints = redemptions[0]?.total || 0
+    const redemptionRate = totalPoints > 0 ? Math.round((redeemedPoints / (totalPoints + redeemedPoints)) * 100) : 0
+    
     const loyaltyData = {
-      totalPoints: 50000,
-      redeemedPoints: 32500,
-      redemptionRate: 65
+      totalPoints,
+      redeemedPoints,
+      redemptionRate
     }
     
     return NextResponse.json({

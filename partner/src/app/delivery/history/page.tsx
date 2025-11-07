@@ -135,6 +135,7 @@ export default function DeliveryHistory() {
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
           className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm outline-none"
+          style={{ color: '#000' }}
           onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
           onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none'; }}
           placeholder="Search by Order ID or Customer"

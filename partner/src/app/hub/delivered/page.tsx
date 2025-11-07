@@ -7,6 +7,8 @@ import { API_URL } from '@/config/api';
 
 export default function DeliveredToHub() {
   const [delivered, setDelivered] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,12 +28,26 @@ export default function DeliveredToHub() {
           return isMyOrder && hasDeliveredToHub;
         });
         setDelivered(filteredOrders);
+        setFilteredOrders(filteredOrders);
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setFilteredOrders(delivered);
+      return;
+    }
+    const filtered = delivered.filter((order: any) => 
+      order.orderId?.toLowerCase().includes(query.toLowerCase()) ||
+      order.customerId?.name?.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredOrders(filtered);
   };
 
   return (
@@ -49,7 +65,10 @@ export default function DeliveredToHub() {
       <div className="px-4 pt-3">
         <div className="flex items-center gap-2">
           <input
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
             className="flex-1 rounded-xl border border-gray-300 px-3 py-3 text-sm outline-none"
+            style={{ color: '#000' }}
             onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
             onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none'; }}
             placeholder="Search by Order ID / Customer"
@@ -61,9 +80,9 @@ export default function DeliveredToHub() {
       {/* Delivered cards */}
       {loading ? (
         <div className="mt-4 px-4 text-center text-gray-500">Loading...</div>
-      ) : delivered.length > 0 ? (
+      ) : filteredOrders.length > 0 ? (
         <div className="mt-4 px-4 flex flex-col gap-4">
-          {delivered.map((order: any) => (
+          {filteredOrders.map((order: any) => (
             <div key={order._id} className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">

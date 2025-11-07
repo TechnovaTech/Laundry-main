@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       // Fetch orders
-      const ordersRes = await fetch('http://localhost:3000/api/orders')
+      const ordersRes = await fetch('/api/orders')
       const ordersData = await ordersRes.json()
       
       if (ordersData.success) {
