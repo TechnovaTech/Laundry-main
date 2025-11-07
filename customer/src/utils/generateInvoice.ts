@@ -94,17 +94,11 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Add logos using embedded base64 - works on both web and mobile
-  try {
-    doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 12, 30, 12);
-    doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 45, 12, 30, 12);
-  } catch (imgError) {
-    console.log('Logo rendering failed, using text:', imgError);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('ACS Group', 15, 20);
-    doc.text('Urban Steam', pageWidth - 45, 20);
-  }
+  // Use text headers instead of images to prevent crashes
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('ACS Group', 15, 20);
+  doc.text('Urban Steam', pageWidth - 45, 20);
   doc.setTextColor(0, 0, 0);
   
   // Invoice header section
