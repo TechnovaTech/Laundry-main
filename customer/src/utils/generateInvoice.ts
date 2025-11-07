@@ -162,6 +162,22 @@ export const generateInvoicePDF = async (order: any) => {
     yPos += 12;
   }
   
+  // Add delivery failure fee if exists
+  if (order.deliveryFailureFee && order.deliveryFailureFee > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(220, 38, 38);
+    doc.text('Delivery Failure Fee Applied', 17, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(8);
+    doc.text(order.deliveryFailureReason || 'Delivery failure charge', 17, yPos + 4);
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.text(`Rs${order.deliveryFailureFee.toFixed(2)}`, 180, yPos);
+    subtotal += order.deliveryFailureFee;
+    yPos += 12;
+  }
+  
   yPos += 15;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');

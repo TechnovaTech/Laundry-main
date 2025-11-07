@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
+import Modal from '../../components/Modal'
 
 export default function AddOnPage() {
   const [activeSection, setActiveSection] = useState(() => {
@@ -62,6 +63,7 @@ export default function AddOnPage() {
     incorrectAddress: 150,
     refusalToAccept: 150
   })
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' })
 
   useEffect(() => {
     fetchStates()
@@ -126,7 +128,7 @@ export default function AddOnPage() {
       }
     } catch (error) {
       console.error('Error adding hero item:', error)
-      alert('Failed to upload. Please try again.')
+      setModal({ isOpen: true, title: 'Upload Failed', message: 'Failed to upload. Please try again.', type: 'error' })
     } finally {
       setUploading(false)
     }
@@ -1497,6 +1499,14 @@ export default function AddOnPage() {
             }}>×</button>
           </div>
         )}
+
+        <Modal
+          isOpen={modal.isOpen}
+          onClose={() => setModal({ ...modal, isOpen: false })}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+        />
       </div>
     </ResponsiveLayout>
   )

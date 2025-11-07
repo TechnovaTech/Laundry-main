@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
+import Modal from '../../components/Modal'
 
 interface PricingItem {
   _id: string;
@@ -24,7 +25,8 @@ export default function PricingPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [formData, setFormData] = useState({ name: '', price: '', category: '' });
+  const [formData, setFormData] = useState({ name: '', price: '', category: '' })
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' });
   
   useEffect(() => {
     fetchCategories();
@@ -73,12 +75,13 @@ export default function PricingPage() {
         setFormData({ name: '', price: '', category: categories[0]?.name || '' });
         setShowAddForm(false);
         fetchItems();
+        setModal({ isOpen: true, title: 'Success', message: 'Item added successfully!', type: 'success' });
       } else {
-        alert('Error: ' + (data.error || 'Failed to add item'));
+        setModal({ isOpen: true, title: 'Error', message: data.error || 'Failed to add item', type: 'error' });
       }
     } catch (error) {
       console.error('Failed to add item:', error);
-      alert('Failed to add item');
+      setModal({ isOpen: true, title: 'Error', message: 'Failed to add item', type: 'error' });
     }
   };
 
@@ -388,6 +391,14 @@ export default function PricingPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>{items.length} items</div>
           </div>
+
+          <Modal
+            isOpen={modal.isOpen}
+            onClose={() => setModal({ ...modal, isOpen: false })}
+            title={modal.title}
+            message={modal.message}
+            type={modal.type}
+          />
       </div>
     </ResponsiveLayout>
   )

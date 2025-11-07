@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
+import Modal from '../../components/Modal'
 
 interface Partner {
   _id: string
@@ -24,6 +25,7 @@ export default function PartnerKYCPage() {
   const [rejectPartnerId, setRejectPartnerId] = useState('')
   const [toast, setToast] = useState({ show: false, message: '', type: '' })
   const [selectedPartners, setSelectedPartners] = useState<string[]>([])
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
 
   useEffect(() => {
     fetchPartners()
@@ -90,28 +92,35 @@ export default function PartnerKYCPage() {
 
   const handleDelete = async () => {
     if (selectedPartners.length === 0) return
-    if (!confirm(`Delete ${selectedPartners.length} partner(s) from database?`)) return
     
-    try {
-      const response = await fetch('/api/mobile/partners/kyc/bulk-delete', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selectedPartners })
-      })
-      if (response.ok) {
-        setToast({ show: true, message: `${selectedPartners.length} partner(s) deleted successfully!`, type: 'success' })
-        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
-        setSelectedPartners([])
-        fetchPartners()
-      } else {
-        setToast({ show: true, message: 'Failed to delete partners', type: 'error' })
-        setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
+    setModal({
+      isOpen: true,
+      title: 'Delete Partners',
+      message: `Delete ${selectedPartners.length} partner(s) from database? This action cannot be undone.`,
+      type: 'confirm',
+      onConfirm: async () => {
+        try {
+          const response = await fetch('/api/mobile/partners/kyc/bulk-delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: selectedPartners })
+          })
+          if (response.ok) {
+            setToast({ show: true, message: `${selectedPartners.length} partner(s) deleted successfully!`, type: 'success' })
+            setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
+            setSelectedPartners([])
+            fetchPartners()
+          } else {
+            setToast({ show: true, message: 'Failed to delete partners', type: 'error' })
+            setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
+          }
+        } catch (error) {
+          console.error('Failed to delete:', error)
+          setToast({ show: true, message: 'Failed to delete partners', type: 'error' })
+          setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
+        }
       }
-    } catch (error) {
-      console.error('Failed to delete:', error)
-      setToast({ show: true, message: 'Failed to delete partners', type: 'error' })
-      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000)
-    }
+    })
   }
 
   const toggleSelect = (id: string) => {
@@ -356,6 +365,16 @@ export default function PartnerKYCPage() {
             }}>×</button>
           </div>
         )}
+
+        <Modal
+          isOpen={modal.isOpen}
+          onClose={() => setModal({ ...modal, isOpen: false })}
+          onConfirm={modal.type === 'confirm' ? modal.onConfirm : undefined}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          confirmText={modal.type === 'confirm' ? 'Yes, Delete' : 'OK'}
+        />
       </div>
     </ResponsiveLayout>
   )

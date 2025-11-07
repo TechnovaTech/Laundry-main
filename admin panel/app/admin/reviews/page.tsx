@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
+import Modal from '../../components/Modal'
 
 interface Review {
   _id: string
@@ -16,6 +17,7 @@ interface Review {
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
 
 
   useEffect(() => {
@@ -41,17 +43,23 @@ export default function ReviewsPage() {
     }
   }
 
-  const deleteReview = async (reviewId: string) => {
-    if (!confirm('Are you sure you want to delete this review?')) return
-    
-    try {
-      await fetch(`/api/reviews/${reviewId}`, {
-        method: 'DELETE'
-      })
-      fetchReviews()
-    } catch (error) {
-      console.error('Error deleting review:', error)
-    }
+  const deleteReview = (reviewId: string) => {
+    setModal({
+      isOpen: true,
+      title: 'Delete Review',
+      message: 'Are you sure you want to delete this review? This action cannot be undone.',
+      type: 'confirm',
+      onConfirm: async () => {
+        try {
+          await fetch(`/api/reviews/${reviewId}`, {
+            method: 'DELETE'
+          })
+          fetchReviews()
+        } catch (error) {
+          console.error('Error deleting review:', error)
+        }
+      }
+    })
   }
 
   const renderStars = (rating: number) => {
@@ -148,6 +156,16 @@ export default function ReviewsPage() {
             </div>
           ))}
         </div>
+
+        <Modal
+          isOpen={modal.isOpen}
+          onClose={() => setModal({ ...modal, isOpen: false })}
+          onConfirm={modal.type === 'confirm' ? modal.onConfirm : undefined}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          confirmText={modal.type === 'confirm' ? 'Yes, Delete' : 'OK'}
+        />
       </div>
     </ResponsiveLayout>
   )

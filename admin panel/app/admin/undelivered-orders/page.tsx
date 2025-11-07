@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
+import Modal from '../../components/Modal'
 
 export default function UndeliveredOrdersPage() {
   const router = useRouter()
@@ -19,6 +20,7 @@ export default function UndeliveredOrdersPage() {
   const [showSuspendedModal, setShowSuspendedModal] = useState(false)
   const [pendingOrders, setPendingOrders] = useState<any[]>([])
   const [suspendedOrders, setSuspendedOrders] = useState<any[]>([])
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
 
   useEffect(() => {
     fetchUndeliveredOrders()
@@ -273,40 +275,8 @@ export default function UndeliveredOrdersPage() {
                         DECLINE
                       </button>
                     </div>
-                  ) : dbOrder.returnToHubApproved === true && dbOrder.redeliveryReturnApproved !== true && dbOrder.status === 'delivered_to_hub' ? (
+                  ) : dbOrder.returnToHubApproved === true && dbOrder.status === 'delivered_to_hub' && !dbOrder.redeliveryReturnRequested ? (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <button
-                        onClick={async () => {
-                          if (confirm('Suspend this order due to multiple delivery failures?')) {
-                            const response = await fetch(`/api/orders/${dbOrder._id}`, {
-                              method: 'PATCH',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ 
-                                status: 'suspended',
-                                orderSuspended: true,
-                                suspensionReason: 'Multiple delivery failures',
-                                suspendedAt: new Date().toISOString()
-                              })
-                            });
-                            if (response.ok) {
-                              alert('Order suspended successfully');
-                              fetchUndeliveredOrders();
-                            }
-                          }
-                        }}
-                        style={{
-                          backgroundColor: '#f59e0b',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '6px',
-                          fontSize: '0.8rem',
-                          fontWeight: '500',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        SUSPEND
-                      </button>
                       <button
                         onClick={() => {
                           setSelectedOrder(dbOrder);
@@ -331,30 +301,47 @@ export default function UndeliveredOrdersPage() {
                         SETUP REDELIVERY
                       </button>
                     </div>
-                  ) : dbOrder.returnToHubApproved === true && dbOrder.redeliveryReturnApproved === true && dbOrder.status === 'delivered_to_hub' ? (
-                    <button
-                      onClick={() => {
-                        setSelectedOrder(dbOrder);
-                        setRedeliveryData({
-                          newAddress: dbOrder.deliveryAddress ? `${dbOrder.deliveryAddress.street}, ${dbOrder.deliveryAddress.city}` : '',
-                          newTimeSlot: '',
-                          redeliveryDate: ''
-                        });
-                        setShowRedeliveryModal(true);
-                      }}
-                      style={{
-                        backgroundColor: '#2563eb',
-                        color: 'white',
-                        border: 'none',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '6px',
-                        fontSize: '0.8rem',
-                        fontWeight: '500',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      SETUP REDELIVERY
-                    </button>
+                  ) : dbOrder.redeliveryReturnRequested === true && dbOrder.redeliveryReturnApproved === true && dbOrder.status === 'delivered_to_hub' ? (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => {
+                          setModal({
+                            isOpen: true,
+                            title: 'Suspend Order',
+                            message: 'Suspend this order due to multiple delivery failures?',
+                            type: 'confirm',
+                            onConfirm: async () => {
+                              const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                  status: 'suspended',
+                                  orderSuspended: true,
+                                  suspensionReason: 'Multiple delivery failures',
+                                  suspendedAt: new Date().toISOString()
+                                })
+                              });
+                              if (response.ok) {
+                                setModal({ isOpen: true, title: 'Success', message: 'Order suspended successfully', type: 'success', onConfirm: () => {} });
+                                fetchUndeliveredOrders();
+                              }
+                            }
+                          })
+                        }}
+                        style={{
+                          backgroundColor: '#f59e0b',
+                          color: 'white',
+                          border: 'none',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '6px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        SUSPEND
+                      </button>
+                    </div>
                   ) : (
                     <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>No Request</span>
                   )}
@@ -634,7 +621,7 @@ export default function UndeliveredOrdersPage() {
                     });
 
                     if (response.ok) {
-                      alert('Redelivery scheduled successfully!');
+                      setModal({ isOpen: true, title: 'Success', message: 'Redelivery scheduled successfully!', type: 'success', onConfirm: () => {} });
                       setShowRedeliveryModal(false);
                       setSelectedOrder(null);
                       fetchUndeliveredOrders();
@@ -658,6 +645,16 @@ export default function UndeliveredOrdersPage() {
             </div>
           </div>
         )}
+
+        <Modal
+          isOpen={modal.isOpen}
+          onClose={() => setModal({ ...modal, isOpen: false })}
+          onConfirm={modal.type === 'confirm' ? modal.onConfirm : undefined}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          confirmText={modal.type === 'confirm' ? 'Yes, Proceed' : 'OK'}
+        />
     </ResponsiveLayout>
   )
 }

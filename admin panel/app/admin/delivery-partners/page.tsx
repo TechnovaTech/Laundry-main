@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
+import Modal from '../../components/Modal'
 
 interface Partner {
   _id: string
@@ -30,6 +31,7 @@ export default function DeliveryPartnersPage() {
   const [selectedPartners, setSelectedPartners] = useState<string[]>([])
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' })
 
   useEffect(() => {
     fetchPartners()
@@ -524,18 +526,18 @@ export default function DeliveryPartnersPage() {
                           let message = `Successfully deleted ${successCount} partner${successCount > 1 ? 's' : ''}`
                           if (failedResults.length > 0) {
                             const errorMessages = failedResults.map(r => r.error).join(', ')
-                            message += `\n\nFailed to delete ${failedResults.length} partner${failedResults.length > 1 ? 's' : ''}: ${errorMessages}`
+                            message += `. Failed to delete ${failedResults.length} partner${failedResults.length > 1 ? 's' : ''}: ${errorMessages}`
                           }
-                          alert(message)
+                          setModal({ isOpen: true, title: 'Success', message, type: 'success' })
                           fetchPartners()
                           setSelectedPartners([])
                         } else {
                           const errorMessages = failedResults.map(r => r.error).join(', ')
-                          alert(`Failed to delete partners: ${errorMessages}`)
+                          setModal({ isOpen: true, title: 'Error', message: `Failed to delete partners: ${errorMessages}`, type: 'error' })
                         }
                       } catch (error) {
                         console.error('Failed to delete partners:', error)
-                        alert('Network error occurred while deleting partners')
+                        setModal({ isOpen: true, title: 'Error', message: 'Network error occurred while deleting partners', type: 'error' })
                       } finally {
                         setIsDeleting(false)
                         setShowDeleteModal(false)
@@ -557,6 +559,14 @@ export default function DeliveryPartnersPage() {
               </div>
             </div>
           )}
+
+          <Modal
+            isOpen={modal.isOpen}
+            onClose={() => setModal({ ...modal, isOpen: false })}
+            title={modal.title}
+            message={modal.message}
+            type={modal.type}
+          />
       </div>
     </ResponsiveLayout>
   )

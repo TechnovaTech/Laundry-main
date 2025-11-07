@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import Modal from '../../components/Modal'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' })
 
   const handleLogin = async () => {
     try {
@@ -20,10 +22,10 @@ export default function AdminLogin() {
         localStorage.setItem('adminUser', JSON.stringify(data.data));
         window.location.href = '/admin/dashboard';
       } else {
-        alert('Invalid email or password');
+        setModal({ isOpen: true, title: 'Login Failed', message: 'Invalid email or password', type: 'error' });
       }
     } catch (error) {
-      alert('Login failed');
+      setModal({ isOpen: true, title: 'Login Failed', message: 'An error occurred during login. Please try again.', type: 'error' });
     }
   };
 
@@ -306,6 +308,13 @@ export default function AdminLogin() {
           </button>
         </div>
       </div>
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+      />
     </div>
   )
 }

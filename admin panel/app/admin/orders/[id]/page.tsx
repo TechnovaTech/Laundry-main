@@ -11,6 +11,8 @@ export default function OrderDetails() {
   const [loading, setLoading] = useState(true)
   const [showRefundModal, setShowRefundModal] = useState(false)
   const [refundCalculation, setRefundCalculation] = useState<any>(null)
+  const [calculatingRefund, setCalculatingRefund] = useState(false)
+  const [processingRefund, setProcessingRefund] = useState(false)
 
   useEffect(() => {
     fetchOrderDetails()
@@ -45,19 +47,26 @@ export default function OrderDetails() {
             </div>
           ) : (
           <div>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+          
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
             {(order?.status === 'cancelled' || order?.status === 'delivery_failed') && !order?.refunded && (
               <button 
                 onClick={async () => {
                   try {
+                    setCalculatingRefund(true);
                     const customerRes = await fetch(`/api/customers/${order.customerId._id}`);
                     const customerData = await customerRes.json();
                     
                     if (customerData.success) {
                       const customer = customerData.data;
                       const orderAmount = order.totalAmount || 0;
-                      const chargeAmount = order.cancellationFee || order.deliveryFailureFee || 0;
+                      const totalCharges = (order.cancellationFee || 0) + (order.deliveryFailureFee || 0);
                       const currentDue = customer.dueAmount || 0;
                       const currentWallet = customer.walletBalance || 0;
                       
@@ -65,10 +74,14 @@ export default function OrderDetails() {
                       let newDue = currentDue;
                       let dueCleared = 0;
                       
-                      if (currentDue > 0) {
-                        dueCleared = Math.min(currentDue, chargeAmount);
-                        newDue = currentDue - dueCleared;
-                        refundAmount = orderAmount - (chargeAmount - dueCleared);
+                      if (totalCharges > 0) {
+                        if (currentDue > 0) {
+                          dueCleared = Math.min(currentDue, totalCharges);
+                          newDue = currentDue - dueCleared;
+                          refundAmount = orderAmount - (totalCharges - dueCleared);
+                        } else {
+                          refundAmount = orderAmount - totalCharges;
+                        }
                       }
                       
                       const newWallet = currentWallet + refundAmount;
@@ -76,7 +89,7 @@ export default function OrderDetails() {
                       setRefundCalculation({
                         customer,
                         orderAmount,
-                        chargeAmount,
+                        chargeAmount: totalCharges,
                         currentDue,
                         currentWallet,
                         dueCleared,
@@ -88,20 +101,43 @@ export default function OrderDetails() {
                     }
                   } catch (error) {
                     alert('Failed to calculate refund. Please try again.');
+                  } finally {
+                    setCalculatingRefund(false);
                   }
                 }}
                 style={{
-                  backgroundColor: '#10b981',
+                  backgroundColor: calculatingRefund ? '#9ca3af' : '#10b981',
                   color: 'white',
                   border: 'none',
                   padding: '0.75rem 1.5rem',
                   borderRadius: '8px',
                   fontSize: '0.9rem',
                   fontWeight: '500',
-                  cursor: 'pointer'
+                  cursor: calculatingRefund ? 'not-allowed' : 'pointer',
+                  opacity: calculatingRefund ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
                 }}
+                disabled={calculatingRefund}
               >
-                💰 Confirm Refund
+                {calculatingRefund ? (
+                  <>
+                    <span style={{ 
+                      display: 'inline-block', 
+                      width: '16px', 
+                      height: '16px', 
+                      border: '2px solid white', 
+                      borderTopColor: 'transparent', 
+                      borderRadius: '50%', 
+                      animation: 'spin 0.6s linear infinite' 
+                    }} />
+                    Calculating...
+                  </>
+                ) : (
+                  '💰 Confirm Refund'
+                )}
               </button>
             )}
             {order?.refunded && (
@@ -263,6 +299,18 @@ export default function OrderDetails() {
                 <span>₹{item.price * item.quantity}</span>
               </div>
             )) || <div>No items found</div>}
+            {order?.deliveryFailureFee && order.deliveryFailureFee > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', color: '#dc2626', fontWeight: '500' }}>
+                <span>Delivery Failure Fee</span>
+                <span>₹{order.deliveryFailureFee}</span>
+              </div>
+            )}
+            {order?.cancellationFee && order.cancellationFee > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', color: '#dc2626', fontWeight: '500' }}>
+                <span>Cancellation Fee</span>
+                <span>₹{order.cancellationFee}</span>
+              </div>
+            )}
             <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '1rem 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600', color: '#2563eb' }}>
               <span>Total: ₹{order?.totalAmount || 0}</span>
@@ -834,6 +882,21 @@ export default function OrderDetails() {
                   yPos += 12;
                 }
                 
+                if (order.deliveryFailureFee && order.deliveryFailureFee > 0) {
+                  doc.setFont('helvetica', 'bold');
+                  doc.setTextColor(220, 38, 38);
+                  doc.text('Delivery Failure Fee Applied', 17, yPos);
+                  doc.setFont('helvetica', 'normal');
+                  doc.setTextColor(100, 100, 100);
+                  doc.setFontSize(8);
+                  doc.text(order.deliveryFailureReason || 'Delivery failure charge', 17, yPos + 4);
+                  doc.setTextColor(0, 0, 0);
+                  doc.setFontSize(9);
+                  doc.text(`Rs${order.deliveryFailureFee.toFixed(2)}`, 180, yPos);
+                  subtotal += order.deliveryFailureFee;
+                  yPos += 12;
+                }
+                
                 yPos += 15;
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'normal');
@@ -947,8 +1010,20 @@ export default function OrderDetails() {
                   <div style={{ backgroundColor: '#fef2f2', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #fecaca' }}>
                     <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: '#dc2626' }}>Charges Applied</h3>
                     <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.8' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>{order.status === 'cancelled' ? 'Cancellation Fee' : 'Delivery Failure Fee'}:</span>
+                      {order.cancellationFee > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Cancellation Fee:</span>
+                          <strong style={{ color: '#dc2626' }}>₹{order.cancellationFee}</strong>
+                        </div>
+                      )}
+                      {order.deliveryFailureFee > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Delivery Failure Fee:</span>
+                          <strong style={{ color: '#dc2626' }}>₹{order.deliveryFailureFee}</strong>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #fecaca', fontWeight: '600' }}>
+                        <span>Total Charges:</span>
                         <strong style={{ color: '#dc2626' }}>₹{refundCalculation.chargeAmount}</strong>
                       </div>
                     </div>
@@ -1015,6 +1090,7 @@ export default function OrderDetails() {
                   <button
                     onClick={async () => {
                       try {
+                        setProcessingRefund(true);
                         // Update wallet balance
                         const walletRes = await fetch(`/api/customers/${order.customerId._id}/adjust`, {
                           method: 'POST',
@@ -1058,6 +1134,8 @@ export default function OrderDetails() {
                       } catch (error: any) {
                         console.error('Refund error:', error);
                         alert(`Refund failed: ${error.message || 'Please try again.'}`);
+                      } finally {
+                        setProcessingRefund(false);
                       }
                     }}
                     style={{
@@ -1067,12 +1145,33 @@ export default function OrderDetails() {
                       borderRadius: '8px',
                       fontSize: '0.9rem',
                       fontWeight: '600',
-                      cursor: 'pointer',
-                      backgroundColor: '#10b981',
-                      color: 'white'
+                      cursor: processingRefund ? 'not-allowed' : 'pointer',
+                      backgroundColor: processingRefund ? '#9ca3af' : '#10b981',
+                      color: 'white',
+                      opacity: processingRefund ? 0.7 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem'
                     }}
+                    disabled={processingRefund}
                   >
-                    ✓ Confirm Refund
+                    {processingRefund ? (
+                      <>
+                        <span style={{ 
+                          display: 'inline-block', 
+                          width: '16px', 
+                          height: '16px', 
+                          border: '2px solid white', 
+                          borderTopColor: 'transparent', 
+                          borderRadius: '50%', 
+                          animation: 'spin 0.6s linear infinite' 
+                        }} />
+                        Processing...
+                      </>
+                    ) : (
+                      '✓ Confirm Refund'
+                    )}
                   </button>
                 </div>
               </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
+import Modal from '../../components/Modal'
 
 interface User {
   _id: string
@@ -27,6 +28,7 @@ export default function RoleManagement() {
   const [showOldPassword, setShowOldPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false)
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
   const [hubs, setHubs] = useState<Hub[]>([])
   const [formData, setFormData] = useState({
     username: '',
@@ -81,16 +83,16 @@ export default function RoleManagement() {
       })
       const data = await response.json()
       if (response.ok) {
-        alert('User added successfully!')
+        setModal({ isOpen: true, title: 'Success', message: 'User added successfully!', type: 'success', onConfirm: () => {} })
         setFormData({ username: '', role: 'Admin', email: '', password: '', confirmPassword: '', mobile: '', address: '', hub: '' })
         setShowAddUserForm(false)
         fetchUsers()
       } else {
-        alert('Failed to add user: ' + data.error)
+        setModal({ isOpen: true, title: 'Error', message: 'Failed to add user: ' + data.error, type: 'error', onConfirm: () => {} })
       }
     } catch (error) {
       console.error('Failed to add user:', error)
-      alert('Failed to add user')
+      setModal({ isOpen: true, title: 'Error', message: 'Failed to add user', type: 'error', onConfirm: () => {} })
     }
   }
 
@@ -100,11 +102,11 @@ export default function RoleManagement() {
       
       if (passwordEdit.newPassword) {
         if (!passwordEdit.oldPassword) {
-          alert('Please enter old password to change password')
+          setModal({ isOpen: true, title: 'Validation Error', message: 'Please enter old password to change password', type: 'error', onConfirm: () => {} })
           return
         }
         if (passwordEdit.newPassword !== passwordEdit.confirmPassword) {
-          alert('New passwords do not match')
+          setModal({ isOpen: true, title: 'Validation Error', message: 'New passwords do not match', type: 'error', onConfirm: () => {} })
           return
         }
         updateData.oldPassword = passwordEdit.oldPassword
@@ -118,7 +120,7 @@ export default function RoleManagement() {
       })
       const data = await response.json()
       if (response.ok) {
-        alert('User updated successfully!')
+        setModal({ isOpen: true, title: 'Success', message: 'User updated successfully!', type: 'success', onConfirm: () => {} })
         
         // Update localStorage if editing current user
         const currentUser = localStorage.getItem('adminUser')
@@ -138,28 +140,35 @@ export default function RoleManagement() {
         setPasswordEdit({ oldPassword: '', newPassword: '', confirmPassword: '' })
         fetchUsers()
       } else {
-        alert('Failed to update user: ' + data.error)
+        setModal({ isOpen: true, title: 'Error', message: 'Failed to update user: ' + data.error, type: 'error', onConfirm: () => {} })
       }
     } catch (error) {
       console.error('Failed to update user:', error)
-      alert('Failed to update user')
+      setModal({ isOpen: true, title: 'Error', message: 'Failed to update user', type: 'error', onConfirm: () => {} })
     }
   }
 
-  const handleDeleteUser = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return
-    try {
-      const response = await fetch(`/api/admin-users?id=${id}`, { method: 'DELETE' })
-      if (response.ok) {
-        alert('User deleted successfully!')
-        fetchUsers()
-      } else {
-        alert('Failed to delete user')
+  const handleDeleteUser = (id: string) => {
+    setModal({
+      isOpen: true,
+      title: 'Delete User',
+      message: 'Are you sure you want to delete this user? This action cannot be undone.',
+      type: 'confirm',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin-users?id=${id}`, { method: 'DELETE' })
+          if (response.ok) {
+            setModal({ isOpen: true, title: 'Success', message: 'User deleted successfully!', type: 'success', onConfirm: () => {} })
+            fetchUsers()
+          } else {
+            setModal({ isOpen: true, title: 'Error', message: 'Failed to delete user', type: 'error', onConfirm: () => {} })
+          }
+        } catch (error) {
+          console.error('Failed to delete user:', error)
+          setModal({ isOpen: true, title: 'Error', message: 'Failed to delete user', type: 'error', onConfirm: () => {} })
+        }
       }
-    } catch (error) {
-      console.error('Failed to delete user:', error)
-      alert('Failed to delete user')
-    }
+    })
   }
 
   return (
@@ -582,6 +591,16 @@ export default function RoleManagement() {
             </div>
           </div>
         )}
+
+        <Modal
+          isOpen={modal.isOpen}
+          onClose={() => setModal({ ...modal, isOpen: false })}
+          onConfirm={modal.type === 'confirm' ? modal.onConfirm : undefined}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          confirmText={modal.type === 'confirm' ? 'Yes, Delete' : 'OK'}
+        />
       </div>
     </ResponsiveLayout>
   )

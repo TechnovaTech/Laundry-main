@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
+import Modal from '../../components/Modal'
 
 export default function OrdersPage() {
   const router = useRouter()
@@ -14,6 +15,7 @@ export default function OrdersPage() {
   const [partnerFilter, setPartnerFilter] = useState('all')
   const [partners, setPartners] = useState<any[]>([])
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
+  const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
 
   const statusFilters = [
     { label: 'All', value: 'all' },
@@ -143,20 +145,26 @@ export default function OrdersPage() {
                 {selectedOrders.length} order(s) selected
               </span>
               <button
-                onClick={async () => {
-                  if (confirm(`Are you sure you want to delete ${selectedOrders.length} order(s)?`)) {
-                    try {
-                      await Promise.all(
-                        selectedOrders.map(orderId => 
-                          fetch(`/api/orders/${orderId}`, { method: 'DELETE' })
+                onClick={() => {
+                  setModal({
+                    isOpen: true,
+                    title: 'Delete Orders',
+                    message: `Are you sure you want to delete ${selectedOrders.length} order(s)? This action cannot be undone.`,
+                    type: 'confirm',
+                    onConfirm: async () => {
+                      try {
+                        await Promise.all(
+                          selectedOrders.map(orderId => 
+                            fetch(`/api/orders/${orderId}`, { method: 'DELETE' })
+                          )
                         )
-                      )
-                      setSelectedOrders([])
-                      fetchOrders()
-                    } catch (error) {
-                      console.error('Failed to delete orders:', error)
+                        setSelectedOrders([])
+                        fetchOrders()
+                      } catch (error) {
+                        console.error('Failed to delete orders:', error)
+                      }
                     }
-                  }
+                  })
                 }}
                 style={{
                   padding: '0.5rem 1rem',
@@ -470,15 +478,21 @@ export default function OrdersPage() {
                     </span>
                   ) : (
                     <button 
-                      onClick={async () => {
-                        if (confirm('Are you sure you want to cancel this order?')) {
-                          const response = await fetch(`/api/orders/${dbOrder._id}`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ status: 'cancelled' })
-                          });
-                          if (response.ok) fetchOrders();
-                        }
+                      onClick={() => {
+                        setModal({
+                          isOpen: true,
+                          title: 'Cancel Order',
+                          message: 'Are you sure you want to cancel this order?',
+                          type: 'confirm',
+                          onConfirm: async () => {
+                            const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ status: 'cancelled' })
+                            });
+                            if (response.ok) fetchOrders();
+                          }
+                        })
                       }}
                       style={{
                         backgroundColor: '#dc2626',
@@ -532,6 +546,16 @@ export default function OrdersPage() {
               </button>
             </div>
           </div>
+
+          <Modal
+            isOpen={modal.isOpen}
+            onClose={() => setModal({ ...modal, isOpen: false })}
+            onConfirm={modal.type === 'confirm' ? modal.onConfirm : undefined}
+            title={modal.title}
+            message={modal.message}
+            type={modal.type}
+            confirmText={modal.type === 'confirm' ? 'Yes, Proceed' : 'OK'}
+          />
       </div>
     </ResponsiveLayout>
   )
