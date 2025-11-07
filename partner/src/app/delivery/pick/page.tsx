@@ -10,12 +10,61 @@ export default function PickForDelivery() {
   const [orders, setOrders] = useState<any[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeDelivery, setActiveDelivery] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       checkKYCStatus();
+      setupPullToRefresh();
     }
   }, []);
+
+  const setupPullToRefresh = () => {
+    let startY = 0;
+    let currentY = 0;
+    let pulling = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.scrollY === 0) {
+        startY = e.touches[0].clientY;
+        pulling = true;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!pulling) return;
+      currentY = e.touches[0].clientY;
+      const pullDistance = currentY - startY;
+      
+      if (pullDistance > 80 && !refreshing) {
+        setRefreshing(true);
+        handleRefresh();
+        pulling = false;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      pulling = false;
+      startY = 0;
+      currentY = 0;
+    };
+
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  };
+
+  const handleRefresh = async () => {
+    await fetchOrders();
+    setRefreshing(false);
+  };
 
   const checkKYCStatus = async () => {
     try {
@@ -66,6 +115,14 @@ export default function PickForDelivery() {
         if (ordersData.success) {
           console.log('Partner pincode:', partnerPincode);
           console.log('All orders:', ordersData.data);
+          
+          // Check for active delivery
+          const active = ordersData.data.find((order: any) => {
+            const orderPartnerId = typeof order.partnerId === 'object' ? order.partnerId?._id : order.partnerId;
+            return orderPartnerId === partnerId && order.status === 'out_for_delivery';
+          });
+          setActiveDelivery(active || null);
+          
           const filteredOrders = ordersData.data.filter((order: any) => {
             console.log('Order:', order.orderId, 'Status:', order.status, 'Delivery Pincode:', order.deliveryAddress?.pincode, 'Pickup Pincode:', order.pickupAddress?.pincode);
             return order.status === 'process_completed' && 
@@ -92,14 +149,49 @@ export default function PickForDelivery() {
 
   return (
     <div className="pb-24" suppressHydrationWarning>
+      {/* Refresh Indicator */}
+      {refreshing && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
+          <div className="bg-white rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#452D9B', borderTopColor: 'transparent' }}></div>
+            <span className="text-sm font-medium" style={{ color: '#452D9B' }}>Refreshing...</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="sticky top-0 bg-white shadow-sm">
+      <header className="sticky top-0 bg-white shadow-sm z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <h2 className="text-lg font-semibold text-black">Pick for Delivery</h2>
           <span style={{ color: '#452D9B' }}>🔔</span>
         </div>
         <div className="text-white text-center py-2 text-sm font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>Orders ready at Main Processing Hub</div>
       </header>
+
+      {/* Active Delivery Alert */}
+      {activeDelivery && (
+        <button
+          onClick={() => router.push(`/delivery/details?id=${activeDelivery._id}`)}
+          className="w-full text-white py-3 px-4 flex items-center justify-between"
+          style={{ 
+            background: 'linear-gradient(to right, #f59e0b, #d97706)',
+            transition: 'opacity 0.2s'
+          }}
+          onTouchStart={(e) => e.currentTarget.style.opacity = '0.9'}
+          onTouchEnd={(e) => e.currentTarget.style.opacity = '1'}
+        >
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-8 h-8 rounded-full bg-white bg-opacity-25 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg">🚚</span>
+            </div>
+            <div className="text-left flex-1">
+              <p className="text-sm font-bold">Delivery in Progress</p>
+              <p className="text-xs opacity-90">Order #{activeDelivery.orderId} - Tap to continue</p>
+            </div>
+          </div>
+          <span className="text-xl">→</span>
+        </button>
+      )}
 
       {/* Section title */}
       <div className="px-4 pt-4">

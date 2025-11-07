@@ -167,6 +167,10 @@ function PickupConfirmContent() {
         {order.status === 'reached_location' ? (
           <button
             onClick={async () => {
+              if (photos.length < 2) {
+                setToast({ message: 'Please upload at least 2 photos before confirming', type: 'warning' });
+                return;
+              }
               if (!confirmed) {
                 setToast({ message: 'Please confirm you have collected all items', type: 'warning' });
                 return;
@@ -192,9 +196,9 @@ function PickupConfirmContent() {
                 setToast({ message: 'Failed to update order', type: 'error' });
               }
             }}
-            disabled={!confirmed}
+            disabled={!confirmed || photos.length < 2}
             className="mt-5 w-full inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"
-            style={confirmed ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af' }}
+            style={confirmed && photos.length >= 2 ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af' }}
           >
             Confirm & Proceed
           </button>

@@ -32,19 +32,68 @@ export default function Pickups() {
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [loading, setLoading] = useState(true);
   const [startingPickup, setStartingPickup] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activePickup, setActivePickup] = useState<any>(null);
 
   useEffect(() => {
     checkKYCStatus();
+    setupPullToRefresh();
     
     // Auto-refresh every 30 seconds for new orders
     const interval = setInterval(() => {
       if (!loading && !startingPickup) {
-        fetchPickups();
+        fetchPickups(true);
       }
     }, 30000);
     
     return () => clearInterval(interval);
-  }, [loading, startingPickup]);
+  }, []);
+
+  const setupPullToRefresh = () => {
+    let startY = 0;
+    let currentY = 0;
+    let pulling = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.scrollY === 0) {
+        startY = e.touches[0].clientY;
+        pulling = true;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!pulling) return;
+      currentY = e.touches[0].clientY;
+      const pullDistance = currentY - startY;
+      
+      if (pullDistance > 80 && !refreshing) {
+        setRefreshing(true);
+        handleRefresh();
+        pulling = false;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      pulling = false;
+      startY = 0;
+      currentY = 0;
+    };
+
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  };
+
+  const handleRefresh = async () => {
+    await fetchPickups(true);
+    setRefreshing(false);
+  };
 
   const checkKYCStatus = async () => {
     try {
@@ -80,8 +129,10 @@ export default function Pickups() {
     }
   };
 
-  const fetchPickups = async () => {
+  const fetchPickups = async (isRefresh = false) => {
     try {
+      if (!isRefresh) setLoading(true);
+      
       const partnerId = localStorage.getItem('partnerId');
       const partnerRes = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
       const partnerData = await partnerRes.json();
@@ -93,6 +144,17 @@ export default function Pickups() {
         const data = await response.json();
         
         if (data.success) {
+          // Check for active pickup (any order assigned to this partner that's not completed)
+          const active = data.data.find((order: any) => {
+            const orderPartnerId = typeof order.partnerId === 'object' ? order.partnerId?._id : order.partnerId;
+            const isMatch = orderPartnerId === partnerId;
+            const isActiveStatus = ['pending', 'reached_location', 'picked_up'].includes(order.status);
+            console.log('Checking order:', order.orderId, 'Partner match:', isMatch, 'Status:', order.status, 'Active:', isActiveStatus);
+            return isMatch && isActiveStatus;
+          });
+          console.log('Active pickup found:', active);
+          setActivePickup(active || null);
+          
           const pendingPickups = data.data.filter((order: any) => {
             const isInPartnerArea = order.pickupAddress?.pincode === partnerPincode;
             const isPending = order.status === 'pending';
@@ -108,31 +170,57 @@ export default function Pickups() {
     } catch (error) {
       console.error('Failed to fetch pickups:', error);
     } finally {
-      setLoading(false);
+      if (!isRefresh) setLoading(false);
     }
   };
+
   return (
     <div className="pb-24 bg-gray-50 min-h-screen relative">
+      {/* Refresh Indicator */}
+      {refreshing && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
+          <div className="bg-white rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#452D9B', borderTopColor: 'transparent' }}></div>
+            <span className="text-sm font-medium" style={{ color: '#452D9B' }}>Refreshing...</span>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <header className="px-4 pt-6 pb-4 bg-white shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900">Today&apos;s Pickups</h2>
-          <div className="flex gap-2">
-            <button 
-              onClick={() => !loading && fetchPickups()}
-              disabled={loading}
-              className="w-10 h-10 rounded-full flex items-center justify-center" 
-              style={{ backgroundColor: loading ? '#e5e7eb' : '#f0ebf8' }}
-            >
-              <span className="text-xl">{loading ? '⏳' : '🔄'}</span>
-            </button>
-            <button className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
-              <span className="text-xl">🔔</span>
-            </button>
-          </div>
+          <button className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
+            <span className="text-xl">🔔</span>
+          </button>
         </div>
       </header>
+
+      {/* Active Pickup Alert */}
+      {activePickup && (
+        <button
+          onClick={() => {
+            if (activePickup.status === 'pending') {
+              router.push(`/pickups/start?id=${activePickup._id}`);
+            } else if (activePickup.status === 'reached_location') {
+              router.push(`/pickups/confirm?id=${activePickup._id}`);
+            } else if (activePickup.status === 'picked_up') {
+              router.push('/hub/drop');
+            }
+          }}
+          className="w-full bg-red-500 text-white py-3 px-4 flex items-center justify-between"
+          style={{ backgroundColor: '#ef4444' }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-lg">⚠️</span>
+            <div className="text-left">
+              <p className="text-sm font-bold">Active Pickup in Progress</p>
+              <p className="text-xs">Order #{activePickup.orderId} - Tap to continue</p>
+            </div>
+          </div>
+          <span className="text-xl">→</span>
+        </button>
+      )}
 
       {/* Map Banner */}
       <div className="mt-4 mx-4 relative rounded-2xl overflow-hidden h-40 shadow-md">
@@ -154,7 +242,23 @@ export default function Pickups() {
       {/* Pickup cards */}
       <div className="mt-4 px-4 flex flex-col gap-4">
         {loading ? (
-          <div className="text-center py-8 text-gray-500">Loading pickups...</div>
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="mb-4" style={{
+              width: '48px',
+              height: '48px',
+              border: '4px solid #f3f4f6',
+              borderTop: '4px solid #452D9B',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <p className="text-gray-600">Loading orders...</p>
+            <style jsx>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
         ) : pickups.length > 0 ? (
           pickups.map((p) => (
             <div key={p._id} className="rounded-2xl bg-white card-shadow p-4 border border-gray-100">

@@ -6,18 +6,68 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
+import { Capacitor } from '@capacitor/core';
 
 export default function DropToHub() {
   const router = useRouter();
   const [hub, setHub] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [deliveredOrders, setDeliveredOrders] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       checkKYCStatus();
+      setupPullToRefresh();
     }
   }, []);
+
+  const setupPullToRefresh = () => {
+    let startY = 0;
+    let currentY = 0;
+    let pulling = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.scrollY === 0) {
+        startY = e.touches[0].clientY;
+        pulling = true;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!pulling) return;
+      currentY = e.touches[0].clientY;
+      const pullDistance = currentY - startY;
+      
+      if (pullDistance > 80 && !refreshing) {
+        setRefreshing(true);
+        handleRefresh();
+        pulling = false;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      pulling = false;
+      startY = 0;
+      currentY = 0;
+    };
+
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  };
+
+  const handleRefresh = async () => {
+    await fetchHubAndOrders();
+    setRefreshing(false);
+  };
 
   const checkKYCStatus = async () => {
     try {
@@ -89,13 +139,31 @@ export default function DropToHub() {
         return isPartnerMatch && (isPickedUp || isDeliveryFailed);
       });
       
+      // Check for delivered orders
+      const delivered = ordersData.data.filter((o: any) => {
+        const isPartnerMatch = o.partnerId?._id === partnerId;
+        const isDeliveredToHub = o.status === 'delivered_to_hub';
+        return isPartnerMatch && isDeliveredToHub;
+      });
+      
       console.log('Filtered orders:', filtered);
       setOrders(filtered);
+      setDeliveredOrders(delivered);
     }
   };
 
   return (
     <div className="pb-6">
+      {/* Refresh Indicator */}
+      {refreshing && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
+          <div className="bg-white rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#452D9B', borderTopColor: 'transparent' }}></div>
+            <span className="text-sm font-medium" style={{ color: '#452D9B' }}>Refreshing...</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -103,6 +171,30 @@ export default function DropToHub() {
           <span style={{ color: '#452D9B' }}>🔔</span>
         </div>
       </header>
+
+      {/* Delivered Orders Alert */}
+      {deliveredOrders.length > 0 && (
+        <button
+          onClick={() => router.push('/hub/delivered')}
+          className="w-full text-white py-2.5 px-4 flex items-center justify-between"
+          style={{ 
+            background: 'linear-gradient(to right, #10b981, #059669)',
+            transition: 'opacity 0.2s'
+          }}
+          onTouchStart={(e) => e.currentTarget.style.opacity = '0.9'}
+          onTouchEnd={(e) => e.currentTarget.style.opacity = '1'}
+        >
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-8 h-8 rounded-full bg-white bg-opacity-25 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg">✅</span>
+            </div>
+            <div className="text-left flex-1">
+              <p className="text-sm font-bold">Orders Delivered to Hub</p>
+              <p className="text-xs opacity-90">{deliveredOrders.length} order(s) • Tap to view details</p>
+            </div>
+          </div>
+        </button>
+      )}
 
       {/* Map */}
       {hub && (
