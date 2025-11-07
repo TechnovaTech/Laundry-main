@@ -3,6 +3,7 @@ import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { ACS_LOGO_BASE64, URBAN_STEAM_LOGO_BASE64 } from './invoiceAssets';
 
 // Convert images to base64 for mobile compatibility
 const loadImageAsBase64 = (url: string): Promise<string> => {
@@ -93,27 +94,12 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Add logos - skip on mobile to avoid crashes
-  if (!Capacitor.isNativePlatform()) {
-    try {
-      const acsLogoUrl = new URL('@/assets/ACS LOGO.png', import.meta.url).href;
-      const usLogoUrl = new URL('@/assets/LOGO MARK GRADIENT.png', import.meta.url).href;
-      
-      const [acsBase64, usBase64] = await Promise.all([
-        loadImageAsBase64(acsLogoUrl),
-        loadImageAsBase64(usLogoUrl)
-      ]);
-      
-      doc.addImage(acsBase64, 'PNG', 15, 12, 30, 12);
-      doc.addImage(usBase64, 'PNG', pageWidth - 45, 12, 30, 12);
-    } catch (imgError) {
-      console.log('Logo loading failed, using text:', imgError);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('ACS Group', 15, 20);
-      doc.text('Urban Steam', pageWidth - 45, 20);
-    }
-  } else {
+  // Add logos using embedded base64 - works on both web and mobile
+  try {
+    doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 12, 30, 12);
+    doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 45, 12, 30, 12);
+  } catch (imgError) {
+    console.log('Logo rendering failed, using text:', imgError);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('ACS Group', 15, 20);
