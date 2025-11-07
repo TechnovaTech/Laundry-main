@@ -206,26 +206,20 @@ export default function UndeliveredOrdersPage() {
                 <div style={{ fontSize: '0.85rem', cursor: 'pointer' }} onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.address}</div>
                 <div style={{ cursor: 'pointer' }} onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.partner}</div>
                 <div onClick={(e) => e.stopPropagation()}>
-                  {dbOrder.returnToHubRequested === true && dbOrder.returnToHubApproved !== true ? (
+                  {/* First time delivery failed - show APPROVE/REJECT */}
+                  {dbOrder.returnToHubRequested === true && dbOrder.returnToHubApproved !== true && !dbOrder.redeliveryReturnRequested ? (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <button
                         onClick={async () => {
-                          const updateData: any = {
-                            returnToHubApproved: true,
-                            returnToHubApprovedAt: new Date().toISOString(),
-                            status: 'delivered_to_hub',
-                            deliveredToHubAt: new Date().toISOString()
-                          };
-                          
-                          if (dbOrder.redeliveryReturnRequested) {
-                            updateData.redeliveryReturnApproved = true;
-                            updateData.redeliveryReturnApprovedAt = new Date().toISOString();
-                          }
-                          
                           const response = await fetch(`/api/orders/${dbOrder._id}`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(updateData)
+                            body: JSON.stringify({
+                              returnToHubApproved: true,
+                              returnToHubApprovedAt: new Date().toISOString(),
+                              status: 'delivered_to_hub',
+                              deliveredToHubAt: new Date().toISOString()
+                            })
                           });
                           if (response.ok) fetchUndeliveredOrders();
                         }}
@@ -244,20 +238,13 @@ export default function UndeliveredOrdersPage() {
                       </button>
                       <button
                         onClick={async () => {
-                          const updateData: any = {
-                            returnToHubRequested: false,
-                            returnToHubRequestedAt: null
-                          };
-                          
-                          if (dbOrder.redeliveryReturnRequested) {
-                            updateData.redeliveryReturnRequested = false;
-                            updateData.redeliveryReturnRequestedAt = null;
-                          }
-                          
                           const response = await fetch(`/api/orders/${dbOrder._id}`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(updateData)
+                            body: JSON.stringify({
+                              returnToHubRequested: false,
+                              returnToHubRequestedAt: null
+                            })
                           });
                           if (response.ok) fetchUndeliveredOrders();
                         }}
@@ -275,7 +262,64 @@ export default function UndeliveredOrdersPage() {
                         DECLINE
                       </button>
                     </div>
-                  ) : dbOrder.returnToHubApproved === true && dbOrder.status === 'delivered_to_hub' && !dbOrder.redeliveryReturnRequested ? (
+                  ) : /* Redelivery failed - show APPROVE/REJECT again */
+                  dbOrder.redeliveryReturnRequested === true && dbOrder.redeliveryReturnApproved !== true ? (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={async () => {
+                          const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              redeliveryReturnApproved: true,
+                              redeliveryReturnApprovedAt: new Date().toISOString(),
+                              status: 'delivered_to_hub',
+                              deliveredToHubAt: new Date().toISOString()
+                            })
+                          });
+                          if (response.ok) fetchUndeliveredOrders();
+                        }}
+                        style={{
+                          backgroundColor: '#10b981',
+                          color: 'white',
+                          border: 'none',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '6px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        APPROVE
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const response = await fetch(`/api/orders/${dbOrder._id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              redeliveryReturnRequested: false,
+                              redeliveryReturnRequestedAt: null
+                            })
+                          });
+                          if (response.ok) fetchUndeliveredOrders();
+                        }}
+                        style={{
+                          backgroundColor: '#dc2626',
+                          color: 'white',
+                          border: 'none',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '6px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        DECLINE
+                      </button>
+                    </div>
+                  ) : /* First delivery approved - show SETUP REDELIVERY */
+                  dbOrder.returnToHubApproved === true && !dbOrder.redeliveryReturnRequested && dbOrder.status === 'delivered_to_hub' ? (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <button
                         onClick={() => {
@@ -301,7 +345,8 @@ export default function UndeliveredOrdersPage() {
                         SETUP REDELIVERY
                       </button>
                     </div>
-                  ) : dbOrder.redeliveryReturnRequested === true && dbOrder.redeliveryReturnApproved === true && dbOrder.status === 'delivered_to_hub' ? (
+                  ) : /* Redelivery approved - show SUSPEND */
+                  dbOrder.redeliveryReturnApproved === true && dbOrder.status === 'delivered_to_hub' ? (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <button
                         onClick={() => {

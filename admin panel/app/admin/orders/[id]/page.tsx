@@ -982,6 +982,27 @@ export default function OrderDetails() {
               }} onClick={(e) => e.stopPropagation()}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem', color: '#10b981' }}>💰 Refund Confirmation</h2>
                 
+                {/* Wallet Balance Summary - Top */}
+                <div style={{ backgroundColor: '#eff6ff', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem', border: '2px solid #3b82f6' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', color: '#1e40af', textAlign: 'center' }}>Wallet Balance</h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.5rem' }}>Current Balance</div>
+                      <div style={{ fontSize: '1.8rem', fontWeight: '700', color: '#dc2626' }}>₹{refundCalculation.currentWallet}</div>
+                    </div>
+                    <div style={{ fontSize: '2rem', color: '#3b82f6' }}>→</div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.5rem' }}>After Refund</div>
+                      <div style={{ fontSize: '1.8rem', fontWeight: '700', color: '#10b981' }}>₹{refundCalculation.newWallet}</div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'center', marginTop: '1rem', padding: '0.75rem', backgroundColor: '#dcfce7', borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.9rem', color: '#166534', fontWeight: '600' }}>
+                      +₹{refundCalculation.refundAmount} will be credited
+                    </span>
+                  </div>
+                </div>
+                
                 {/* Order Details */}
                 <div style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
                   <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem' }}>Order Details</h3>

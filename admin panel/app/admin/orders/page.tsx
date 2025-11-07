@@ -347,6 +347,12 @@ export default function OrdersPage() {
                   }}>
                     {order.status}
                   </span>
+                  {(dbOrder.deliveryFailureFee > 0 || dbOrder.cancellationFee > 0) && (
+                    <div style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: '500' }}>
+                      {dbOrder.deliveryFailureFee > 0 && `Delivery Fee: ₹${dbOrder.deliveryFailureFee}`}
+                      {dbOrder.cancellationFee > 0 && `Cancellation Fee: ₹${dbOrder.cancellationFee}`}
+                    </div>
+                  )}
                 </div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.paymentMethod}</div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>

@@ -204,6 +204,27 @@ const OrderDetails = () => {
           </Card>
         )}
 
+        {order?.status === 'cancelled' && (
+          <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fee2e2, #fecaca)', borderColor: '#ef4444' }}>
+            <div className="flex items-start gap-2">
+              <span className="text-2xl">❌</span>
+              <div className="flex-1">
+                <p className="text-sm sm:text-base font-bold text-red-700 mb-1">Order Cancelled</p>
+                {order.cancellationReason && (
+                  <p className="text-xs sm:text-sm text-red-600 font-medium">
+                    <strong>Reason:</strong> {order.cancellationReason}
+                  </p>
+                )}
+                {order.cancellationFee > 0 && (
+                  <p className="text-xs sm:text-sm text-red-600 font-medium mt-1">
+                    <strong>Cancellation Fee Charged:</strong> ₹{order.cancellationFee}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
         {order?.status === 'suspended' && (
           <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fef3c7, #fde68a)', borderColor: '#f59e0b' }}>
             <div className="flex items-start gap-2">
