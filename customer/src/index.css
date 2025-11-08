@@ -186,10 +186,9 @@ All colors MUST be HSL.
     min-height: 100dvh;
   }
   
-  /* All page headers should start below camera */
-  header:not(.no-safe-area) {
+  /* Apply safe area only to first element with gradient header */
+  .gradient-header-safe {
     padding-top: calc(1rem + env(safe-area-inset-top)) !important;
-    padding-bottom: 1rem !important;
   }
   
   .safe-area-bottom {

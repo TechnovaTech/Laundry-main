@@ -116,7 +116,7 @@ const App = () => {
           
           await SplashScreen.hide();
           await StatusBar.setStyle({ style: Style.Light });
-          await StatusBar.setBackgroundColor({ color: '#ffffff' });
+          await StatusBar.setOverlaysWebView({ overlay: true });
           
           Keyboard.addListener('keyboardWillShow', () => {
             document.body.classList.add('keyboard-open');

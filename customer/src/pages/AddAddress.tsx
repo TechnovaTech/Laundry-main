@@ -212,7 +212,7 @@ const AddAddress = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white px-4 sm:px-6 py-4 flex items-center gap-4 shadow-sm">
+      <header className="bg-white px-4 sm:px-6 py-4 flex items-center gap-4 shadow-sm gradient-header-safe">
         <button onClick={() => navigate("/profile")} className="text-gray-600 flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>

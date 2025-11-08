@@ -1332,12 +1332,14 @@ export default function AddOnPage() {
                 }}>
                   <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem' }}>
                     {item.type === 'image' ? (
-                      <img src={item.url} alt="Hero" style={{ width: '150px', height: '90px', objectFit: 'cover', borderRadius: '6px' }} />
+                      <img src={item.url} alt="Hero" style={{ width: '150px', height: '90px', objectFit: 'cover', borderRadius: '6px', backgroundColor: '#f3f4f6' }} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling.style.display = 'flex'; }} />
                     ) : (
-                      <video src={item.url} style={{ width: '150px', height: '90px', objectFit: 'cover', borderRadius: '6px' }} />
+                      <video src={item.url} style={{ width: '150px', height: '90px', objectFit: 'cover', borderRadius: '6px', backgroundColor: '#f3f4f6' }} />
                     )}
+                    <div style={{ display: 'none', width: '150px', height: '90px', backgroundColor: '#f3f4f6', borderRadius: '6px', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: '#6b7280' }}>Preview unavailable</div>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>Type: {item.type}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#9ca3af', wordBreak: 'break-all' }}>URL: {item.url}</p>
                     </div>
                     <button 
                       onClick={() => removeHeroItem(item._id)}

@@ -216,7 +216,7 @@ const Wallet = () => {
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
-      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 flex items-center justify-between shadow-lg" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))', paddingBottom: '1rem' }}>
+      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg gradient-header-safe">
         <div className="flex items-center">
           <button onClick={() => navigate(-1)}>
             <ArrowLeft className="w-6 h-6 text-white" />

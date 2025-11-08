@@ -68,7 +68,7 @@ const BookingHistory = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 sm:pb-24">
-      <header className="sticky top-0 px-4 sm:px-6 py-4 flex items-center z-10 shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+      <header className="sticky top-0 px-4 sm:px-6 py-4 flex items-center z-10 shadow-lg gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <button onClick={() => navigate(-1)} className="flex-shrink-0" aria-label="Go back">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>

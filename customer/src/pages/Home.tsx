@@ -223,7 +223,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
       {/* Gradient Header Section */}
-      <div className="text-white px-4 sm:px-6 pb-6 sm:pb-8 shadow-xl" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}>
+      <div className="text-white px-4 sm:px-6 pb-6 sm:pb-8 shadow-xl gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', paddingTop: '1rem' }}>
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-1">Hi, {userName} 👋</h1>
