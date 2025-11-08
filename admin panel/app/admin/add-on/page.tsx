@@ -5,13 +5,7 @@ import ResponsiveLayout from '../../components/ResponsiveLayout'
 import Modal from '../../components/Modal'
 
 export default function AddOnPage() {
-  const [activeSection, setActiveSection] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash.replace('#', '')
-      return hash || 'Pincode'
-    }
-    return 'Pincode'
-  })
+  const [activeSection, setActiveSection] = useState('Pincode')
   const [states, setStates] = useState<any[]>([])
   const [cities, setCities] = useState<any[]>([])
   const [pincodes, setPincodes] = useState<any[]>([])
@@ -66,6 +60,8 @@ export default function AddOnPage() {
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' })
 
   useEffect(() => {
+    const hash = window.location.hash.replace('#', '')
+    if (hash) setActiveSection(hash)
     fetchStates()
     fetchServiceableAreas()
     fetchVouchers()
