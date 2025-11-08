@@ -25,17 +25,18 @@ export async function POST(request: Request) {
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     await mkdir(uploadDir, { recursive: true });
 
-    // Sanitize filename: remove spaces and special characters
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filename = `${Date.now()}-${sanitizedName}`;
     const filepath = path.join(uploadDir, filename);
     
     await writeFile(filepath, buffer);
+    console.log('File uploaded:', filepath);
     
     const url = `/uploads/${filename}`;
     
-    return NextResponse.json({ success: true, url });
+    return NextResponse.json({ success: true, url, filename });
   } catch (error: any) {
+    console.error('Upload error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

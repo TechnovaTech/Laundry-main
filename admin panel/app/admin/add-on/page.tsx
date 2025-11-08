@@ -101,10 +101,12 @@ export default function AddOnPage() {
         formData.append('file', heroFile)
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
         const uploadData = await uploadRes.json()
+        console.log('Upload response:', uploadData)
         if (uploadData.success) finalUrl = uploadData.url
-        else throw new Error('Upload failed')
+        else throw new Error(uploadData.error || 'Upload failed')
       }
       
+      console.log('Adding hero item with URL:', finalUrl)
       const response = await fetch('/api/hero-section', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,10 +123,14 @@ export default function AddOnPage() {
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
         if (fileInput) fileInput.value = ''
         await fetchHeroItems()
+        setModal({ isOpen: true, title: 'Success', message: 'Hero item added successfully!', type: 'success' })
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add hero item')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding hero item:', error)
-      setModal({ isOpen: true, title: 'Upload Failed', message: 'Failed to upload. Please try again.', type: 'error' })
+      setModal({ isOpen: true, title: 'Upload Failed', message: error.message || 'Failed to upload. Please try again.', type: 'error' })
     } finally {
       setUploading(false)
     }
