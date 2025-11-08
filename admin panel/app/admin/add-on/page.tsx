@@ -1332,7 +1332,7 @@ export default function AddOnPage() {
                 }}>
                   <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem' }}>
                     {item.type === 'image' ? (
-                      <img src={item.url} alt="Hero" style={{ width: '150px', height: '90px', objectFit: 'cover', borderRadius: '6px', backgroundColor: '#f3f4f6' }} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling.style.display = 'flex'; }} />
+                      <img src={item.url} alt="Hero" style={{ width: '150px', height: '90px', objectFit: 'cover', borderRadius: '6px', backgroundColor: '#f3f4f6' }} onError={(e) => { e.currentTarget.style.display = 'none'; if (e.currentTarget.nextElementSibling) (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
                     ) : (
                       <video src={item.url} style={{ width: '150px', height: '90px', objectFit: 'cover', borderRadius: '6px', backgroundColor: '#f3f4f6' }} />
                     )}
