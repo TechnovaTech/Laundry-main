@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:514222866895:android:partner123",
         "android_client_info": {
-          "package_name": "com.ironstream.deliverypartner"
+          "package_name": "com.urbansteam.deliverypartner"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.ironstream.deliverypartner",
+            "package_name": "com.urbansteam.deliverypartner",
             "certificate_hash": "dad014ad5d874a44468bd684a19578a440e5302e"
           }
         },

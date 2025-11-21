@@ -1,4 +1,4 @@
-package com.ironstream.deliverypartner;
+package com.urbansteam.deliverypartner;
 
 import com.getcapacitor.BridgeActivity;
 

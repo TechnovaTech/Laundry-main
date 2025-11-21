@@ -15,9 +15,9 @@ export default function CapacitorInit() {
         
         console.log('Initializing Capacitor for Android...');
         
-        // Initialize Google Auth
-        const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
+        // Initialize Google Auth with better error handling
         try {
+          const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
           await GoogleAuth.initialize({
             clientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
             scopes: ['profile', 'email'],
@@ -25,7 +25,8 @@ export default function CapacitorInit() {
           });
           console.log('✓ Google Auth initialized');
         } catch (error) {
-          console.error('✗ Google Auth failed:', error);
+          console.error('✗ Google Auth initialization failed:', error);
+          // Continue without Google Auth to prevent app crash
         }
         
         // Status Bar
@@ -54,7 +55,8 @@ export default function CapacitorInit() {
         
         console.log('✓ Capacitor initialization complete');
       } catch (e) {
-        console.warn("Capacitor init skipped:", e);
+        console.error("Capacitor initialization error:", e);
+        // Log the error but don't crash the app
       }
     })();
   }, []);
