@@ -88,12 +88,19 @@ const Login = () => {
     if (mobileNumber.length === 10) {
       try {
         const phone = `+91${mobileNumber}`;
+        console.log('Sending OTP to:', phone);
+        console.log('API URL:', `${API_URL}/api/auth/send-otp`);
+        
         const response = await fetch(`${API_URL}/api/auth/send-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone })
         });
+        
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
+        
         if (data.success) {
           localStorage.setItem('userMobile', mobileNumber);
           navigate("/verify-mobile", { state: { mobileNumber } });
