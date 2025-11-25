@@ -15,7 +15,7 @@ export class IndoriSmsService {
       url.searchParams.append('username', this.USERNAME);
       url.searchParams.append('password', this.PASSWORD);
       url.searchParams.append('senderid', this.SENDER_ID);
-// url.searchParams.append('route', '1'); // Service Implicit template - try without route
+url.searchParams.append('route', '06'); // Found route ID 06
       url.searchParams.append('number', cleanPhone);
       url.searchParams.append('message', message);
       url.searchParams.append('templateid', this.TEMPLATE_ID); // Template is approved!
