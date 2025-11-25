@@ -15,7 +15,7 @@ export class IndoriSmsService {
       url.searchParams.append('username', this.USERNAME);
       url.searchParams.append('password', this.PASSWORD);
       url.searchParams.append('senderid', this.SENDER_ID);
-      url.searchParams.append('route', '16'); // TransOTP route
+      url.searchParams.append('route', '1'); // Transactional route
       url.searchParams.append('number', cleanPhone);
       url.searchParams.append('message', message);
       url.searchParams.append('templateid', this.TEMPLATE_ID);
