@@ -15,7 +15,7 @@ export class IndoriSmsService {
       url.searchParams.append('username', this.USERNAME);
       url.searchParams.append('password', this.PASSWORD);
       url.searchParams.append('senderid', this.SENDER_ID);
-// url.searchParams.append('route', '7'); // Remove route - account has only TRANSACTIONAL
+url.searchParams.append('route', 'TRANSACTIONAL'); // Use exact route name from dashboard
       url.searchParams.append('number', cleanPhone);
       url.searchParams.append('message', message);
       url.searchParams.append('templateid', this.TEMPLATE_ID); // Template is approved!
