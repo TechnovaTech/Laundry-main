@@ -28,6 +28,10 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { credential, idToken, role } = await request.json();
+    console.log('Google Auth - Role:', role);
+    console.log('Google Auth - Has credential:', !!credential);
+    console.log('Google Auth - Has idToken:', !!idToken);
+    console.log('Google Auth - ALLOWED_CLIENT_IDS:', ALLOWED_CLIENT_IDS);
 
     let ticket;
     const tokenToVerify = credential || idToken;

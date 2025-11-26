@@ -17,6 +17,8 @@ const manrope = Manrope({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
+const GOOGLE_WEB_CLIENT_ID = "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com";
+
 export const metadata: Metadata = {
   title: "Steam Iron Partner",
   description: "Delivery Partner mobile web app",
@@ -40,7 +42,7 @@ export default function RootLayout({
         className={`${montserrat.variable} ${manrope.variable} antialiased bg-white`}
         suppressHydrationWarning={true}
       >
-        <GoogleOAuthProvider clientId="514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com">
+        <GoogleOAuthProvider clientId={GOOGLE_WEB_CLIENT_ID}>
           <div className="w-full min-h-screen flex flex-col bg-white safe-area" suppressHydrationWarning>
             <CapacitorInit />
             <main className="flex-1">{children}</main>

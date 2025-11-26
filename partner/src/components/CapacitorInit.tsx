@@ -1,12 +1,7 @@
 "use client";
-import { useEffect, useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 export default function CapacitorInit() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const listenerAdded = useRef(false);
-
   useEffect(() => {
     (async () => {
       try {
@@ -15,18 +10,13 @@ export default function CapacitorInit() {
         
         console.log('Initializing Capacitor for Android...');
         
-        // Initialize Google Auth with better error handling
+        // Initialize Google Auth - uses strings.xml configuration
         try {
           const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
-          await GoogleAuth.initialize({
-            clientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
-            scopes: ['profile', 'email'],
-            grantOfflineAccess: true,
-          });
-          console.log('✓ Google Auth initialized');
+          await GoogleAuth.initialize();
+          console.log('✓ Google Auth initialized using strings.xml configuration');
         } catch (error) {
           console.error('✗ Google Auth initialization failed:', error);
-          // Continue without Google Auth to prevent app crash
         }
         
         // Status Bar
@@ -36,27 +26,23 @@ export default function CapacitorInit() {
         await StatusBar.setBackgroundColor({ color: '#452D9B' });
         console.log('✓ Status Bar configured');
         
-        // Back Button Handler - Register only once
-        if (!listenerAdded.current) {
-          const { App } = await import("@capacitor/app");
-          App.addListener("backButton", () => {
-            const currentPath = window.location.pathname;
-            const exitPages = ['/', '/pickups', '/check-availability'];
-            
-            if (exitPages.includes(currentPath)) {
-              App.exitApp();
-            } else {
-              window.history.back();
-            }
-          });
-          listenerAdded.current = true;
-          console.log('✓ Back button handler registered');
-        }
+        // Back Button Handler
+        const { App } = await import("@capacitor/app");
+        App.addListener("backButton", () => {
+          const currentPath = window.location.pathname;
+          const exitPages = ['/', '/pickups', '/check-availability'];
+          
+          if (exitPages.includes(currentPath)) {
+            App.exitApp();
+          } else {
+            window.history.back();
+          }
+        });
+        console.log('✓ Back button handler registered');
         
         console.log('✓ Capacitor initialization complete');
       } catch (e) {
         console.error("Capacitor initialization error:", e);
-        // Log the error but don't crash the app
       }
     })();
   }, []);
