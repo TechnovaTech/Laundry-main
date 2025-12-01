@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.urbansteam.deliverypartner"
+    namespace "com.urbansteam.partner"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.urbansteam.deliverypartner"
+        applicationId "com.urbansteam.partner"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "1.3"
+        versionCode 7
+        versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
