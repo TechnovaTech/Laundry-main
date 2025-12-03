@@ -7,7 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:514222866895:android:partner123",
+        "mobilesdk_app_id": "1:514222866895:android:your_app_id",
         "android_client_info": {
           "package_name": "com.urbansteam.partner"
         }
@@ -18,27 +18,18 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.urbansteam.partner",
-            "certificate_hash": "dad014ad5d874a44468bd684a19578a440e5302e"
+            "certificate_hash": "b84594868523f149b071dbc583dc7b4986bf8ba2"
           }
-        },
-        {
-          "client_id": "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com",
-          "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB4fO5u8wnn-p6eGWBKaYo-tKBgAz9ih6c"
+          "current_key": "your_api_key_here"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

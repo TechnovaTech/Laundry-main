@@ -10,13 +10,21 @@ export default function CapacitorInit() {
         
         console.log('Initializing Capacitor for Android...');
         
-        // Initialize Google Auth - uses strings.xml configuration
+        // Initialize Google Auth with proper configuration
         try {
           const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
-          await GoogleAuth.initialize();
-          console.log('✓ Google Auth initialized using strings.xml configuration');
+          await GoogleAuth.initialize({
+            clientId: '514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com',
+            scopes: ['profile', 'email'],
+            grantOfflineAccess: true
+          });
+          console.log('✓ Google Auth initialized with client ID');
+          
+          // Store initialization status globally
+          (window as any).googleAuthInitialized = true;
         } catch (error) {
           console.error('✗ Google Auth initialization failed:', error);
+          (window as any).googleAuthInitialized = false;
         }
         
         // Status Bar

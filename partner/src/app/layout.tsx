@@ -17,7 +17,7 @@ const manrope = Manrope({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
-const GOOGLE_WEB_CLIENT_ID = "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com";
+const GOOGLE_WEB_CLIENT_ID = "514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com";
 
 export const metadata: Metadata = {
   title: "Steam Iron Partner",

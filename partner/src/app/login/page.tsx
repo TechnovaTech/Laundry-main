@@ -51,12 +51,16 @@ export default function Login() {
     try {
       console.log('Starting Google Sign-In...');
       
-      // Ensure GoogleAuth is initialized
-      await GoogleAuth.initialize({
-        clientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
-        scopes: ['profile', 'email'],
-        grantOfflineAccess: true,
-      });
+      // Check if GoogleAuth is already initialized
+      if (!(window as any).googleAuthInitialized) {
+        console.log('GoogleAuth not initialized, initializing now...');
+        await GoogleAuth.initialize({
+          clientId: '514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com',
+          scopes: ['profile', 'email'],
+          grantOfflineAccess: true,
+        });
+        (window as any).googleAuthInitialized = true;
+      }
       
       const result = await GoogleAuth.signIn();
       console.log('Google sign-in result:', result);
