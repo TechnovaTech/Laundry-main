@@ -1,250 +1,210 @@
-# Laundry Management System
+# 🧺 Urban Steam - Complete Laundry Management System
 
-## Project Overview
-A full-stack laundry management system with three separate applications: Customer App, Partner App, and Admin Panel. The system handles laundry pickup, delivery, order tracking, partner management, and administrative operations.
+A full-stack laundry management platform with three integrated applications: Customer App, Partner App, and Admin Panel.
 
-## Architecture
+## 📱 Applications
 
 ### 1. **Customer App** (`/customer`)
-- **Tech Stack**: React 18 + Vite + TypeScript + Capacitor
-- **UI Framework**: Tailwind CSS + shadcn/ui (Radix UI components)
+- **Platform**: React 18 + Vite + Capacitor (Web + Android)
 - **Port**: 3001
-- **Platform**: Web + Android mobile app
-- **Purpose**: Customer-facing application for booking laundry services
+- **Features**: Order booking, tracking, payments, wallet, referrals
 
-**Key Features**:
-- Order booking and tracking
-- Address management
-- Payment methods
-- Wallet and points system
-- Referral program
-- Order rating and reviews
-- Real-time order status updates
-- Invoice download
-
-**Key Files**:
-- `src/pages/BookingConfirmation.tsx` - Order confirmation page
-- `src/pages/OrderDetails.tsx` - Order details and invoice
-- `src/pages/RateOrder.tsx` - Rating and review submission
-- `src/pages/AddAddress.tsx` - Address management
-- `src/pages/Profile.tsx` - User profile and payment methods
-- `src/pages/Wallet.tsx` - Wallet and points redemption
-- `src/pages/ReferEarn.tsx` - Referral program
-
-**Build Commands**:
-- `npm run dev` - Development server (port 3001)
-- `npm run build:mobile` - Build for Android
-- `npm run cap:open:android` - Open in Android Studio
-
-### 2. **Partner App** (`/partner`)
-- **Tech Stack**: Next.js 15 + React 19 + TypeScript + Capacitor
-- **UI Framework**: Tailwind CSS v4
+### 2. **Partner App** (`/partner`) 
+- **Platform**: Next.js 15 + Capacitor (Web + Android)
 - **Port**: 3002
-- **Platform**: Web + Android mobile app
-- **Purpose**: Partner/delivery agent application for managing pickups and deliveries
-
-**Key Features**:
-- Service availability check by pincode
-- Partner registration and KYC
-- Pickup management (start, track, confirm)
-- Delivery management
-- Hub drop-off
-- Profile management
-- Bottom navigation with dashboard, pickups, deliveries, hub, profile
-
-**Key Files**:
-- `src/app/check-availability/page.tsx` - Check service availability
-- `src/app/login/page.tsx` - Partner login
-- `src/app/verify/page.tsx` - OTP verification
-- `src/app/profile/create/page.tsx` - Profile creation
-- `src/app/profile/kyc/page.tsx` - KYC submission
-- `src/app/pickups/page.tsx` - Pickup list
-- `src/app/pickups/start/[id]/page.tsx` - Start pickup
-- `src/app/pickups/confirm/[id]/page.tsx` - Confirm pickup
-- `src/app/hub/drop/page.tsx` - Hub drop-off
-- `src/app/delivery/pick/page.tsx` - Delivery selection
-- `src/app/delivery/[id]/page.tsx` - Delivery execution
-- `src/components/BottomNav.tsx` - Bottom navigation component
-
-**Build Commands**:
-- `npm run dev` - Development server (port 3002)
-- `npm run build` - Production build
-- `npm run cap:sync` - Sync with Capacitor
+- **Version**: v1.1 (Build 10)
+- **Features**: Pickup/delivery management, KYC, hub operations
 
 ### 3. **Admin Panel** (`/admin panel`)
-- **Tech Stack**: Next.js 15 + React 18 + TypeScript + MongoDB
-- **Database**: MongoDB (local or remote)
+- **Platform**: Next.js 15 + MongoDB (Web only)
 - **Port**: 3000
-- **Platform**: Web only
-- **Purpose**: Administrative dashboard for managing the entire system
+- **Features**: Partner management, analytics, order oversight
 
-**Key Features**:
-- Partner management (CRUD operations)
-- Order management
-- Customer management
-- Analytics and reporting
-- KYC approval
-- Service area management
-- Authentication with JWT
+## 🚀 Quick Start
 
-**Key Files**:
-- `app/api/mobile/partners/[id]/route.ts` - Partner API endpoints
-- `models/` - MongoDB models
-- `lib/` - Database connection and utilities
-- `middleware.ts` - Authentication middleware
-- `.env.local` - Environment configuration
+### Prerequisites
+- Node.js 18+
+- MongoDB (local or remote)
+- Android Studio (for mobile builds)
 
-**Environment Variables** (`.env.local`):
+### Installation
+```bash
+# Clone repository
+git clone https://github.com/TechnovaTech/Laundry-main.git
+cd laundry-main
+
+# Install dependencies for all apps
+cd "admin panel" && npm install
+cd ../customer && npm install  
+cd ../partner && npm install
 ```
+
+### Development
+```bash
+# Run all apps simultaneously
+# Terminal 1: Admin Panel
+cd "admin panel" && npm run dev
+
+# Terminal 2: Customer App  
+cd customer && npm run dev
+
+# Terminal 3: Partner App
+cd partner && npm run dev
+```
+
+**Access URLs:**
+- Admin Panel: http://localhost:3000
+- Customer App: http://localhost:3001  
+- Partner App: http://localhost:3002
+
+## 🎨 Design System
+
+### Colors
+- **Primary Gradient**: `linear-gradient(to right, #452D9B, #07C8D0)`
+- **Purple**: `#452D9B`
+- **Cyan**: `#07C8D0`
+- **Disabled**: `#9ca3af`
+
+### Button Styling
+```css
+/* Primary buttons */
+background: linear-gradient(to right, #452D9B, #07C8D0);
+
+/* Disabled buttons */
+background: #9ca3af;
+```
+
+## 📱 Mobile Development
+
+### Android Build Commands
+```bash
+# Customer App
+cd customer
+npm run build:mobile
+npm run cap:open:android
+
+# Partner App  
+cd partner
+npm run build
+npx cap sync
+npx cap open android
+```
+
+### Google Authentication
+- **Customer App**: Web + Android OAuth clients
+- **Partner App**: Android OAuth client configured
+- **SHA-1 Fingerprints**: Configured for Google Play Store
+
+## 🗄️ Database
+
+### MongoDB Configuration
+```env
 MONGODB_URI=mongodb://localhost:27017/laundry
 JWT_SECRET=your-secret-key-here
 NODE_ENV=development
-REACT_APP_GOOGLE_MAPS_API_KEY=your-google-maps-api-key-here
 ```
 
-**Build Commands**:
-- `npm run dev` - Development server (port 3000)
-- `npm run build` - Production build
-- `npm run seed:admin` - Seed admin user
+### Collections
+- `partners` - Delivery partner data
+- `customers` - Customer profiles  
+- `orders` - Order management
+- `addresses` - Customer addresses
+- `payments` - Payment records
 
-## Design System
+## 🔧 Environment Setup
 
-### Color Scheme
-- **Primary Gradient**: `linear-gradient(to right, #452D9B, #07C8D0)` (Purple to Cyan)
-  - Purple: `#452D9B`
-  - Cyan: `#07C8D0`
-- **Disabled State**: `#9ca3af` (Gray)
-
-### Button Styling Pattern
-All primary action buttons use the gradient background:
-```tsx
-style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+### Admin Panel (`.env.local`)
+```env
+MONGODB_URI=mongodb://localhost:27017/laundry
+JWT_SECRET=your-secret-key-here
+NODE_ENV=development
+REACT_APP_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 ```
 
-Disabled buttons use gray:
-```tsx
-style={{ background: '#9ca3af' }}
+### Customer App (`.env`)
+```env
+VITE_API_URL=http://localhost:3000
+VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 ```
 
-## Database Schema
-- **MongoDB** database named `laundry`
-- Collections: partners, customers, orders, addresses, payments, etc.
-- Authentication: JWT-based with bcrypt password hashing
-
-## Development Workflow
-
-### Running All Apps Simultaneously
-1. **Admin Panel**: `cd "admin panel" && npm run dev` (port 3000)
-2. **Customer App**: `cd customer && npm run dev` (port 3001)
-3. **Partner App**: `cd partner && npm run dev` (port 3002)
-
-### Mobile Development
-Both customer and partner apps use **Capacitor** for Android builds:
-- Build web assets first
-- Sync with Capacitor: `npm run cap:sync`
-- Open in Android Studio: `npm run cap:open:android`
-
-## Recent Changes
-
-### UI Updates
-- Applied gradient colors to all primary buttons across customer and partner apps
-- Updated button styling from solid colors to purple-cyan gradient
-- Maintained consistent disabled state styling
-
-### Bug Fixes
-- **Partner App Bottom Navigation**: Fixed visibility issue by adding z-index and removing KYC approval check
-- **Next.js 15 API Routes**: Fixed dynamic params by awaiting params object (now returns Promise)
-
-### Git Configuration
-- Repository: `https://github.com/TechnovaTech/Laundry-main.git` (origin)
-- Fork: `https://github.com/yash9424/laundry-main.git` (yash)
-- Author: yash9424
-
-## Key Technical Notes
-
-### Next.js 15 Breaking Changes
-- Dynamic route params are now `Promise` objects and must be awaited:
-```typescript
-// Old (Next.js 14)
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
-}
-
-// New (Next.js 15)
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-}
+### Partner App (`.env`)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-### Capacitor Configuration
-- Customer app: `capacitor.config.ts` with appId and webDir
-- Partner app: `capacitor.config.ts` with appId and webDir
-- Both apps support Android platform
+## 📦 Latest Releases
 
-### State Management
-- Customer app: React Query (@tanstack/react-query)
-- Partner app: React hooks and Next.js server components
-- Admin panel: Server-side with MongoDB
+### Partner App v1.1
+- **APK**: `Partner-App-v1.7-GoogleAuth-Complete-Fix.apk`
+- **AAB**: `Urban-Steam-Captain-v1.1.aab` (Google Play ready)
+- **Features**: Google Auth fix, improved stability
 
-## API Structure
+### Customer App
+- **Latest Build**: Available in `/customer` directory
+- **Features**: Complete booking flow, payment integration
 
-### Admin Panel APIs
-- `/api/mobile/partners/[id]` - Partner CRUD operations
-- Authentication required via JWT middleware
-- RESTful endpoints for all resources
+## 🔐 Authentication
 
-## Common Issues & Solutions
+### Google OAuth Setup
+1. **Google Cloud Console**: 3 OAuth clients (Web, Android Customer, Android Partner)
+2. **SHA-1 Fingerprints**: Configured for Google Play Store
+3. **Package Names**: 
+   - Customer: `com.urbansteam.customer`
+   - Partner: `com.urbansteam.partner`
 
-1. **Bottom Navigation Not Visible**: Ensure z-index is set and KYC checks don't block rendering
-2. **Next.js 15 Params Error**: Always await params in dynamic routes
-3. **MongoDB Connection**: Check MONGODB_URI in .env.local
-4. **Port Conflicts**: Ensure ports 3000, 3001, 3002 are available
+## 🏗️ Architecture
 
-## Project Structure Summary
 ```
-laundry-main/
-├── customer/          # React + Vite customer app (port 3001)
-├── partner/           # Next.js partner app (port 3002)
-├── admin panel/       # Next.js admin panel (port 3000)
-└── README.md          # This file
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Customer App  │    │   Partner App   │    │   Admin Panel   │
+│   (React+Vite)  │    │   (Next.js 15)  │    │   (Next.js 15)  │
+│   Port: 3001    │    │   Port: 3002    │    │   Port: 3000    │
+└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
+          │                      │                      │
+          └──────────────────────┼──────────────────────┘
+                                 │
+                    ┌─────────────┴─────────────┐
+                    │       MongoDB            │
+                    │   (Database Layer)       │
+                    └─────────────────────────────┘
 ```
 
-## 📱 Google Auth Setup for Android & iOS
+## 🛠️ Development Tools
 
-### ✅ What's Been Done:
-- Google Auth initialization added to both apps
-- Capacitor configuration complete
-- Works on Android and iOS
-- Environment variable support ready
+### Build Scripts
+- **Customer**: `npm run build:mobile` (Android build)
+- **Partner**: `npm run build` + `npx cap sync` (Android build)  
+- **Admin**: `npm run build` (Web build)
 
-### 📚 Documentation:
-1. **SETUP_SUMMARY.md** - Quick overview and what to do next
-2. **GOOGLE_AUTH_SETUP.md** - Complete Google Auth setup guide
-3. **DEPLOYMENT_CHECKLIST.md** - Step-by-step deployment guide
-4. **API_URL_MIGRATION.md** - How to replace localhost URLs
-5. **ARCHITECTURE_FLOW.md** - System architecture and flows
+### Testing
+- **Customer**: React Testing Library
+- **Partner**: Next.js testing utilities
+- **Admin**: Jest + MongoDB Memory Server
 
-### 🚀 Next Steps:
-1. Create `.env` files with production API URL
-2. Replace all `localhost:3000` with environment variables
-3. Add SHA-1 fingerprint to Firebase (Android)
-4. Get iOS Client ID (iOS only)
-5. Build and test on devices
+## 📚 Documentation
 
-**See SETUP_SUMMARY.md for complete instructions!**
+- **Google Auth Setup**: `/partner/GOOGLE_SIGNIN_SETUP.md`
+- **API Documentation**: Available in admin panel
+- **Mobile Build Guides**: In respective app directories
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -m 'Add new feature'`
+4. Push to branch: `git push origin feature/new-feature`
+5. Submit pull request
+
+## 📄 License
+
+This project is proprietary software developed by TechnovaTech.
+
+## 🔗 Links
+
+- **Repository**: https://github.com/TechnovaTech/Laundry-main.git
+- **Issues**: https://github.com/TechnovaTech/Laundry-main/issues
+- **Releases**: https://github.com/TechnovaTech/Laundry-main/releases
 
 ---
 
-## For AI Assistants (ChatGPT, etc.)
-
-When working with this codebase:
-1. **Customer app** uses React Router, Vite, and Capacitor
-2. **Partner app** uses Next.js 15 App Router with Capacitor
-3. **Admin panel** uses Next.js 15 with MongoDB backend
-4. All buttons should use the gradient style: `linear-gradient(to right, #452D9B, #07C8D0)`
-5. Always await params in Next.js 15 dynamic routes
-6. Check file paths carefully - "admin panel" has a space in the folder name
-7. Mobile apps use Capacitor for Android builds
-8. Database operations go through the admin panel API
-9. Google Auth is initialized on app startup for native platforms
-10. Use environment variables for API URLs (VITE_API_URL / NEXT_PUBLIC_API_URL)
+**Built with ❤️ by TechnovaTech Team**
