@@ -1,15 +1,15 @@
 {
   "project_info": {
     "project_number": "514222866895",
-    "project_id": "laundry-mate-app",
-    "storage_bucket": "laundry-mate-app.appspot.com"
+    "project_id": "rock-partition-476511-h9",
+    "storage_bucket": "rock-partition-476511-h9.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:514222866895:android:abc123",
+        "mobilesdk_app_id": "1:514222866895:android:8a9b0c1d2e3f4567",
         "android_client_info": {
-          "package_name": "com.laundrymate.customer"
+          "package_name": "com.urbansteam.customer"
         }
       },
       "oauth_client": [
@@ -17,8 +17,8 @@
           "client_id": "514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.laundrymate.customer",
-            "certificate_hash": "dad014ad5d874a44468bd684a19578a440e5302e"
+            "package_name": "com.urbansteam.customer",
+            "certificate_hash": "b84594868523f149b071dbc583dc7b4986bf8ba2"
           }
         },
         {

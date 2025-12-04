@@ -42,45 +42,39 @@ const Login = () => {
 
   const handleGoogleLoginMobile = async () => {
     try {
-      console.log('Starting Google Sign-In...');
-      const result = await GoogleAuth.signIn();
-      console.log('Google Sign-In Result:', JSON.stringify(result));
-      
-      if (!result?.authentication?.idToken) {
-        console.error('No idToken received');
-        alert('Failed to get authentication token');
-        return;
-      }
-
-      console.log('Calling API:', `${API_URL}/api/auth/google-login`);
-      const response = await fetch(`${API_URL}/api/auth/google-login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          idToken: result.authentication.idToken,
-          role: 'customer'
-        })
+      // Initialize GoogleAuth with correct client IDs
+      await GoogleAuth.initialize({
+        clientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
+        scopes: ['profile', 'email'],
+        grantOfflineAccess: true,
       });
       
-      console.log('Response status:', response.status);
-      const data = await response.json();
-      console.log('API Response:', JSON.stringify(data));
+      const result = await GoogleAuth.signIn();
       
-      if (data.success) {
-        localStorage.setItem('customerId', data.data.customerId);
-        localStorage.setItem('authToken', data.token);
-        navigate(data.data.isNewUser ? '/create-profile' : '/home');
+      if (result?.authentication?.idToken) {
+        const response = await fetch(`${API_URL}/api/auth/google-login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            idToken: result.authentication.idToken,
+            role: 'customer'
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          localStorage.setItem('customerId', data.data.customerId);
+          localStorage.setItem('authToken', data.token);
+          navigate(data.data.isNewUser ? '/create-profile' : '/home');
+        } else {
+          alert('Login failed: ' + (data.error || 'Unknown error'));
+        }
       } else {
-        alert(`Login failed: ${data.error || 'Unknown error'}`);
+        alert('Authentication failed');
       }
     } catch (error: any) {
-      console.error('Google Sign-In Error:', error);
-      console.error('Error details:', JSON.stringify(error));
-      if (error.message?.includes('10')) {
-        alert('Google Sign-In configuration error. Check SHA-1 in Google Cloud Console.');
-      } else {
-        alert(`Error: ${error.message || 'Something went wrong'}`);
-      }
+      alert('Google Sign-In error: ' + (error.message || 'Something went wrong'));
     }
   };
 

@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.laundrymate.customer',
+  appId: 'com.urbansteam.customer',
   appName: 'Urban Steam',
   webDir: 'dist',
   server: {
@@ -37,6 +37,7 @@ const config: CapacitorConfig = {
       scopes: ['profile', 'email'],
       serverClientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
+      androidClientId: '514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com'
     }
   }
 };

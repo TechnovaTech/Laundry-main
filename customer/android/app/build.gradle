@@ -8,14 +8,14 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.laundrymate.customer"
+    namespace "com.urbansteam.customer"
     compileSdk rootProject.ext.compileSdkVersion
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     defaultConfig {
-        applicationId "com.laundrymate.customer"
+        applicationId "com.urbansteam.customer"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 2

@@ -107,12 +107,7 @@ const App = () => {
     const initializeApp = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
-          // Initialize Google Auth for native platforms
-          await GoogleAuth.initialize({
-            clientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
-            scopes: ['profile', 'email'],
-            grantOfflineAccess: true,
-          });
+          // Google Auth is already initialized in main.tsx for native platforms
           
           await SplashScreen.hide();
           await StatusBar.setStyle({ style: Style.Light });

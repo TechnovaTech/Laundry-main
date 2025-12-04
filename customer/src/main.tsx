@@ -7,9 +7,13 @@ import { Capacitor } from '@capacitor/core';
 
 const GOOGLE_WEB_CLIENT_ID = "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com";
 
-// Initialize Google Auth for Capacitor - uses strings.xml configuration
+// Initialize Google Auth for Capacitor
 if (Capacitor.isNativePlatform()) {
-  GoogleAuth.initialize();
+  try {
+    GoogleAuth.initialize();
+  } catch (error) {
+    console.log('Google Auth initialization error:', error);
+  }
 }
 
 createRoot(document.getElementById("root")!).render(
