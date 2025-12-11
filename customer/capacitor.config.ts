@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.urbansteam.customer',
+  appId: 'com.urbansteam.customerapp',
   appName: 'Urban Steam',
   webDir: 'dist',
   server: {
