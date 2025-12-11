@@ -10,6 +10,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Phone number is required' }, { status: 400 });
     }
 
+    // Test phone number for Google Play review
+    if (phone === '+919999999999') {
+      otpStore.set(phone, '123456');
+      console.log('\n========================================');
+      console.log('📱 TEST OTP FOR GOOGLE PLAY REVIEW');
+      console.log('Phone:', phone);
+      console.log('OTP: 123456');
+      console.log('========================================\n');
+      return NextResponse.json({
+        success: true,
+        message: 'Test OTP sent successfully'
+      });
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore.set(phone, otp);
     

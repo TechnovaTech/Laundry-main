@@ -25,9 +25,11 @@ export async function POST(request: Request) {
     console.log('Stored OTP:', storedOtp);
     console.log('All stored OTPs:', Array.from(otpStore.entries()));
 
+    // Test phone number for Google Play review
+    const isTestPhone = phone === '+919999999999';
     // Development bypass: accept 123456 or stored OTP
     const isDevelopment = process.env.NODE_ENV !== 'production';
-    const isValidOtp = storedOtp === code || (isDevelopment && code === '123456');
+    const isValidOtp = storedOtp === code || (isDevelopment && code === '123456') || (isTestPhone && code === '123456');
 
     if (isValidOtp) {
       if (storedOtp) otpStore.delete(phone);
