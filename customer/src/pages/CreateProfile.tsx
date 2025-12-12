@@ -10,7 +10,7 @@ const CreateProfile = () => {
   const location = useLocation();
   const customerId = location.state?.customerId;
   const mobileNumber = location.state?.mobileNumber;
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -50,9 +50,7 @@ const CreateProfile = () => {
             phone: customer.mobile?.startsWith('google_') ? '' : customer.mobile || '',
             referralCode: ''
           })
-          if (customer.profileImage) {
-            setProfileImage(customer.profileImage)
-          }
+
           if (customer.name) {
             setAgreedToTerms(true)
           }
@@ -67,16 +65,7 @@ const CreateProfile = () => {
     }
   }, [customerId, mobileNumber, navigate]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -98,9 +87,7 @@ const CreateProfile = () => {
         mobile: formData.phone
       }
       
-      if (profileImage) {
-        updateData.profileImage = profileImage
-      }
+
       
       if (formData.referralCode) {
         updateData.referredBy = formData.referralCode
@@ -148,32 +135,11 @@ const CreateProfile = () => {
       <div className="px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex flex-col items-center mb-4 sm:mb-6">
           <div className="relative">
-            <input
-              type="file"
-              id="profile-image"
-              className="hidden"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-            <label
-              htmlFor="profile-image"
-              className="block w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 cursor-pointer hover:bg-gray-300 transition relative"
-            >
-              {profileImage ? (
-                <>
-                  <img src={profileImage} alt="Profile" className="w-full h-full rounded-full object-cover" />
-                  <div className="absolute inset-0 rounded-full bg-black bg-opacity-0 hover:bg-opacity-20 transition flex items-center justify-center">
-                    <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-white opacity-0 hover:opacity-100 transition" strokeWidth={3} />
-                  </div>
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" strokeWidth={3} />
-                </div>
-              )}
-            </label>
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center">
+              <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+            </div>
           </div>
-          <p className="mt-2 sm:mt-3 text-gray-600 text-xs sm:text-sm">Add Profile Photo</p>
+          <p className="mt-2 sm:mt-3 text-gray-600 text-xs sm:text-sm">Profile Avatar</p>
         </div>
 
         <div className="space-y-3 sm:space-y-4">
