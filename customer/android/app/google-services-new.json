@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "514222866895",
+    "project_id": "rock-partition-476511-h9",
+    "storage_bucket": "rock-partition-476511-h9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:514222866895:android:8a9b0c1d2e3f4567",
+        "android_client_info": {
+          "package_name": "com.urbansteam.customerapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.urbansteam.customerapp",
+            "certificate_hash": "e2415643f18d8ae27c66a9c3c4558a2c50361a3f"
+          }
+        },
+        {
+          "client_id": "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4fO5u8wnn-p6eGWBKaYo-tKBgAz9ih6c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

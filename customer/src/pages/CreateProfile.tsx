@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, User, Mail, Phone, Plus, X } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Plus, X, Camera } from "lucide-react";
 import { API_URL } from '@/config/api';
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 const CreateProfile = () => {
   const navigate = useNavigate();
@@ -20,6 +22,8 @@ const CreateProfile = () => {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [showImageOptions, setShowImageOptions] = useState(false);
 
   useEffect(() => {
     const storedCustomerId = localStorage.getItem('customerId')
@@ -71,6 +75,49 @@ const CreateProfile = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const selectImage = async (source: CameraSource) => {
+    try {
+      const image = await CapCamera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: source,
+        width: 300,
+        height: 300
+      });
+      
+      if (image.dataUrl) {
+        setProfileImage(image.dataUrl);
+      }
+      setShowImageOptions(false);
+    } catch (error) {
+      console.error('Error selecting image:', error);
+      setShowImageOptions(false);
+    }
+  };
+
+  const handleImageUpload = () => {
+    if (Capacitor.isNativePlatform()) {
+      setShowImageOptions(true);
+    } else {
+      // Web fallback
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setProfileImage(e.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    }
+  };
+
   const handleSubmit = async () => {
     if (isLoading) return
     
@@ -85,6 +132,10 @@ const CreateProfile = () => {
         name: formData.fullName,
         email: formData.email,
         mobile: formData.phone
+      }
+      
+      if (profileImage) {
+        updateData.profileImage = profileImage
       }
       
 
@@ -135,11 +186,24 @@ const CreateProfile = () => {
       <div className="px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex flex-col items-center mb-4 sm:mb-6">
           <div className="relative">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center">
-              <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+            <div 
+              onClick={handleImageUpload}
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity overflow-hidden"
+            >
+              {profileImage ? (
+                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+              )}
             </div>
+            <button
+              onClick={handleImageUpload}
+              className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-600 transition-colors"
+            >
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+            </button>
           </div>
-          <p className="mt-2 sm:mt-3 text-gray-600 text-xs sm:text-sm">Profile Avatar</p>
+          <p className="mt-2 sm:mt-3 text-gray-600 text-xs sm:text-sm">Tap to add photo</p>
         </div>
 
         <div className="space-y-3 sm:space-y-4">
@@ -217,6 +281,36 @@ const CreateProfile = () => {
           {isLoading ? 'Saving...' : 'Save & Continue'}
         </Button>
       </div>
+
+      {/* Image Selection Modal */}
+      {showImageOptions && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
+          <div className="bg-white rounded-t-3xl w-full p-6 pb-8 animate-slide-up">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Select Photo</h3>
+              <button onClick={() => setShowImageOptions(false)}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => selectImage(CameraSource.Camera)}
+                className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                <Camera className="w-5 h-5 text-blue-500" />
+                <span className="text-left">Take Photo</span>
+              </button>
+              <button
+                onClick={() => selectImage(CameraSource.Photos)}
+                className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                <User className="w-5 h-5 text-blue-500" />
+                <span className="text-left">Choose from Gallery</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showTermsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

@@ -22,22 +22,13 @@ const Congrats = () => {
           You're in. You can now focus on what matters. Your ironing is our problem now. Let's get started.
         </p>
         
-        <div className="w-full space-y-3 sm:space-y-4">
+        <div className="w-full">
           <Button 
             onClick={() => navigate("/login")}
             className="w-full bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-lg"
             size="lg"
           >
             Continue to Signup
-          </Button>
-          
-          <Button 
-            variant="outline"
-            onClick={() => navigate("/services")}
-            className="w-full bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-lg"
-            size="lg"
-          >
-            Browse Services
           </Button>
         </div>
         

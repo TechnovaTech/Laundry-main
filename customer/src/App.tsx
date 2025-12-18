@@ -11,13 +11,14 @@ import { Keyboard } from '@capacitor/keyboard';
 import { App as CapApp } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import ErrorBoundary from './components/ErrorBoundary';
 import Welcome from "./pages/Welcome";
 import CheckAvailability from "./pages/CheckAvailability";
 import Congrats from "./pages/Congrats";
 import NotAvailable from "./pages/NotAvailable";
 import Login from "./pages/Login";
 import VerifyMobile from "./pages/VerifyMobile";
-import Services from "./pages/Services";
+
 import CreateProfile from "./pages/CreateProfile";
 import Home from "./pages/Home";
 import Prices from "./pages/Prices";
@@ -81,7 +82,7 @@ const AppContent = () => {
       <Route path="/not-available" element={<NotAvailable />} />
       <Route path="/login" element={<Login />} />
       <Route path="/verify-mobile" element={<VerifyMobile />} />
-      <Route path="/services" element={<Services />} />
+
       <Route path="/create-profile" element={<CreateProfile />} />
       <Route path="/home" element={<Home />} />
       <Route path="/prices" element={<Prices />} />
@@ -107,21 +108,38 @@ const App = () => {
     const initializeApp = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
-          // Google Auth is already initialized in main.tsx for native platforms
+          // Hide splash screen with delay to ensure app is ready
+          setTimeout(async () => {
+            try {
+              await SplashScreen.hide();
+            } catch (error) {
+              console.error('SplashScreen hide error:', error);
+            }
+          }, 1000);
           
-          await SplashScreen.hide();
-          await StatusBar.setStyle({ style: Style.Light });
-          await StatusBar.setOverlaysWebView({ overlay: true });
+          // Set status bar style with error handling
+          try {
+            await StatusBar.setStyle({ style: Style.Light });
+            await StatusBar.setOverlaysWebView({ overlay: true });
+          } catch (error) {
+            console.error('StatusBar configuration error:', error);
+          }
           
-          Keyboard.addListener('keyboardWillShow', () => {
-            document.body.classList.add('keyboard-open');
-          });
-          
-          Keyboard.addListener('keyboardWillHide', () => {
-            document.body.classList.remove('keyboard-open');
-          });
+          // Add keyboard listeners with error handling
+          try {
+            Keyboard.addListener('keyboardWillShow', () => {
+              document.body.classList.add('keyboard-open');
+            });
+            
+            Keyboard.addListener('keyboardWillHide', () => {
+              document.body.classList.remove('keyboard-open');
+            });
+          } catch (error) {
+            console.error('Keyboard listener error:', error);
+          }
         } catch (error) {
-          console.log('Capacitor initialization error:', error);
+          console.error('Capacitor initialization error:', error);
+          // Continue app initialization even if some Capacitor features fail
         }
       }
     };
@@ -130,15 +148,17 @@ const App = () => {
   }, []);
   
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
