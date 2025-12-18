@@ -6,7 +6,7 @@ const Welcome = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="h-screen bg-white flex flex-col items-center justify-center px-4 sm:px-6 overflow-hidden">
+    <div className="h-screen bg-white flex flex-col items-center justify-center px-4 sm:px-6 overflow-hidden safe-top">
       <div className="w-full max-w-xs sm:max-w-sm flex flex-col items-center text-center">
         <img 
           src={laundryAppIllustration} 

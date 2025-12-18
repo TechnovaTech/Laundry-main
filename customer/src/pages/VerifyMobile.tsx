@@ -84,7 +84,7 @@ const VerifyMobile = () => {
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
-      <div className="flex items-center gap-3 sm:gap-4 border-b px-4 sm:px-6 py-4">
+      <div className="flex items-center gap-3 sm:gap-4 border-b px-4 sm:px-6 py-4 safe-top-header">
         <button onClick={() => navigate(-1)} className="text-black flex-shrink-0">
           <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>

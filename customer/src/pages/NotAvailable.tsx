@@ -6,7 +6,7 @@ const NotAvailable = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 sm:px-6 py-8 sm:py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 sm:px-6 py-8 sm:py-12 safe-top">
       <div className="flex w-full max-w-xs sm:max-w-md flex-col items-center text-center">
         <img 
           src={notAvailableImg}

@@ -29,7 +29,7 @@ const CheckAvailability = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
-      <div className="border-b px-4 sm:px-6 py-4">
+      <div className="border-b px-4 sm:px-6 py-4 safe-top-header">
         <h1 className="text-lg sm:text-xl font-bold text-center">Check Availability</h1>
       </div>
       

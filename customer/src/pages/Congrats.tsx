@@ -6,7 +6,7 @@ const Congrats = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-background px-4 sm:px-6 overflow-hidden">
+    <div className="h-screen flex flex-col items-center justify-center bg-background px-4 sm:px-6 overflow-hidden safe-top">
       <div className="flex w-full max-w-sm sm:max-w-md flex-col items-center text-center">
         <img 
           src={congratsImg}

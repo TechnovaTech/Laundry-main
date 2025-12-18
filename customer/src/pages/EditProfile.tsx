@@ -54,6 +54,23 @@ const EditProfile = () => {
 
   const selectImage = async (source: CameraSource) => {
     try {
+      // Request permissions first
+      if (source === CameraSource.Camera) {
+        const permissions = await CapCamera.requestPermissions({ permissions: ['camera'] });
+        if (permissions.camera === 'denied') {
+          alert('Camera permission denied. Please enable camera access in settings.');
+          setShowImageOptions(false);
+          return;
+        }
+      } else {
+        // For gallery access, check permissions but don't block if denied
+        try {
+          await CapCamera.checkPermissions();
+        } catch (error) {
+          console.log('Permission check failed, proceeding anyway');
+        }
+      }
+      
       const image = await CapCamera.getPhoto({
         quality: 80,
         allowEditing: false,
@@ -62,6 +79,7 @@ const EditProfile = () => {
         width: 300,
         height: 300
       });
+      
       
       if (image.dataUrl) {
         setProfileImage(image.dataUrl);
@@ -137,7 +155,7 @@ const EditProfile = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="sticky top-0 bg-white flex items-center border-b px-4 sm:px-6 py-4 z-10">
+      <header className="sticky top-0 bg-white flex items-center border-b px-4 sm:px-6 py-4 z-10 safe-top-header">
         <button onClick={() => navigate(-1)} className="mr-3 sm:mr-4 flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
         </button>

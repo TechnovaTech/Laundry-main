@@ -30,6 +30,20 @@ input, select, textarea {
   min-height: -webkit-fill-available;
 }
 
+/* Consistent safe area padding for all screens */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 1rem);
+}
+
+.safe-top-header {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+}
+
+/* For gradient headers */
+.gradient-header-safe {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

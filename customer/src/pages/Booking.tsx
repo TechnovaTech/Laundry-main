@@ -194,7 +194,7 @@ const Booking = () => {
           </linearGradient>
         </defs>
       </svg>
-      <header className="bg-white px-4 sm:px-6 flex items-center justify-between shadow-sm gradient-header-safe" style={{ paddingTop: '1rem', paddingBottom: '1rem' }}>
+      <header className="bg-white px-4 sm:px-6 flex items-center justify-between shadow-sm gradient-header-safe" style={{ paddingBottom: '1rem' }}>
         <button onClick={() => navigate(-1)} className="flex-shrink-0" aria-label="Go back">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
         </button>
