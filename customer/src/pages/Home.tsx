@@ -229,13 +229,15 @@ const Home = () => {
             <h1 className="text-2xl sm:text-3xl font-bold mb-1">Hi, {userName} 👋</h1>
             <p className="text-white/90 text-sm sm:text-base">Let's schedule your order</p>
           </div>
-          {profileImage ? (
-            <img src={profileImage} alt="Profile" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0 border-2 border-white/30" />
-          ) : (
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-              <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-          )}
+          <button onClick={() => navigate("/profile")} className="flex-shrink-0">
+            {profileImage ? (
+              <img src={profileImage} alt="Profile" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white/30 hover:border-white/50 transition-colors" />
+            ) : (
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+            )}
+          </button>
         </div>
       </div>
 
