@@ -20,6 +20,7 @@ import Login from "./pages/Login";
 import VerifyMobile from "./pages/VerifyMobile";
 
 import CreateProfile from "./pages/CreateProfile";
+import EditProfile from "./pages/EditProfile";
 import Home from "./pages/Home";
 import Prices from "./pages/Prices";
 import Booking from "./pages/Booking";
@@ -84,6 +85,7 @@ const AppContent = () => {
       <Route path="/verify-mobile" element={<VerifyMobile />} />
 
       <Route path="/create-profile" element={<CreateProfile />} />
+      <Route path="/edit-profile" element={<EditProfile />} />
       <Route path="/home" element={<Home />} />
       <Route path="/prices" element={<Prices />} />
       <Route path="/booking" element={<Booking />} />

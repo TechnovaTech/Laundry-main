@@ -450,11 +450,11 @@ const Profile = () => {
             </div>
           </div>
           <button 
-            onClick={() => navigate("/create-profile")}
+            onClick={() => navigate("/edit-profile")}
             className="font-semibold text-xs sm:text-sm"
             style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
           >
-            Edit
+            Edit Profile
           </button>
         </div>
 
