@@ -8,6 +8,7 @@ const Prices = () => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     fetchItems();
@@ -19,6 +20,9 @@ const Prices = () => {
       const data = await response.json();
       if (data.success) {
         setItems(data.data);
+        // Extract unique categories from items
+        const uniqueCategories = [...new Set(data.data.map((item: any) => item.category))];
+        setCategories(uniqueCategories);
       }
     } catch (error) {
       console.error('Error fetching items:', error);
@@ -27,7 +31,7 @@ const Prices = () => {
     }
   };
 
-  const categories = ['All', 'Men', 'Women', 'Household'];
+
   const filteredItems = selectedCategory === 'All' 
     ? items 
     : items.filter(item => item.category === selectedCategory);
@@ -53,22 +57,28 @@ const Prices = () => {
       </header>
 
       <div className="px-4 sm:px-6 py-4 sm:py-6">
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          {['Men', 'Women', 'Household'].map((cat) => {
-            const Icon = cat === 'Household' ? Bed : Shirt;
-            return (
-              <div key={cat} className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <h3 className="font-bold text-sm sm:text-lg mb-1 text-black">{cat}</h3>
-                <p className="text-xs sm:text-sm text-gray-500">
-                  {items.filter(item => item.category === cat).length} items
-                </p>
-              </div>
-            );
-          })}
-        </div>
+        {selectedCategory === 'All' && (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            {categories.map((cat) => {
+              const Icon = cat.toLowerCase().includes('household') || cat.toLowerCase().includes('home') ? Bed : Shirt;
+              return (
+                <button 
+                  key={cat} 
+                  onClick={() => setSelectedCategory(cat)}
+                  className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-left"
+                >
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-sm sm:text-lg mb-1 text-black">{cat}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    {items.filter(item => item.category === cat).length} items
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center py-8 text-gray-500">Loading prices...</div>
@@ -76,42 +86,43 @@ const Prices = () => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 flex flex-col items-center shadow-lg">
             <p className="text-center text-sm text-gray-600">No pricing items available yet.</p>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {['Men', 'Women', 'Household'].map((category) => {
-              const categoryItems = items.filter(item => item.category === category);
-              if (categoryItems.length === 0) return null;
-              
-              return (
-                <div key={category}>
-                  <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                    {category}
-                  </h2>
-                  <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                    {categoryItems.map((item: any, index: number) => (
-                      <div
-                        key={item._id}
-                        className={`flex items-center justify-between p-4 ${
-                          index !== categoryItems.length - 1 ? 'border-b border-gray-100' : ''
-                        } hover:bg-blue-50 transition-colors`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-                            <Shirt className="w-5 h-5 text-white" />
-                          </div>
-                          <span className="font-semibold text-gray-800">{item.name}</span>
-                        </div>
-                        <span className="text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                          ₹{item.price}
-                        </span>
+        ) : selectedCategory !== 'All' ? (
+          <div>
+            <div className="mb-4">
+              <button 
+                onClick={() => setSelectedCategory('All')}
+                className="text-blue-500 text-sm font-medium hover:underline"
+              >
+                ← Back to all categories
+              </button>
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                {selectedCategory}
+              </h2>
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                {filteredItems.map((item: any, index: number) => (
+                  <div
+                    key={item._id}
+                    className={`flex items-center justify-between p-4 ${
+                      index !== filteredItems.length - 1 ? 'border-b border-gray-100' : ''
+                    } hover:bg-blue-50 transition-colors`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                        <Shirt className="w-5 h-5 text-white" />
                       </div>
-                    ))}
+                      <span className="font-semibold text-gray-800">{item.name}</span>
+                    </div>
+                    <span className="text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                      ₹{item.price}
+                    </span>
                   </div>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            </div>
           </div>
-        )}
+        ) : null}
 
         <div className="mt-6 rounded-2xl p-4 shadow-md" style={{ background: 'linear-gradient(to bottom right, #f0ebf8, #e0f7f9)' }}>
           <p className="text-center text-xs text-gray-700 font-medium">
