@@ -29,6 +29,7 @@ const PartnerSchema = new mongoose.Schema({
     state: String,
     pincode: String
   },
+  pincodes: [{ type: String }],
   isVerified: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
   rating: { type: Number, default: 0 },

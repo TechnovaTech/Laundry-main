@@ -35,11 +35,12 @@ export default function AddOnPage() {
   const [hubs, setHubs] = useState<any[]>([])
   const [hubForm, setHubForm] = useState({
     name: '',
-    address: { street: '', city: '', state: '', pincode: '' },
+    address: { street: '', city: '', state: '', pincode: [] },
     pincodes: [],
     contactPerson: '',
     contactNumber: ''
   })
+  const [editingHub, setEditingHub] = useState<string | null>(null)
   const [hubState, setHubState] = useState('')
   const [hubCity, setHubCity] = useState('')
   const [hubCities, setHubCities] = useState<string[]>([])
@@ -159,8 +160,11 @@ export default function AddOnPage() {
 
   const addHub = async (e: React.FormEvent) => {
     e.preventDefault()
-    const response = await fetch('/api/hubs', {
-      method: 'POST',
+    const url = editingHub ? `/api/hubs?id=${editingHub}` : '/api/hubs'
+    const method = editingHub ? 'PUT' : 'POST'
+    
+    const response = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...hubForm,
@@ -169,10 +173,38 @@ export default function AddOnPage() {
     })
     if (response.ok) {
       fetchHubs()
-      setHubForm({ name: '', address: { street: '', city: '', state: '', pincode: '' }, pincodes: [], contactPerson: '', contactNumber: '' })
-      setHubState('')
-      setHubCity('')
-      setSelectedServicePincodes([])
+      resetHubForm()
+    }
+  }
+
+  const resetHubForm = () => {
+    setHubForm({ name: '', address: { street: '', city: '', state: '', pincode: [] }, pincodes: [], contactPerson: '', contactNumber: '' })
+    setHubState('')
+    setHubCity('')
+    setSelectedServicePincodes([])
+    setEditingHub(null)
+  }
+
+  const editHub = (hub: any) => {
+    setEditingHub(hub._id)
+    setHubForm({
+      name: hub.name,
+      address: hub.address,
+      pincodes: hub.pincodes,
+      contactPerson: hub.contactPerson || '',
+      contactNumber: hub.contactNumber || ''
+    })
+    setHubState(hub.address.state)
+    setHubCity(hub.address.city)
+    handleHubStateChange(hub.address.state)
+    handleHubCityChange(hub.address.city)
+    setSelectedServicePincodes(hub.pincodes)
+  }
+
+  const deleteHub = async (id: string) => {
+    if (confirm('Are you sure you want to delete this hub?')) {
+      const response = await fetch(`/api/hubs?id=${id}`, { method: 'DELETE' })
+      if (response.ok) fetchHubs()
     }
   }
 
@@ -1231,10 +1263,13 @@ export default function AddOnPage() {
                 <option value="">Select City</option>
                 {hubCities.map((city: string) => <option key={city} value={city}>{city}</option>)}
               </select>
-              <select aria-label="Select Hub Pincode" value={hubForm.address.pincode} onChange={(e) => setHubForm({...hubForm, address: {...hubForm.address, pincode: e.target.value}})} disabled={!hubCity} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }}>
-                <option value="">Select Hub Pincode</option>
-                {hubPincodes.map((p: any) => <option key={p.pincode} value={p.pincode}>{p.pincode} - {p.area}</option>)}
-              </select>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Hub Location Pincodes (select multiple)</label>
+                <select aria-label="Select Hub Pincodes" multiple value={hubForm.address.pincode} onChange={(e) => setHubForm({...hubForm, address: {...hubForm.address, pincode: Array.from(e.target.selectedOptions, option => option.value)}})} disabled={!hubCity} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', width: '100%', minHeight: '80px' }}>
+                  {hubPincodes.map((p: any) => <option key={p.pincode} value={p.pincode}>{p.pincode} - {p.area}</option>)}
+                </select>
+                <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.25rem' }}>Hold Ctrl/Cmd to select multiple pincodes for hub location</p>
+              </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Service Pincodes (select multiple)</label>
                 <select aria-label="Select Service Pincodes" multiple value={selectedServicePincodes} onChange={(e) => setSelectedServicePincodes(Array.from(e.target.selectedOptions, option => option.value))} disabled={!hubCity} required style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px', width: '100%', minHeight: '100px' }}>
@@ -1245,14 +1280,30 @@ export default function AddOnPage() {
               <input placeholder="Contact Person" value={hubForm.contactPerson} onChange={(e) => setHubForm({...hubForm, contactPerson: e.target.value})} style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }} />
               <input placeholder="Contact Number" value={hubForm.contactNumber} onChange={(e) => setHubForm({...hubForm, contactNumber: e.target.value})} style={{ padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '8px' }} />
             </div>
-            <button type="submit" style={{ backgroundColor: '#2563eb', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', width: '100%' }}>Add Hub</button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button type="submit" style={{ backgroundColor: editingHub ? '#10b981' : '#2563eb', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', flex: 1 }}>
+                {editingHub ? 'Update Hub' : 'Add Hub'}
+              </button>
+              {editingHub && (
+                <button type="button" onClick={resetHubForm} style={{ backgroundColor: '#6b7280', color: 'white', padding: '0.75rem 1rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
 
           <div style={{ display: 'grid', gap: '1rem' }}>
             {hubs.map((hub) => (
-              <div key={hub._id} style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>{hub.name}</h4>
-                <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>📍 {hub.address.street}, {hub.address.city}, {hub.address.state} - {hub.address.pincode}</p>
+              <div key={hub._id} style={{ backgroundColor: editingHub === hub._id ? '#dbeafe' : '#f8fafc', padding: '1rem', borderRadius: '8px', border: editingHub === hub._id ? '2px solid #2563eb' : '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>{hub.name}</h4>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={() => editHub(hub)} style={{ padding: '0.25rem 0.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}>Edit</button>
+                    <button onClick={() => deleteHub(hub._id)} style={{ padding: '0.25rem 0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}>Delete</button>
+                  </div>
+                </div>
+                <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>📍 {hub.address.street}, {hub.address.city}, {hub.address.state}</p>
+                <p style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '0.25rem' }}>Hub Locations: {Array.isArray(hub.address.pincode) ? hub.address.pincode.join(', ') : hub.address.pincode}</p>
                 <p style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '0.25rem' }}>Service Pincodes: {hub.pincodes.join(', ')}</p>
                 {hub.contactPerson && <p style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '0.25rem' }}>Contact: {hub.contactPerson} - {hub.contactNumber}</p>}
               </div>

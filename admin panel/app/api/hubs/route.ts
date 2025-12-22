@@ -45,3 +45,72 @@ export async function GET(request: NextRequest) {
     }, { status: 500 })
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    await dbConnect()
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    if (!id) {
+      return NextResponse.json({
+        success: false,
+        message: 'Hub ID is required'
+      }, { status: 400 })
+    }
+    
+    const hubData = await request.json()
+    const updatedHub = await Hub.findByIdAndUpdate(id, hubData, { new: true })
+    
+    if (!updatedHub) {
+      return NextResponse.json({
+        success: false,
+        message: 'Hub not found'
+      }, { status: 404 })
+    }
+    
+    return NextResponse.json({
+      success: true,
+      data: updatedHub
+    })
+  } catch (error) {
+    return NextResponse.json({
+      success: false,
+      message: 'Failed to update hub'
+    }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await dbConnect()
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    if (!id) {
+      return NextResponse.json({
+        success: false,
+        message: 'Hub ID is required'
+      }, { status: 400 })
+    }
+    
+    const deletedHub = await Hub.findByIdAndDelete(id)
+    
+    if (!deletedHub) {
+      return NextResponse.json({
+        success: false,
+        message: 'Hub not found'
+      }, { status: 404 })
+    }
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Hub deleted successfully'
+    })
+  } catch (error) {
+    return NextResponse.json({
+      success: false,
+      message: 'Failed to delete hub'
+    }, { status: 500 })
+  }
+}

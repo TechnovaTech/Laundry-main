@@ -32,6 +32,7 @@ interface Partner {
     state: string
     pincode: string
   }
+  pincodes?: string[]
   isVerified: boolean
   isActive: boolean
   rating: number
@@ -244,23 +245,56 @@ export default function PartnerProfilePage() {
           </div>
         </div>
 
-        {/* Address */}
+        {/* Address & Service Areas */}
         <div style={{
           backgroundColor: 'white',
           padding: '1.5rem',
           borderRadius: '12px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
         }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#2563eb' }}>Address</h3>
-          <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-            {partner.address?.street ? (
-              <>
-                <div>{partner.address.street}</div>
-                <div>{partner.address.city}, {partner.address.state} - {partner.address.pincode}</div>
-              </>
-            ) : (
-              <div>Not provided</div>
-            )}
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#2563eb' }}>Address & Service Areas</h3>
+          
+          {/* Address */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#374151' }}>Registered Address</h4>
+            <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+              {partner.address?.street ? (
+                <>
+                  <div>{partner.address.street}</div>
+                  <div>{partner.address.city}, {partner.address.state} - {partner.address.pincode}</div>
+                </>
+              ) : (
+                <div>Not provided</div>
+              )}
+            </div>
+          </div>
+
+          {/* Service Pincodes */}
+          <div>
+            <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#374151' }}>Service Areas (Pincodes)</h4>
+            <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+              {partner.pincodes && partner.pincodes.length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {partner.pincodes.map((pincode, index) => (
+                    <span 
+                      key={index}
+                      style={{
+                        backgroundColor: '#2563eb',
+                        color: 'white',
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '20px',
+                        fontSize: '0.875rem',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {pincode}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div>No service areas specified</div>
+              )}
+            </div>
           </div>
         </div>
       </div>

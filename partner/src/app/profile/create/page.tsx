@@ -16,6 +16,7 @@ export default function CreateProfile() {
       state: "",
       pincode: ""
     },
+    pincodes: [""],
     vehicleType: "",
     vehicleNumber: ""
   });
@@ -49,6 +50,7 @@ export default function CreateProfile() {
               state: "",
               pincode: ""
             },
+            pincodes: partner.pincodes && partner.pincodes.length > 0 ? partner.pincodes : [""],
             vehicleType: partner.vehicleType || "",
             vehicleNumber: partner.vehicleNumber || ""
           });
@@ -64,9 +66,39 @@ export default function CreateProfile() {
     fetchPartnerData();
   }, [router]);
 
+  const addPincode = () => {
+    setFormData(prev => ({
+      ...prev,
+      pincodes: [...prev.pincodes, ""]
+    }));
+  };
+
+  const removePincode = (index: number) => {
+    if (formData.pincodes.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        pincodes: prev.pincodes.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const updatePincode = (index: number, value: string) => {
+    const numericValue = value.replace(/\D/g, '').slice(0, 6);
+    setFormData(prev => ({
+      ...prev,
+      pincodes: prev.pincodes.map((pincode, i) => i === index ? numericValue : pincode)
+    }));
+  };
+
   const handleSave = async () => {
     if (!formData.name || !formData.mobile) {
       alert("Please fill required fields");
+      return;
+    }
+
+    const validPincodes = formData.pincodes.filter(p => p.trim() && p.length === 6);
+    if (validPincodes.length === 0) {
+      alert("Please add at least one valid 6-digit pincode");
       return;
     }
 
@@ -76,7 +108,10 @@ export default function CreateProfile() {
       const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          pincodes: formData.pincodes.filter(p => p.trim() && p.length === 6)
+        })
       });
 
       const data = await response.json();
@@ -194,19 +229,48 @@ export default function CreateProfile() {
           />
         </div>
 
-        {/* Pincode */}
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#452D9B' }}>📍</span>
-          <input
-            className="w-full rounded-xl border-2 pl-9 pr-3 py-3 text-sm text-black outline-none"
-            style={{ borderColor: '#b8a7d9' }}
-            onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
-            onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
-            placeholder="Pincode - Use same as availability check"
-            type="text"
-            value={formData.address.pincode}
-            onChange={(e) => setFormData(prev => ({ ...prev, address: { ...prev.address, pincode: e.target.value } }))}
-          />
+        {/* Service Pincodes */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700">Service Areas (Pincodes)</label>
+            <button
+              type="button"
+              onClick={addPincode}
+              className="text-sm font-medium px-3 py-1 rounded-lg"
+              style={{ color: '#452D9B', backgroundColor: '#f3f0ff' }}
+            >
+              + Add Pincode
+            </button>
+          </div>
+          
+          {formData.pincodes.map((pincode, index) => (
+            <div key={index} className="relative flex items-center gap-2">
+              <div className="flex-1 relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#452D9B' }}>📍</span>
+                <input
+                  className="w-full rounded-xl border-2 pl-9 pr-3 py-3 text-sm text-black outline-none"
+                  style={{ borderColor: '#b8a7d9' }}
+                  onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+                  onBlur={(e) => { e.target.style.borderColor = '#b8a7d9'; e.target.style.boxShadow = 'none'; }}
+                  placeholder="Enter 6-digit pincode"
+                  type="text"
+                  maxLength={6}
+                  value={pincode}
+                  onChange={(e) => updatePincode(index, e.target.value)}
+                />
+              </div>
+              {formData.pincodes.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removePincode(index)}
+                  className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-sm font-bold hover:bg-red-200 transition-colors"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+          <p className="text-xs text-gray-500 mt-1">Add all pincodes where you can provide delivery services</p>
         </div>
       </form>
 
