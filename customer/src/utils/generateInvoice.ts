@@ -81,7 +81,7 @@ export const generateInvoicePDF = async (order: any) => {
         address: hub.address?.street || hubAddress.address,
         address2: '',
         address3: hub.address ? `${hub.address.city}, ${hub.address.state} - ${hub.address.pincode}` : hubAddress.address3,
-        email: hub.contactNumber || hubAddress.email,
+        email: hubAddress.email,
         gst: hubAddress.gst
       };
     } else {
@@ -100,7 +100,7 @@ export const generateInvoicePDF = async (order: any) => {
             address: hub.address?.street || hubAddress.address,
             address2: '',
             address3: hub.address ? `${hub.address.city}, ${hub.address.state} - ${hub.address.pincode}` : hubAddress.address3,
-            email: hub.contactNumber || hubAddress.email,
+            email: hubAddress.email,
             gst: hubAddress.gst
           };
           console.log('Hub address set:', hubAddress);

@@ -34,7 +34,7 @@ const ReferAndEarn = () => {
   );
 };
 import { useNavigate, useLocation } from "react-router-dom";
-import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, MessageCircle, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2, Phone } from "lucide-react";
+import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { API_URL } from '@/config/api';
 import BottomNavigation from "@/components/BottomNavigation";
@@ -188,23 +188,8 @@ const Profile = () => {
     return cached || "₹0";
   });
 
-  const supportOptions = [
-    { id: 1, title: "Call Support", icon: Phone },
-    { id: 2, title: "Mail", icon: Mail },
-    { id: 3, title: "WhatsApp Support", icon: MessageCircle }
-  ];
-  
-  const handleSupportClick = (optionId: number) => {
-    if (optionId === 1) {
-      // Call support
-      window.open('tel:+919036754813', '_self');
-    } else if (optionId === 2) {
-      // Open Gmail compose
-      window.open('https://mail.google.com/mail/?view=cm&fs=1&to=acsgroup.global@gmail.com', '_blank');
-    } else if (optionId === 3) {
-      // Open WhatsApp chat
-      window.open('https://wa.me/919036754813', '_blank');
-    }
+  const handleSupportClick = () => {
+    window.open('https://mail.google.com/mail/?view=cm&fs=1&to=support@urbansteam.in', '_blank');
   };
 
   const legalOptions = [
@@ -732,19 +717,13 @@ const Profile = () => {
 
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Support</h2>
-          {supportOptions.map((option) => {
-            const Icon = option.icon;
-            return (
-              <div 
-                key={option.id} 
-                onClick={() => handleSupportClick(option.id)}
-                className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:shadow-xl transition-shadow"
-              >
-                <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-                <span className="font-medium text-black text-sm sm:text-base">{option.title}</span>
-              </div>
-            );
-          })}
+          <div 
+            onClick={handleSupportClick}
+            className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg mb-3 flex items-center gap-2 sm:gap-3 cursor-pointer hover:shadow-xl transition-shadow"
+          >
+            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
+            <span className="font-medium text-black text-sm sm:text-base">Mail</span>
+          </div>
         </div>
 
         <div>
