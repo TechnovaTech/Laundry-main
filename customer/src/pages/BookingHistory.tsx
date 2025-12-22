@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import group12Image from "@/assets/Group (12).png";
 import deliveryImage from "@/assets/Delivery.png";
 import { API_URL } from '@/config/api';
+import BottomNavigation from "@/components/BottomNavigation";
 
 const BookingHistory = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const BookingHistory = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-24">
+    <div className="min-h-screen bg-background page-with-bottom-nav">
       <header className="sticky top-0 px-4 sm:px-6 py-4 flex items-center z-10 shadow-lg gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <button onClick={() => navigate(-1)} className="flex-shrink-0" aria-label="Go back">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -178,33 +179,7 @@ const BookingHistory = () => {
         )}
       </div>
 
-      <svg width="0" height="0" style={{ position: 'absolute' }}>
-        <defs>
-          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style={{ stopColor: '#452D9B', stopOpacity: 1 }} />
-            <stop offset="100%" style={{ stopColor: '#07C8D0', stopOpacity: 1 }} />
-          </linearGradient>
-        </defs>
-      </svg>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl border-t">
-        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors" aria-label="Home">
-          <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors" aria-label="Prices">
-          <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-        <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Book order">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-            <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-          </div>
-        </button>
-        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 p-1" aria-label="Booking history">
-          <RotateCcw className="w-5 h-5 sm:w-7 sm:h-7" style={{ stroke: 'url(#gradient)' }} />
-        </button>
-        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors" aria-label="Profile">
-          <User className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-      </nav>
+      <BottomNavigation />
     </div>
   );
 };

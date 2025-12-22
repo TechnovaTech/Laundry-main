@@ -3,6 +3,7 @@ import { ArrowLeft, Info, Shirt, Bed, Home as HomeIcon, Tag, ShoppingCart, Rotat
 import { useEffect, useState } from "react";
 import { API_URL } from '@/config/api';
 import { Button } from "@/components/ui/button";
+import BottomNavigation from "@/components/BottomNavigation";
 
 const Prices = () => {
   const navigate = useNavigate();
@@ -111,7 +112,7 @@ const Prices = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
+    <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
       <header className="px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <button onClick={() => navigate(-1)} className="flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -240,33 +241,7 @@ const Prices = () => {
         </div>
       )}
 
-      <svg width="0" height="0" style={{ position: 'absolute' }}>
-        <defs>
-          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style={{ stopColor: '#452D9B', stopOpacity: 1 }} />
-            <stop offset="100%" style={{ stopColor: '#07C8D0', stopOpacity: 1 }} />
-          </linearGradient>
-        </defs>
-      </svg>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl border-t">
-        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
-          <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-        <button className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
-          <Tag className="w-5 h-5 sm:w-7 sm:h-7" style={{ stroke: 'url(#gradient)' }} />
-        </button>
-        <button onClick={() => navigate("/cart")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-            <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-          </div>
-        </button>
-        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
-          <RotateCcw className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1 hover:text-blue-500 transition-colors">
-          <User className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-      </nav>
+      <BottomNavigation />
     </div>
   );
 };

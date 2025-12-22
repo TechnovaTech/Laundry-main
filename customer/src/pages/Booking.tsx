@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Info, Shirt, MapPin, CheckCircle2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
+import BottomNavigation from "@/components/BottomNavigation";
 
 interface PricingItem {
   _id: string;
@@ -229,7 +230,7 @@ const Booking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24">
+    <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -487,25 +488,7 @@ const Booking = () => {
         </Button>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl">
-        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Home">
-          <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Prices">
-          <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-        <button onClick={() => navigate("/cart")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Shopping cart">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-            <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-          </div>
-        </button>
-        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Booking history">
-          <RotateCcw className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Profile">
-          <User className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-      </nav>
+      <BottomNavigation />
 
       {toast.show && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">

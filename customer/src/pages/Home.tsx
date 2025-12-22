@@ -5,6 +5,7 @@ import { Check, Minus, Plus, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, Use
 import homeScreenImage from "@/assets/Home screen.png";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
+import BottomNavigation from "@/components/BottomNavigation";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -221,7 +222,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 sm:pb-24" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
+    <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
       {/* Gradient Header Section */}
       <div className="text-white px-4 sm:px-6 pb-6 sm:pb-8 shadow-xl gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <div className="flex items-start justify-between">
@@ -387,34 +388,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <svg width="0" height="0" style={{ position: 'absolute' }}>
-        <defs>
-          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style={{ stopColor: '#452D9B', stopOpacity: 1 }} />
-            <stop offset="100%" style={{ stopColor: '#07C8D0', stopOpacity: 1 }} />
-          </linearGradient>
-        </defs>
-      </svg>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
-        <button onClick={() => navigate("/home")} className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
-          <HomeIcon className="w-5 h-5 sm:w-7 sm:h-7" style={{ stroke: 'url(#gradient)' }} />
-        </button>
-        <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-        <button onClick={() => navigate("/cart")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gray-700 flex items-center justify-center border-2 border-white shadow-lg">
-            <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-          </div>
-        </button>
-        <button onClick={() => navigate("/booking-history")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <RotateCcw className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
-          <User className="w-5 h-5 sm:w-7 sm:h-7" />
-        </button>
-      </nav>
+      <BottomNavigation />
 
       {/* Voucher Code Modal */}
       {showVoucherModal && (

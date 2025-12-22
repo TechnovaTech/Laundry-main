@@ -59,10 +59,18 @@ const AppContent = () => {
       let backButtonListener: PluginListenerHandle | null = null;
       
       CapApp.addListener('backButton', ({ canGoBack }) => {
-        if (canGoBack) {
+        const currentPath = location.pathname;
+        
+        // Define main pages where back should exit app
+        const mainPages = ['/home', '/prices', '/cart', '/booking-history', '/profile'];
+        
+        if (mainPages.includes(currentPath)) {
+          CapApp.exitApp();
+        } else if (canGoBack) {
           navigate(-1);
         } else {
-          CapApp.exitApp();
+          // If can't go back, go to home instead of exiting
+          navigate('/home', { replace: true });
         }
       }).then(listener => {
         backButtonListener = listener;
@@ -74,7 +82,7 @@ const AppContent = () => {
         }
       };
     }
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   return (
     <Routes>

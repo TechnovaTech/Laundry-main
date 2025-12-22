@@ -262,8 +262,10 @@ All colors MUST be HSL.
     min-height: 100dvh; /* Dynamic viewport height */
   }
   
-  /* Bottom navigation safe area */
-  .bottom-nav-safe {
+  /* Bottom navigation safe area - Universal for all pages */
+  .page-with-bottom-nav {
+    min-height: 100vh;
+    min-height: 100dvh;
     padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
   
