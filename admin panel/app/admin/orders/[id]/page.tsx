@@ -274,7 +274,7 @@ export default function OrderDetails() {
                 <div style={{ color: '#374151', lineHeight: '1.6' }}>
                   <div><strong>Name:</strong> {order?.customerId?.name || 'N/A'}</div>
                   <div><strong>Mobile:</strong> {order?.customerId?.mobile || 'N/A'}</div>
-                  <div><strong>Address:</strong> {order?.pickupAddress ? `${order.pickupAddress.street}, ${order.pickupAddress.city}, ${order.pickupAddress.state} - ${order.pickupAddress.pincode}` : 'N/A'}</div>
+                  <div><strong>Address:</strong> {order?.pickupAddress ? `${order.pickupAddress.street || ''}, ${order.pickupAddress.city || ''}, ${order.pickupAddress.state || ''} - ${order.pickupAddress.pincode || ''}` : 'N/A'}</div>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -459,8 +459,8 @@ export default function OrderDetails() {
                         </div>
                         <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
                           {pm.type === 'UPI' && pm.upiId && `UPI: ${pm.upiId}`}
-                          {pm.type === 'Card' && pm.cardNumber && `Card: ****${pm.cardNumber.slice(-4)} | ${pm.cardHolder}`}
-                          {pm.type === 'Bank Transfer' && pm.accountNumber && `${pm.bankName} - ****${pm.accountNumber.slice(-4)}`}
+                          {pm.type === 'Card' && pm.cardNumber && `Card: ****${String(pm.cardNumber).slice(-4)} | ${pm.cardHolder || ''}`}
+                          {pm.type === 'Bank Transfer' && pm.accountNumber && `${pm.bankName || ''} - ****${String(pm.accountNumber).slice(-4)}`}
                         </div>
                       </div>
                     </div>
@@ -486,7 +486,7 @@ export default function OrderDetails() {
                   <strong>Hub Name:</strong> {order.hub.name || 'N/A'}
                 </div>
                 <div style={{ marginBottom: '0.5rem' }}>
-                  <strong>Address:</strong> {order.hub.address || 'N/A'}{order.hub.address2 ? `, ${order.hub.address2}` : ''}
+                  <strong>Address:</strong> {order.hub.address ? (typeof order.hub.address === 'string' ? order.hub.address : `${order.hub.address.street || ''}, ${order.hub.address.city || ''}, ${order.hub.address.state || ''}`) : 'N/A'}{order.hub.address2 ? `, ${order.hub.address2}` : ''}
                 </div>
                 <div style={{ marginBottom: '0.5rem' }}>
                   <strong>City:</strong> {order.hub.city || 'N/A'} - {order.hub.pincode || 'N/A'}
