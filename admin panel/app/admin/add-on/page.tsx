@@ -168,6 +168,10 @@ export default function AddOnPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...hubForm,
+        address: {
+          ...hubForm.address,
+          pincode: hubForm.address.pincode.length > 0 ? hubForm.address.pincode : selectedServicePincodes
+        },
         pincodes: selectedServicePincodes
       })
     })
@@ -198,6 +202,7 @@ export default function AddOnPage() {
     setHubCity(hub.address.city)
     handleHubStateChange(hub.address.state)
     handleHubCityChange(hub.address.city)
+    // Set both hub location pincodes and service pincodes
     setSelectedServicePincodes(hub.pincodes)
   }
 
