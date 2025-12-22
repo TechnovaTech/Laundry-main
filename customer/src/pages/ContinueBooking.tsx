@@ -16,6 +16,10 @@ const ContinueBooking = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const orderData = location.state || {};
+  
+  // Check if coming from cart
+  const isFromCart = orderData.cartItems && Array.isArray(orderData.cartItems);
+  
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
@@ -25,9 +29,18 @@ const ContinueBooking = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showPaymentWarning, setShowPaymentWarning] = useState(false);
   const [paymentWarningMessage, setPaymentWarningMessage] = useState('');
+  const [realItemData, setRealItemData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(isFromCart);
   
-  const itemsText = orderData.items ? orderData.items.map((item: any) => `${item.quantity} ${item.name}`).join(', ') : '3 Shirts, 1 Bedsheet';
-  const totalAmount = orderData.total || 120;
+  // Use real item data if fetched, otherwise use original data
+  const items = realItemData.length > 0 ? realItemData : (isFromCart ? orderData.cartItems : (orderData.items || []));
+  const totalAmount = realItemData.length > 0 
+    ? realItemData.reduce((total, item) => total + (item.price * item.quantity), 0)
+    : (isFromCart ? orderData.totalAmount : (orderData.total || 120));
+  
+  const itemsText = items.length > 0 
+    ? items.map((item: any) => `${item.quantity} ${item.name}`).join(', ') 
+    : '3 Shirts, 1 Bedsheet';
   const dueAmount = customerInfo?.dueAmount || 0;
   const walletBalance = customerInfo?.walletBalance || 0;
   const amountAfterDiscount = totalAmount - discount + dueAmount;
@@ -37,6 +50,11 @@ const ContinueBooking = () => {
   useEffect(() => {
     fetchCustomerInfo();
     fetchPastOrders();
+    
+    // If coming from cart, fetch real item data from API
+    if (isFromCart && orderData.cartItems) {
+      fetchRealItemData();
+    }
     
     // Load Razorpay script
     const script = document.createElement('script');
@@ -48,6 +66,33 @@ const ContinueBooking = () => {
       document.body.removeChild(script);
     };
   }, []);
+  
+  const fetchRealItemData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/pricing`);
+      const data = await response.json();
+      
+      if (data.success && orderData.cartItems) {
+        // Map cart items to real pricing data
+        const realItems = orderData.cartItems.map((cartItem: any) => {
+          const realItem = data.data.find((item: any) => item._id === cartItem.id);
+          return {
+            _id: cartItem.id,
+            name: realItem?.name || cartItem.name,
+            price: realItem?.price || cartItem.price,
+            quantity: cartItem.quantity,
+            category: realItem?.category || cartItem.category
+          };
+        });
+        
+        setRealItemData(realItems);
+      }
+    } catch (error) {
+      console.error('Failed to fetch real item data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const fetchCustomerInfo = async () => {
     try {
@@ -182,9 +227,6 @@ const ContinueBooking = () => {
                 </div>
               </div>
             )}
-            <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-lg z-10">
-              <p className="text-xs sm:text-sm font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Arriving in 25 min</p>
-            </div>
             <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 w-12 h-16 sm:w-16 sm:h-20 bg-white rounded-lg shadow-lg p-1.5 sm:p-2 z-10">
               <div className="w-full h-6 sm:h-8 bg-blue-100 rounded flex items-center justify-center mb-1">
                 <MapPin className="w-3 h-3 sm:w-4 sm:h-4" style={{ stroke: 'url(#gradient)' }} />
@@ -333,10 +375,10 @@ const ContinueBooking = () => {
               if (finalAmount === 0) {
                 const orderPayload = {
                   customerId,
-                  items: orderData.items || [],
+                  items: items || [],
                   totalAmount: amountAfterDiscount,
-                  pickupAddress: orderData.address,
-                  pickupSlot: orderData.selectedSlot,
+                  pickupAddress: orderData.address || customerInfo?.address?.[0],
+                  pickupSlot: orderData.selectedSlot || 'Next Available',
                   pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
                   paymentMethod: 'Wallet',
                   paymentStatus: 'paid',

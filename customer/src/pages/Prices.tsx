@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Info, Shirt, Bed, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
+import { ArrowLeft, Info, Shirt, Bed, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_URL } from '@/config/api';
+import { Button } from "@/components/ui/button";
 
 const Prices = () => {
   const navigate = useNavigate();
@@ -9,6 +10,8 @@ const Prices = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [categories, setCategories] = useState<string[]>([]);
+  const [quantities, setQuantities] = useState<{[key: string]: number}>({});
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
   useEffect(() => {
     fetchItems();
@@ -23,6 +26,13 @@ const Prices = () => {
         // Extract unique categories from items
         const uniqueCategories = [...new Set(data.data.map((item: any) => item.category))];
         setCategories(uniqueCategories);
+        
+        // Initialize quantities
+        const initialQuantities: {[key: string]: number} = {};
+        data.data.forEach((item: any) => {
+          initialQuantities[item._id] = 0;
+        });
+        setQuantities(initialQuantities);
       }
     } catch (error) {
       console.error('Error fetching items:', error);
@@ -32,7 +42,63 @@ const Prices = () => {
   };
 
 
-  const filteredItems = selectedCategory === 'All' 
+  const updateQuantity = (itemId: string, increment: boolean) => {
+    setQuantities(prev => ({
+      ...prev,
+      [itemId]: Math.max(0, (prev[itemId] || 0) + (increment ? 1 : -1))
+    }));
+  };
+
+  const addToCart = () => {
+    const selectedItems = items
+      .filter(item => (quantities[item._id] || 0) > 0)
+      .map(item => ({
+        id: item._id,
+        name: item.name,
+        price: item.price,
+        quantity: quantities[item._id],
+        category: item.category || 'Laundry'
+      }));
+
+    if (selectedItems.length === 0) {
+      setToast({ show: true, message: 'Please select at least one item', type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+      return;
+    }
+
+    // Get existing cart items
+    const existingCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    
+    // Merge with new items
+    const updatedCart = [...existingCart];
+    
+    selectedItems.forEach(newItem => {
+      const existingIndex = updatedCart.findIndex(item => item.id === newItem.id);
+      if (existingIndex >= 0) {
+        updatedCart[existingIndex].quantity += newItem.quantity;
+      } else {
+        updatedCart.push(newItem);
+      }
+    });
+
+    localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+    
+    setToast({ show: true, message: `${selectedItems.length} item(s) added to cart!`, type: 'success' });
+    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+    
+    // Reset quantities
+    const resetQuantities: {[key: string]: number} = {};
+    items.forEach((item: any) => {
+      resetQuantities[item._id] = 0;
+    });
+    setQuantities(resetQuantities);
+  };
+
+  const getTotalItems = () => {
+    return Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+  };
+
+  const filteredItems = selectedCategory === 'All'
     ? items 
     : items.filter(item => item.category === selectedCategory);
 
@@ -112,11 +178,32 @@ const Prices = () => {
                       <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
                         <Shirt className="w-5 h-5 text-white" />
                       </div>
-                      <span className="font-semibold text-gray-800">{item.name}</span>
+                      <div>
+                        <span className="font-semibold text-gray-800 block">{item.name}</span>
+                        <span className="text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                          ₹{item.price}
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-lg font-bold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                      ₹{item.price}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => updateQuantity(item._id, false)}
+                        className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
+                        style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-8 text-center font-semibold text-black">
+                        {quantities[item._id] || 0}
+                      </span>
+                      <button
+                        onClick={() => updateQuantity(item._id, true)}
+                        className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
+                        style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -124,12 +211,34 @@ const Prices = () => {
           </div>
         ) : null}
 
+        {/* Add to Cart Button */}
+        {getTotalItems() > 0 && (
+          <div className="mt-6">
+            <Button
+              onClick={addToCart}
+              className="w-full h-12 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl font-semibold shadow-lg flex items-center justify-center gap-2"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              Add {getTotalItems()} item(s) to Cart
+            </Button>
+          </div>
+        )}
+
         <div className="mt-6 rounded-2xl p-4 shadow-md" style={{ background: 'linear-gradient(to bottom right, #f0ebf8, #e0f7f9)' }}>
           <p className="text-center text-xs text-gray-700 font-medium">
             *All services include professional steam ironing as standard.
           </p>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+          <div className={`${toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3`}>
+            <span className="font-semibold">{toast.message}</span>
+          </div>
+        </div>
+      )}
 
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
@@ -146,7 +255,7 @@ const Prices = () => {
         <button className="flex flex-col items-center gap-0.5 sm:gap-1 p-1">
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" style={{ stroke: 'url(#gradient)' }} />
         </button>
-        <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/cart")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
           <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg hover:shadow-xl transition-shadow" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>

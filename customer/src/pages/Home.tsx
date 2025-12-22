@@ -247,50 +247,45 @@ const Home = () => {
         {heroItems.length > 0 && (
           <div className="mb-4 sm:mb-6">
             <div className="relative rounded-3xl overflow-hidden shadow-xl">
-              {heroItems.map((item: any, index) => (
-                <div
-                  key={item._id}
-                  className="transition-opacity duration-500 relative"
-                  style={{
-                    display: index === currentHero ? 'block' : 'none',
-                    opacity: index === currentHero ? 1 : 0
-                  }}
-                >
-                  {item.type === 'image' ? (
-                    <img
-                      src={item.url}
-                      alt="Hero"
-                      className="w-full h-48 sm:h-64 object-cover"
-                    />
-                  ) : (
-                    <video
-                      src={item.url}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      preload="auto"
-                      className="w-full h-48 sm:h-64 object-cover bg-gray-200"
-                    >
-                      Your browser does not support video.
-                    </video>
-                  )}
-                  {(item.title || item.description || item.buttonText) && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 sm:p-6">
-                      {item.title && <h3 className="text-white text-lg sm:text-xl font-bold mb-1">{item.title}</h3>}
-                      {item.description && <p className="text-white/90 text-sm sm:text-base mb-2">{item.description}</p>}
-                      {item.buttonText && item.buttonLink && (
-                        <button
-                          onClick={() => navigate(item.buttonLink)}
-                          className="bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white px-4 py-2 rounded-xl text-sm font-semibold"
-                        >
-                          {item.buttonText}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+              <div className="flex transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${currentHero * 100}%)` }}>
+                {heroItems.map((item: any, index) => (
+                  <div key={item._id} className="w-full flex-shrink-0 relative">
+                    {item.type === 'image' ? (
+                      <img
+                        src={item.url}
+                        alt="Hero"
+                        className="w-full h-48 sm:h-64 object-cover"
+                      />
+                    ) : (
+                      <video
+                        src={item.url}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="auto"
+                        className="w-full h-48 sm:h-64 object-cover bg-gray-200"
+                      >
+                        Your browser does not support video.
+                      </video>
+                    )}
+                    {(item.title || item.description || item.buttonText) && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 sm:p-6">
+                        {item.title && <h3 className="text-white text-lg sm:text-xl font-bold mb-1">{item.title}</h3>}
+                        {item.description && <p className="text-white/90 text-sm sm:text-base mb-2">{item.description}</p>}
+                        {item.buttonText && item.buttonLink && (
+                          <button
+                            onClick={() => navigate(item.buttonLink)}
+                            className="bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white px-4 py-2 rounded-xl text-sm font-semibold"
+                          >
+                            {item.buttonText}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="flex justify-center gap-2 mt-3">
               {heroItems.map((_, index) => (
@@ -314,86 +309,52 @@ const Home = () => {
           Book Your Order
         </Button>
 
-        {/* Next Slot Info */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 mb-4 sm:mb-6 shadow-lg border border-gray-100">
-          <div className="flex items-start gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <Check className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <p className="text-gray-500 text-xs sm:text-sm mb-1">Next available slot</p>
-              <p className="text-black font-bold text-base sm:text-lg">Tomorrow, 9-11 AM</p>
-            </div>
-          </div>
-          <div className="bg-blue-50 rounded-xl p-3 mb-3 sm:mb-4">
-            <p className="text-gray-600 text-xs sm:text-sm font-medium break-words">📍 {customerAddress}</p>
-          </div>
-          
-          {/* Quantity Selector */}
-          <div className="flex items-center justify-center gap-4 sm:gap-6 bg-gray-50 rounded-xl py-3">
-            <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white flex items-center justify-center font-bold shadow-md hover:shadow-lg transition-shadow"
-            >
-              <Minus className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-            <span className="text-black text-2xl sm:text-3xl font-bold w-12 sm:w-16 text-center">{quantity}</span>
-            <button
-              onClick={() => setQuantity(quantity + 1)}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white flex items-center justify-center font-bold shadow-md hover:shadow-lg transition-shadow"
-            >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Offer Cards - Horizontal Scroll */}
+        {/* Offer Cards - Full Width Single Card */}
         <div className="mb-4 sm:mb-6">
-          <div 
-            ref={scrollRef}
-            className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            onScroll={handleScroll}
-            onTouchStart={handleTouchStart}
-            onMouseDown={handleTouchStart}
-          >
-            {vouchers.map((voucher: any, index) => (
-              <div key={voucher._id} className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-5 shadow-lg flex-shrink-0 w-72 snap-center border border-blue-300">
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                      <Tag className="w-4 h-4 text-white" />
+          {vouchers.length > 0 && (
+            <div className="relative">
+              <div className="overflow-hidden rounded-2xl">
+                <div className="flex transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${currentVoucher * 100}%)` }}>
+                  {vouchers.map((voucher: any, index) => (
+                    <div key={voucher._id} className="w-full flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-5 shadow-lg border border-blue-300">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                            <Tag className="w-4 h-4 text-white" />
+                          </div>
+                          <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded-full">LIMITED</span>
+                        </div>
+                        <h3 className="font-bold text-base mb-1 text-blue-900">{voucher.slogan}</h3>
+                        <p className="text-blue-700 text-sm mb-3">Limited time offer</p>
+                        <Button 
+                          onClick={() => !hasClaimedAny && handleApplyVoucher(voucher.code)}
+                          className={`w-full h-9 rounded-xl text-sm font-semibold shadow-md ${
+                            hasClaimedAny
+                              ? 'bg-gray-400 text-white cursor-not-allowed'
+                              : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
+                          }`}
+                        >
+                          {hasClaimedAny ? '✓ Used' : 'Apply Now'}
+                        </Button>
+                      </div>
                     </div>
-                    <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded-full">LIMITED</span>
-                  </div>
-                  <h3 className="font-bold text-base mb-1 text-blue-900">{voucher.slogan}</h3>
-                  <p className="text-blue-700 text-sm mb-3">Limited time offer</p>
-                  <Button 
-                    onClick={() => !hasClaimedAny && handleApplyVoucher(voucher.code)}
-                    className={`w-full h-9 rounded-xl text-sm font-semibold shadow-md ${
-                      hasClaimedAny
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
-                    }`}
-                  >
-                    {hasClaimedAny ? '✓ Used' : 'Apply Now'}
-                  </Button>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-          
-          {/* Dots Indicator */}
-          <div className="flex justify-center gap-2 mt-3">
-            {vouchers.map((_, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentVoucher ? 'bg-blue-500' : 'bg-gray-300'
-                }`}
-              />
-            ))}
-          </div>
+              
+              {/* Dots Indicator */}
+              <div className="flex justify-center gap-2 mt-3">
+                {vouchers.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === currentVoucher ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Recent Orders */}
@@ -442,7 +403,7 @@ const Home = () => {
         <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
+        <button onClick={() => navigate("/cart")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1">
           <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gray-700 flex items-center justify-center border-2 border-white shadow-lg">
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>

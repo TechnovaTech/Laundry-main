@@ -30,6 +30,7 @@ import BookingHistory from "./pages/BookingHistory";
 import OrderDetails from "./pages/OrderDetails";
 import Profile from "./pages/Profile";
 import AddAddress from "./pages/AddAddress";
+import Cart from "./pages/Cart";
 import Wallet from "./pages/Wallet";
 import ReferEarn from "./pages/ReferEarn";
 import RateOrder from "./pages/RateOrder";
@@ -94,7 +95,7 @@ const AppContent = () => {
       <Route path="/booking-history" element={<BookingHistory />} />
       <Route path="/order-details" element={<OrderDetails />} />
       <Route path="/profile" element={<Profile />} />
-      <Route path="/add-address" element={<AddAddress />} />
+      <Route path="/cart" element={<Cart />} />
       <Route path="/wallet" element={<Wallet />} />
       <Route path="/refer-earn" element={<ReferEarn />} />
       <Route path="/rate-order/:orderId" element={<RateOrder />} />

@@ -158,6 +158,50 @@ const Booking = () => {
     }, 0);
   };
   
+  const addToCart = () => {
+    const selectedItems = pricingItems
+      .filter(item => (quantities[item._id] || 0) > 0)
+      .map(item => ({
+        id: item._id,
+        name: item.name,
+        price: item.price,
+        quantity: quantities[item._id],
+        category: item.category || 'Laundry'
+      }));
+
+    if (selectedItems.length === 0) {
+      setToast({ show: true, message: 'Please select at least one item', type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+      return;
+    }
+
+    // Get existing cart items
+    const existingCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    
+    // Merge with new items (update quantities if item already exists)
+    const updatedCart = [...existingCart];
+    
+    selectedItems.forEach(newItem => {
+      const existingIndex = updatedCart.findIndex(item => item.id === newItem.id);
+      if (existingIndex >= 0) {
+        updatedCart[existingIndex].quantity += newItem.quantity;
+      } else {
+        updatedCart.push(newItem);
+      }
+    });
+
+    localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+    
+    setToast({ show: true, message: `${selectedItems.length} item(s) added to cart!`, type: 'success' });
+    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+    
+    // Reset quantities after adding to cart
+    const resetQuantities: {[key: string]: number} = {};
+    pricingItems.forEach((item: PricingItem) => {
+      resetQuantities[item._id] = 0;
+    });
+    setQuantities(resetQuantities);
+  };
   const fetchCustomerAddress = async () => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 2000)
@@ -388,7 +432,6 @@ const Booking = () => {
               {calculateTotal() < minOrderPrice && (
                 <p className="text-xs text-red-500 mt-1 sm:mt-2 font-semibold">⚠ Minimum order value of ₹{minOrderPrice} required</p>
               )}
-              <p className="text-xs text-gray-500 mt-1 sm:mt-2">Payment will be collected upon delivery</p>
             </div>
           </div>
         </div>
@@ -400,6 +443,15 @@ const Booking = () => {
             </p>
           </div>
         )}
+        
+        {/* Add to Cart Button */}
+        <Button
+          onClick={addToCart}
+          className="w-full h-12 sm:h-14 bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-2xl text-sm sm:text-base font-semibold mb-4 shadow-lg flex items-center justify-center gap-2"
+        >
+          <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+          Add to Cart
+        </Button>
         
         <Button
           onClick={() => {
@@ -442,7 +494,7 @@ const Booking = () => {
         <button onClick={() => navigate("/prices")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Prices">
           <Tag className="w-5 h-5 sm:w-7 sm:h-7" />
         </button>
-        <button onClick={() => navigate("/booking")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Shopping cart">
+        <button onClick={() => navigate("/cart")} className="flex flex-col items-center gap-0.5 sm:gap-1 text-gray-400 p-1" aria-label="Shopping cart">
           <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
             <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
