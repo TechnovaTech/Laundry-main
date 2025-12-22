@@ -13,6 +13,7 @@ export default function PersonalDetailsPage() {
     mobile: "",
     email: "",
     address: { street: "", city: "", state: "", pincode: "" },
+    pincodes: [""],
     vehicleType: "",
     vehicleNumber: ""
   });
@@ -49,8 +50,9 @@ export default function PersonalDetailsPage() {
               street: data.address?.street || "",
               city: data.address?.city || "",
               state: data.address?.state || "",
-              pincode: data.address?.pincode || ""
+              pincode: data.pincodes && data.pincodes.length > 0 ? data.pincodes[0] : (data.address?.pincode || "")
             },
+            pincodes: data.pincodes && data.pincodes.length > 0 ? data.pincodes : [""],
             vehicleType: data.vehicleType || "",
             vehicleNumber: data.vehicleNumber || ""
           });
@@ -81,6 +83,7 @@ export default function PersonalDetailsPage() {
           name: partnerData.name,
           email: partnerData.email,
           address: partnerData.address,
+          pincodes: partnerData.pincodes.filter(p => p.trim() && p.length === 6),
           vehicleType: partnerData.vehicleType,
           vehicleNumber: partnerData.vehicleNumber
         })
@@ -169,17 +172,83 @@ export default function PersonalDetailsPage() {
               )}
             </div>
             <div>
-              <label className="text-sm font-semibold text-gray-800">Pincode</label>
+              <label className="text-sm font-semibold text-gray-800">Service Areas (Pincodes)</label>
               {isEditing ? (
-                <input
-                  type="text"
-                  value={partnerData.address.pincode}
-                  onChange={(e) => setPartnerData({...partnerData, address: {...partnerData.address, pincode: e.target.value}})}
-                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                />
+                <div className="space-y-2 mt-1">
+                  {partnerData.pincodes.map((pincode, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={pincode}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '');
+                          const newPincodes = [...partnerData.pincodes];
+                          newPincodes[index] = value;
+                          setPartnerData({...partnerData, pincodes: newPincodes});
+                        }}
+                        placeholder="Enter 6-digit pincode"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                      />
+                      {partnerData.pincodes.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newPincodes = partnerData.pincodes.filter((_, i) => i !== index);
+                            setPartnerData({...partnerData, pincodes: newPincodes});
+                          }}
+                          className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold hover:bg-red-200"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setPartnerData({...partnerData, pincodes: [...partnerData.pincodes, ""]})}
+                    className="text-sm font-medium px-3 py-1 rounded-lg"
+                    style={{ color: '#452D9B', backgroundColor: '#f3f0ff' }}
+                  >
+                    + Add Pincode
+                  </button>
+                </div>
               ) : (
-                <p className="text-base font-normal text-gray-900">{partnerData.address.pincode || "N/A"}</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {partnerData.pincodes.filter(p => p.trim()).length > 0 ? (
+                    partnerData.pincodes.filter(p => p.trim()).map((pincode, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 rounded-full text-sm font-medium text-white"
+                        style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                      >
+                        {pincode}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-base font-normal text-gray-900">N/A</p>
+                  )}
+                </div>
               )}
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-gray-800">Registered Address Pincodes</label>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {partnerData.pincodes.filter(p => p.trim()).length > 0 ? (
+                  partnerData.pincodes.filter(p => p.trim()).map((pincode, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 rounded-full text-sm font-medium text-white"
+                      style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                    >
+                      {pincode}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-base font-normal text-gray-900">N/A</p>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">All service area pincodes</p>
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-800">City</label>

@@ -103,6 +103,7 @@ const AppContent = () => {
       <Route path="/booking-history" element={<BookingHistory />} />
       <Route path="/order-details" element={<OrderDetails />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/add-address" element={<AddAddress />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/wallet" element={<Wallet />} />
       <Route path="/refer-earn" element={<ReferEarn />} />

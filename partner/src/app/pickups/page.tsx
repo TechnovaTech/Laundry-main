@@ -139,8 +139,8 @@ export default function Pickups() {
       const partnerRes = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
       const partnerData = await partnerRes.json();
       
-      if (partnerData.success && partnerData.data.address?.pincode) {
-        const partnerPincode = partnerData.data.address.pincode;
+      if (partnerData.success && (partnerData.data.pincodes?.length > 0 || partnerData.data.address?.pincode)) {
+        const partnerPincodes = partnerData.data.pincodes || [partnerData.data.address?.pincode].filter(Boolean);
         
         const response = await fetch(`${API_URL}/api/orders`);
         const data = await response.json();
@@ -158,7 +158,7 @@ export default function Pickups() {
           setActivePickup(active || null);
           
           const pendingPickups = data.data.filter((order: any) => {
-            const isInPartnerArea = order.pickupAddress?.pincode === partnerPincode;
+            const isInPartnerArea = partnerPincodes.includes(order.pickupAddress?.pincode);
             const isPending = order.status === 'pending';
             const isNotFailed = order.paymentStatus !== 'failed';
             const isUnassigned = !order.partnerId;
