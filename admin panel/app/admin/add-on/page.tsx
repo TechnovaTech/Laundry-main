@@ -35,7 +35,7 @@ export default function AddOnPage() {
   const [hubs, setHubs] = useState<any[]>([])
   const [hubForm, setHubForm] = useState({
     name: '',
-    address: { street: '', city: '', state: '', pincode: [] },
+    address: { street: '', city: '', state: '', pincode: [] as string[] },
     pincodes: [],
     contactPerson: '',
     contactNumber: ''
@@ -178,7 +178,7 @@ export default function AddOnPage() {
   }
 
   const resetHubForm = () => {
-    setHubForm({ name: '', address: { street: '', city: '', state: '', pincode: [] }, pincodes: [], contactPerson: '', contactNumber: '' })
+    setHubForm({ name: '', address: { street: '', city: '', state: '', pincode: [] as string[] }, pincodes: [], contactPerson: '', contactNumber: '' })
     setHubState('')
     setHubCity('')
     setSelectedServicePincodes([])
