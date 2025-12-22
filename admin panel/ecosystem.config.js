@@ -4,7 +4,7 @@ module.exports = {
       name: 'admin-panel',
       script: 'npm',
       args: 'start',
-      cwd: '/var/www/laundry-main/admin panel',
+      cwd: '/var/www/laundry-admin/admin panel',
       instances: 1,            // ✅ single instance (safe for your VPS)
       exec_mode: 'fork',
       autorestart: true,
