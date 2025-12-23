@@ -15,12 +15,14 @@ const Home = () => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [currentVoucher, setCurrentVoucher] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+  const [isVoucherAutoScrolling, setIsVoucherAutoScrolling] = useState(true);
   const [vouchers, setVouchers] = useState([]);
   const [customerAddress, setCustomerAddress] = useState(() => {
     const cached = localStorage.getItem('cachedAddress');
     return cached || 'No address added yet';
   });
   const scrollRef = useRef<HTMLDivElement>(null);
+  const voucherScrollRef = useRef<HTMLDivElement>(null);
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
@@ -168,14 +170,14 @@ const Home = () => {
   
   // Auto-scroll vouchers only if not manually controlled
   useEffect(() => {
-    if (!isAutoScrolling) return;
+    if (!isVoucherAutoScrolling || vouchers.length <= 1) return;
     
     const interval = setInterval(() => {
       setCurrentVoucher(prev => (prev + 1) % vouchers.length);
     }, 3000);
     
     return () => clearInterval(interval);
-  }, [vouchers.length, isAutoScrolling]);
+  }, [vouchers.length, isVoucherAutoScrolling]);
   
   // Scroll to current voucher only during auto-scroll
   useEffect(() => {
@@ -188,12 +190,12 @@ const Home = () => {
     }
   }, [currentVoucher, vouchers.length, isAutoScrolling]);
   
-  // Handle manual scroll
-  const handleScroll = () => {
-    if (!scrollRef.current || isAutoScrolling) return;
+  // Handle manual voucher scroll
+  const handleVoucherScroll = () => {
+    if (!voucherScrollRef.current || isVoucherAutoScrolling) return;
     
-    const scrollLeft = scrollRef.current.scrollLeft;
-    const cardWidth = scrollRef.current.scrollWidth / vouchers.length;
+    const scrollLeft = voucherScrollRef.current.scrollLeft;
+    const cardWidth = voucherScrollRef.current.scrollWidth / vouchers.length;
     const newIndex = Math.round(scrollLeft / cardWidth);
     
     if (newIndex !== currentVoucher) {
@@ -201,21 +203,21 @@ const Home = () => {
     }
   };
   
-  // Detect manual interaction
-  const handleTouchStart = () => {
-    setIsAutoScrolling(false);
+  // Detect manual voucher interaction
+  const handleVoucherTouchStart = () => {
+    setIsVoucherAutoScrolling(false);
   };
   
-  // Resume auto-scroll after 5 seconds of no interaction
+  // Resume voucher auto-scroll after 5 seconds of no interaction
   useEffect(() => {
-    if (!isAutoScrolling) {
+    if (!isVoucherAutoScrolling) {
       const timeout = setTimeout(() => {
-        setIsAutoScrolling(true);
+        setIsVoucherAutoScrolling(true);
       }, 5000);
       
       return () => clearTimeout(timeout);
     }
-  }, [isAutoScrolling]);
+  }, [isVoucherAutoScrolling]);
 
   const handleApplyVoucher = (voucherCode: string) => {
     setSelectedVoucherCode(voucherCode);
@@ -263,7 +265,12 @@ const Home = () => {
         {heroItems.length > 0 && (
           <div className="mb-4 sm:mb-6">
             <div className="relative rounded-3xl overflow-hidden shadow-xl">
-              <div className="flex transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${currentHero * 100}%)` }}>
+              <div 
+                className="flex transition-transform duration-700 ease-in-out" 
+                style={{ transform: `translateX(-${currentHero * 100}%)` }}
+                onTouchStart={() => setIsAutoScrolling(false)}
+                onMouseDown={() => setIsAutoScrolling(false)}
+              >
                 {heroItems.map((item: any, index) => (
                   <div key={item._id} className="w-full flex-shrink-0 relative">
                     {item.type === 'image' ? (
@@ -305,8 +312,12 @@ const Home = () => {
             </div>
             <div className="flex justify-center gap-2 mt-3">
               {heroItems.map((_, index) => (
-                <div
+                <button
                   key={index}
+                  onClick={() => {
+                    setCurrentHero(index);
+                    setIsAutoScrolling(false);
+                  }}
                   className={`w-2 h-2 rounded-full transition-colors ${
                     index === currentHero ? 'bg-blue-500' : 'bg-gray-300'
                   }`}
@@ -329,7 +340,11 @@ const Home = () => {
         <div className="mb-4 sm:mb-6">
           {vouchers.length > 0 && (
             <div className="relative">
-              <div className="overflow-hidden rounded-2xl">
+              <div 
+                className="overflow-hidden rounded-2xl"
+                onTouchStart={handleVoucherTouchStart}
+                onMouseDown={handleVoucherTouchStart}
+              >
                 <div className="flex transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${currentVoucher * 100}%)` }}>
                   {vouchers.map((voucher: any, index) => (
                     <div key={voucher._id} className="w-full flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-5 shadow-lg border border-blue-300">
@@ -361,8 +376,12 @@ const Home = () => {
               {/* Dots Indicator */}
               <div className="flex justify-center gap-2 mt-3">
                 {vouchers.map((_, index) => (
-                  <div
+                  <button
                     key={index}
+                    onClick={() => {
+                      setCurrentVoucher(index);
+                      setIsVoucherAutoScrolling(false);
+                    }}
                     className={`w-2 h-2 rounded-full transition-colors ${
                       index === currentVoucher ? 'bg-blue-500' : 'bg-gray-300'
                     }`}
