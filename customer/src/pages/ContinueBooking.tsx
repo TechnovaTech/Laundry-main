@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Phone, Shirt, CheckCircle2, MapPin, Circle } from "lucide-react";
+import { ArrowLeft, Shirt, CheckCircle2, MapPin, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LeafletMap from "@/components/LeafletMap";
@@ -190,9 +190,7 @@ const ContinueBooking = () => {
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
         <h1 className="text-lg sm:text-xl font-bold flex-1 text-center mx-4">Final Step</h1>
-        <button className="flex-shrink-0">
-          <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
+        <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6"></div>
       </header>
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
