@@ -394,6 +394,9 @@ const ContinueBooking = () => {
                 setIsProcessingPayment(false);
                 
                 if (result.success) {
+                  // Clear cart items from localStorage
+                  localStorage.removeItem('cartItems');
+                  
                   navigate("/booking-confirmation", { 
                     state: {
                       orderId: result.data.orderId,
@@ -410,54 +413,6 @@ const ContinueBooking = () => {
                       selectedSlot: orderData.selectedSlot,
                       address: orderData.address,
                       paymentStatus: 'Paid'
-                    }
-                  });
-                } else {
-                  alert('Failed to place order. Please try again.');
-                }
-                return;
-              }
-              
-              // If payment method is Cash, place order directly
-              if (paymentMethod === 'Cash') {
-                const orderPayload = {
-                  customerId,
-                  items: orderData.items || [],
-                  totalAmount: amountAfterDiscount,
-                  pickupAddress: orderData.address,
-                  pickupSlot: orderData.selectedSlot,
-                  pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
-                  paymentMethod: 'Cash on Delivery',
-                  paymentStatus: 'pending',
-                  walletUsed: walletUsed,
-                  appliedVoucherCode: appliedVoucher?.code || null
-                };
-                
-                const response = await fetch(`${API_URL}/api/orders`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(orderPayload)
-                });
-                
-                const result = await response.json();
-                setIsProcessingPayment(false);
-                
-                if (result.success) {
-                  navigate("/booking-confirmation", { 
-                    state: {
-                      orderId: result.data.orderId,
-                      items: itemsText,
-                      service: 'Steam Iron',
-                      total: amountAfterDiscount,
-                      originalTotal: totalAmount,
-                      discount: discount,
-                      walletUsed: walletUsed,
-                      appliedVoucher: appliedVoucher,
-                      customerInfo: customerInfo,
-                      status: 'Pending',
-                      pickupType: orderData.pickupType,
-                      selectedSlot: orderData.selectedSlot,
-                      address: orderData.address
                     }
                   });
                 } else {
@@ -512,10 +467,10 @@ const ContinueBooking = () => {
                       // Payment successful, place order
                       const orderPayload = {
                         customerId,
-                        items: orderData.items || [],
+                        items: items || [],
                         totalAmount: amountAfterDiscount,
-                        pickupAddress: orderData.address,
-                        pickupSlot: orderData.selectedSlot,
+                        pickupAddress: orderData.address || customerInfo?.address?.[0],
+                        pickupSlot: orderData.selectedSlot || 'Next Available',
                         pickupDate: orderData.pickupType === 'now' ? new Date() : new Date(Date.now() + 24 * 60 * 60 * 1000),
                         paymentMethod: paymentMethod,
                         paymentStatus: 'paid',
@@ -535,6 +490,9 @@ const ContinueBooking = () => {
                       setIsProcessingPayment(false);
                       
                       if (placeOrderResult.success) {
+                        // Clear cart items from localStorage
+                        localStorage.removeItem('cartItems');
+                        
                         navigate("/booking-confirmation", { 
                           state: {
                             orderId: placeOrderResult.data.orderId,
