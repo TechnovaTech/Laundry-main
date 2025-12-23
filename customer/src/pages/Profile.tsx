@@ -37,6 +37,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Settings, MapPin, Edit, Trash2, CreditCard, Wallet, Gift, HelpCircle, Mail, Bell, FileText, LogOut, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, CheckCircle2, Banknote, Smartphone, Building2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { API_URL } from '@/config/api';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import BottomNavigation from "@/components/BottomNavigation";
 
 
@@ -79,6 +81,17 @@ const Profile = () => {
           : addr
       ));
       navigate("/profile", { replace: true });
+    }
+
+    // Handle hardware back button
+    if (Capacitor.isNativePlatform()) {
+      const handleBackButton = App.addListener('backButton', () => {
+        navigate('/home');
+      });
+      
+      return () => {
+        handleBackButton.remove();
+      };
     }
   }, [location.state, navigate]);
 
@@ -189,7 +202,7 @@ const Profile = () => {
   });
 
   const handleSupportClick = () => {
-    window.open('https://mail.google.com/mail/?view=cm&fs=1&to=support@urbansteam.in', '_blank');
+    window.location.href = 'mailto:support@urbansteam.in';
   };
 
   const legalOptions = [

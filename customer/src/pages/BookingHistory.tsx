@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import group12Image from "@/assets/Group (12).png";
 import deliveryImage from "@/assets/Delivery.png";
 import { API_URL } from '@/config/api';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import BottomNavigation from "@/components/BottomNavigation";
 
 const BookingHistory = () => {
@@ -16,7 +18,18 @@ const BookingHistory = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+
+    // Handle hardware back button
+    if (Capacitor.isNativePlatform()) {
+      const handleBackButton = App.addListener('backButton', () => {
+        navigate('/home');
+      });
+      
+      return () => {
+        handleBackButton.remove();
+      };
+    }
+  }, [navigate]);
 
   const fetchOrders = async () => {
     const controller = new AbortController()

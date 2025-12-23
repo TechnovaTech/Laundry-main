@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, Share2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { fetchWithCache, parallelFetch } from '@/utils/apiOptimizer';
 
 const Wallet = () => {
@@ -23,7 +25,18 @@ const Wallet = () => {
 
   useEffect(() => {
     loadAllData();
-  }, []);
+
+    // Handle hardware back button
+    if (Capacitor.isNativePlatform()) {
+      const handleBackButton = App.addListener('backButton', () => {
+        navigate('/home');
+      });
+      
+      return () => {
+        handleBackButton.remove();
+      };
+    }
+  }, [navigate]);
 
   const loadAllData = async (forceRefresh = false) => {
     if (forceRefresh) setIsRefreshing(true);

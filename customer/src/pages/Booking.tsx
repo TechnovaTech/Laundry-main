@@ -4,6 +4,7 @@ import { ArrowLeft, Info, Shirt, MapPin, CheckCircle2, Home as HomeIcon, Tag, Sh
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
 import BottomNavigation from "@/components/BottomNavigation";
+import { App } from '@capacitor/app';
 
 interface PricingItem {
   _id: string;
@@ -60,7 +61,19 @@ const Booking = () => {
     fetchPricingItems();
     fetchTimeSlots();
     fetchCustomerAddress();
-  }, []);
+    
+    // Handle hardware back button
+    const handleBackButton = () => {
+      navigate('/home');
+      return true; // Prevent default behavior
+    };
+    
+    App.addListener('backButton', handleBackButton);
+    
+    return () => {
+      App.removeAllListeners();
+    };
+  }, [navigate]);
   
   const fetchPricingItems = async () => {
     const controller = new AbortController()
@@ -240,7 +253,7 @@ const Booking = () => {
         </defs>
       </svg>
       <header className="bg-white px-4 sm:px-6 flex items-center justify-between shadow-sm gradient-header-safe" style={{ paddingBottom: '1rem' }}>
-        <button onClick={() => navigate(-1)} className="flex-shrink-0" aria-label="Go back">
+        <button onClick={() => navigate('/home')} className="flex-shrink-0" aria-label="Go back">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
         </button>
         <h1 className="text-lg sm:text-xl font-bold text-black flex-1 text-center mx-4 truncate">Book Your Order</h1>

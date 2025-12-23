@@ -5,6 +5,7 @@ import { Check, Minus, Plus, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, Use
 import homeScreenImage from "@/assets/Home screen.png";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import BottomNavigation from "@/components/BottomNavigation";
 
 const Home = () => {
@@ -51,6 +52,20 @@ const Home = () => {
     const claimed = localStorage.getItem('hasClaimedVoucher');
     if (claimed === 'true') {
       setHasClaimedAny(true);
+    }
+
+    // Handle hardware back button
+    if (Capacitor.isNativePlatform()) {
+      const handleBackButton = App.addListener('backButton', () => {
+        // On home page, minimize app instead of closing
+        App.minimizeApp();
+      });
+      
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('userNameChanged', handleStorageChange);
+        handleBackButton.remove();
+      };
     }
 
     return () => {

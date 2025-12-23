@@ -186,7 +186,7 @@ const ContinueBooking = () => {
         </defs>
       </svg>
       <header className="text-white px-4 sm:px-6 py-5 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-        <button onClick={() => navigate(-1)} className="flex-shrink-0">
+        <button onClick={() => navigate('/home')} className="flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
         <h1 className="text-lg sm:text-xl font-bold flex-1 text-center mx-4">Final Step</h1>
