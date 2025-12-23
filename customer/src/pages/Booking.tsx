@@ -31,6 +31,8 @@ const Booking = () => {
   const navigate = useNavigate();
   const [pickupType, setPickupType] = useState<"now" | "later">("now");
   const [pricingItems, setPricingItems] = useState<PricingItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [quantities, setQuantities] = useState<{[key: string]: number}>({});
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
@@ -91,6 +93,11 @@ const Booking = () => {
       
       if (pricingData.success) {
         setPricingItems(pricingData.data);
+        
+        // Extract unique categories
+        const uniqueCategories = ['All', ...new Set(pricingData.data.map((item: PricingItem) => item.category || 'Laundry'))];
+        setCategories(uniqueCategories);
+        
         const initialQuantities: {[key: string]: number} = {};
         pricingData.data.forEach((item: PricingItem) => {
           initialQuantities[item._id] = 0;
@@ -157,6 +164,13 @@ const Booking = () => {
       return;
     }
     setSelectedSlot(slotTime);
+  };
+
+  const getFilteredItems = () => {
+    if (selectedCategory === 'All') {
+      return pricingItems;
+    }
+    return pricingItems.filter(item => (item.category || 'Laundry') === selectedCategory);
   };
 
   const updateQuantity = (itemId: string, increment: boolean) => {
@@ -265,8 +279,27 @@ const Booking = () => {
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Clothes Quantity</h2>
+          
+          {/* Category Filter */}
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-3 mb-4 scrollbar-hide">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`h-8 sm:h-10 rounded-2xl font-semibold whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4 flex-shrink-0 transition-all ${
+                  selectedCategory === category
+                    ? 'text-white shadow-md'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+                style={selectedCategory === category ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+          
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg space-y-3 sm:space-y-4">
-            {pricingItems.map((item) => (
+            {getFilteredItems().map((item) => (
               <div key={item._id} className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
