@@ -17,9 +17,9 @@ const config: CapacitorConfig = {
     // Fix keyboard and navigation issues
     windowSoftInputMode: 'adjustPan',
     appendUserAgent: 'UrbanSteam/1.0',
-    // Prevent system navigation overlap
-    layoutFullscreen: false,
-    layoutInDisplayCutoutMode: 'never'
+    // Prevent system navigation overlap - enable edge-to-edge
+    layoutFullscreen: true,
+    layoutInDisplayCutoutMode: 'shortEdges'
   },
   ios: {
     contentInset: 'never',
