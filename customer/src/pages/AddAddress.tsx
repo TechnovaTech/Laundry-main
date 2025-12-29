@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, ChevronDown, X, AlertCircle } from "lucide-react";
+import { ChevronDown, X, AlertCircle } from "lucide-react";
 import { API_URL } from '@/config/api';
+import Header from "@/components/Header";
 
 const AddAddress = () => {
   const navigate = useNavigate();
@@ -212,13 +213,10 @@ const AddAddress = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white px-4 sm:px-6 py-4 flex items-center gap-4 shadow-sm gradient-header-safe">
-        <button onClick={() => navigate("/profile")} className="text-gray-600 flex-shrink-0">
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
-        <h1 className="text-lg sm:text-xl font-bold text-black flex-1 text-center">{isEditMode ? 'Edit Address' : 'Add Address'}</h1>
-        <div className="w-5 sm:w-6"></div>
-      </header>
+      <Header 
+        title={isEditMode ? 'Edit Address' : 'Add Address'}
+        backTo="/profile"
+      />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-3 sm:space-y-4 pb-24">
         {/* Saved Addresses */}

@@ -8,7 +8,7 @@ const BottomNavigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white px-2 sm:px-4 py-2 sm:py-4 flex items-center justify-around shadow-2xl" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
+    <nav className="fixed bottom-0 left-0 right-0 bg-white px-0 py-3 sm:py-4 flex items-center justify-around shadow-2xl border-t z-50 fixed-bottom-nav">
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">

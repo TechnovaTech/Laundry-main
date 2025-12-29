@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, User, Mail, Phone, Plus, X, Camera } from "lucide-react";
+import { User, Mail, Phone, Plus, X, Camera } from "lucide-react";
 import { API_URL } from '@/config/api';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
+import Header from "@/components/Header";
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -155,12 +156,10 @@ const EditProfile = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="sticky top-0 bg-white flex items-center border-b px-4 sm:px-6 py-4 z-10 safe-top-header">
-        <button onClick={() => navigate(-1)} className="mr-3 sm:mr-4 flex-shrink-0">
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
-        </button>
-        <h1 className="text-lg sm:text-xl font-bold text-black">Edit Profile</h1>
-      </header>
+      <Header 
+        title="Edit Profile"
+        onBack={() => navigate(-1)}
+      />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex flex-col items-center mb-4 sm:mb-6">

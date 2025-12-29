@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, Share2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, RefreshCw } from "lucide-react";
+import { CreditCard, Share2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { fetchWithCache, parallelFetch } from '@/utils/apiOptimizer';
+import Header from "@/components/Header";
 
 const Wallet = () => {
   const navigate = useNavigate();
@@ -229,21 +230,20 @@ const Wallet = () => {
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
-      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg gradient-header-safe">
-        <div className="flex items-center">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-6 h-6 text-white" />
+      <Header 
+        title="Wallet" 
+        variant="gradient"
+        onBack={() => navigate(-1)}
+        rightAction={
+          <button 
+            onClick={() => loadAllData(true)}
+            disabled={isRefreshing}
+            className="p-2 rounded-full hover:bg-white/20 transition-colors"
+          >
+            <RefreshCw className={`w-5 h-5 text-white ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
-          <h1 className="text-xl font-bold ml-4 text-white">Wallet</h1>
-        </div>
-        <button 
-          onClick={() => loadAllData(true)}
-          disabled={isRefreshing}
-          className="p-2 rounded-full hover:bg-white/20 transition-colors"
-        >
-          <RefreshCw className={`w-5 h-5 text-white ${isRefreshing ? 'animate-spin' : ''}`} />
-        </button>
-      </header>
+        }
+      />
 
       {isLoading ? (
         <div className="flex items-center justify-center min-h-[50vh]">

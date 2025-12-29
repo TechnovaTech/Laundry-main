@@ -111,7 +111,7 @@ const Login = () => {
   return (
     <div className="h-screen flex flex-col bg-white px-4 sm:px-6 pb-6 sm:pb-8 overflow-hidden">
       <div className="flex flex-1 flex-col items-center">
-        <h1 className="mb-4 sm:mb-6 self-start text-2xl sm:text-3xl font-bold text-black safe-top">
+        <h1 className="mb-4 sm:mb-6 self-start text-2xl sm:text-3xl font-bold text-black pt-4">
           Please log in to continue →
         </h1>
         

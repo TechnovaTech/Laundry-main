@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, ShoppingCart, Wallet, Share2, Copy, Home as HomeIcon, Tag, RotateCcw, User } from "lucide-react";
+import { Users, ShoppingCart, Wallet, Share2, Copy, Home as HomeIcon, Tag, RotateCcw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
 import { Share } from '@capacitor/share';
+import Header from "@/components/Header";
 
 const ReferEarn = () => {
   const navigate = useNavigate();
@@ -142,12 +143,11 @@ const ReferEarn = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-gradient-to-r from-blue-500 to-blue-700 px-4 sm:px-6 py-4 flex items-center shadow-lg gradient-header-safe">
-        <button onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-6 h-6 text-white" />
-        </button>
-        <h1 className="text-xl font-bold ml-4 text-white">Refer & Earn</h1>
-      </header>
+      <Header 
+        title="Refer & Earn" 
+        variant="gradient"
+        onBack={() => navigate(-1)}
+      />
 
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-4xl mx-auto">
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-4 sm:p-6 lg:p-8 text-white relative overflow-hidden min-h-[140px] sm:min-h-[160px]">

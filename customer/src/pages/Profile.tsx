@@ -40,6 +40,7 @@ import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import BottomNavigation from "@/components/BottomNavigation";
+import Header from "@/components/Header";
 
 
 const Profile = () => {
@@ -417,12 +418,13 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
-      <header className="px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-        <h1 className="text-lg sm:text-xl font-bold text-white">Profile</h1>
-        <button>
+      <Header 
+        title="Profile" 
+        variant="gradient"
+        rightAction={
           <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </button>
-      </header>
+        }
+      />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">

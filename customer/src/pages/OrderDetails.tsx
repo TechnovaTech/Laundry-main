@@ -1,12 +1,13 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Phone, Shirt, Clock, Package, Truck, CheckCircle2, Download, X } from "lucide-react";
+import { Phone, Shirt, Clock, Package, Truck, CheckCircle2, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { generateInvoicePDF } from "@/utils/generateInvoice";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem } from '@capacitor/filesystem';
+import Header from "@/components/Header";
 
 const OrderDetails = () => {
   const navigate = useNavigate();
@@ -21,16 +22,22 @@ const OrderDetails = () => {
   const orderId = location.state?.orderId;
   
   const fetchPartnerPhone = async () => {
-    if (!order?.assignedPartner) return;
+    if (!order?.assignedPartner) {
+      alert('No partner assigned yet');
+      return;
+    }
     
     try {
       const partnerId = typeof order.assignedPartner === 'string' ? order.assignedPartner : order.assignedPartner._id;
-      const response = await fetch(`${API_URL}/api/partners/${partnerId}`);
+      const response = await fetch(`${API_URL}/api/mobile/partners?partnerId=${partnerId}`);
       const data = await response.json();
       
       if (data.success && data.data?.mobile) {
-        setPartnerPhone(data.data.mobile);
-        window.open(`tel:${data.data.mobile}`, '_self');
+        if (Capacitor.isNativePlatform()) {
+          window.open(`tel:${data.data.mobile}`, '_system');
+        } else {
+          window.location.href = `tel:${data.data.mobile}`;
+        }
       } else {
         alert('Partner contact not available');
       }
@@ -129,13 +136,11 @@ const OrderDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 px-4 sm:px-6 py-4 flex items-center justify-between z-10 shadow-lg gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-        <button onClick={() => navigate(-1)} className="flex-shrink-0">
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </button>
-        <h1 className="text-lg sm:text-xl font-bold flex-1 text-center mx-4 text-white">Track Order</h1>
-        <div className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0"></div>
-      </header>
+      <Header 
+        title="Track Order" 
+        variant="gradient"
+        onBack={() => navigate(-1)}
+      />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {loading ? (
@@ -303,7 +308,7 @@ const OrderDetails = () => {
             variant="outline" 
             className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm border-2 shadow-md" 
             style={{ borderColor: '#452D9B', color: '#452D9B' }}
-            disabled={!order?.assignedPartner || (order?.status !== 'reached_location' && order?.status !== 'picked_up' && order?.status !== 'out_for_delivery')}
+            disabled={!order?.assignedPartner}
             onClick={fetchPartnerPhone}
           >
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />

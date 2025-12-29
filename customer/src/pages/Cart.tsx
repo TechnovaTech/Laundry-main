@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, Trash2, ShoppingCart, Clock, X } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart, Clock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
 import BottomNavigation from "@/components/BottomNavigation";
+import Header from "@/components/Header";
 import { App } from '@capacitor/app';
 
 interface CartItem {
@@ -225,19 +226,14 @@ const Cart = () => {
         </defs>
       </svg>
 
-      <header className="bg-white px-4 sm:px-6 flex items-center justify-between shadow-sm gradient-header-safe" style={{ paddingBottom: '1rem' }}>
-        <button onClick={() => navigate('/home')} className="flex-shrink-0">
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
-        </button>
-        <h1 className="text-lg sm:text-xl font-bold text-black flex-1 text-center mx-4">
-          My Cart ({getTotalItems()})
-        </h1>
-        {cartItems.length > 0 && (
-          <button onClick={clearCart} className="flex-shrink-0 text-red-500">
+      <Header 
+        title={`My Cart (${getTotalItems()})`}
+        rightAction={cartItems.length > 0 ? (
+          <button onClick={clearCart} className="text-red-500">
             <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
-        )}
-      </header>
+        ) : undefined}
+      />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6">
         {cartItems.length === 0 ? (

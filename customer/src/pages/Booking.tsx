@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Info, Shirt, MapPin, CheckCircle2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus, X, AlertCircle } from "lucide-react";
+import { Info, Shirt, MapPin, CheckCircle2, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
 import BottomNavigation from "@/components/BottomNavigation";
+import Header from "@/components/Header";
 import { App } from '@capacitor/app';
 
 interface PricingItem {
@@ -266,15 +267,12 @@ const Booking = () => {
           </linearGradient>
         </defs>
       </svg>
-      <header className="bg-white px-4 sm:px-6 flex items-center justify-between shadow-sm gradient-header-safe" style={{ paddingBottom: '1rem' }}>
-        <button onClick={() => navigate('/home')} className="flex-shrink-0" aria-label="Go back">
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
-        </button>
-        <h1 className="text-lg sm:text-xl font-bold text-black flex-1 text-center mx-4 truncate">Book Your Order</h1>
-        <button className="flex-shrink-0" aria-label="Information">
+      <Header 
+        title="Book Your Order" 
+        rightAction={
           <Info className="w-5 h-5 sm:w-6 sm:h-6" style={{ stroke: 'url(#gradient)' }} />
-        </button>
-      </header>
+        }
+      />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <div>
@@ -527,7 +525,6 @@ const Booking = () => {
               : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
           }`}
         >
-          <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           Confirm Order
         </button>
       </div>

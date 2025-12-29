@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Info, Shirt, Bed, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus } from "lucide-react";
+import { Info, Shirt, Bed, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User, Minus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { API_URL } from '@/config/api';
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "@/components/BottomNavigation";
+import Header from "@/components/Header";
 import { App } from '@capacitor/app';
 
 const Prices = () => {
@@ -130,15 +131,13 @@ const Prices = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
-      <header className="px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-        <button onClick={() => navigate('/home')} className="flex-shrink-0">
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </button>
-        <h1 className="text-lg sm:text-xl font-bold text-white flex-1 text-center mx-4">Categories</h1>
-        <button className="flex-shrink-0">
+      <Header 
+        title="Categories" 
+        variant="gradient"
+        rightAction={
           <Info className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </button>
-      </header>
+        }
+      />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6">
         {selectedCategory === 'All' && (

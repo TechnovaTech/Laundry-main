@@ -13,16 +13,33 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: false,
     backgroundColor: '#ffffff',
     overrideUserAgent: 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36',
-    handleNavigationEvent: true
+    handleNavigationEvent: true,
+    // Fix keyboard and navigation issues
+    windowSoftInputMode: 'adjustPan',
+    appendUserAgent: 'UrbanSteam/1.0',
+    // Prevent system navigation overlap
+    layoutFullscreen: false,
+    layoutInDisplayCutoutMode: 'never'
   },
   ios: {
-    contentInset: 'automatic'
+    contentInset: 'never',
+    allowsLinkPreview: false,
+    handleApplicationNotifications: false
   },
   plugins: {
     StatusBar: {
       style: 'light',
-      overlaysWebView: true,
-      backgroundColor: '#00000000'
+      overlaysWebView: false,
+      backgroundColor: '#452D9B'
+    },
+    SafeArea: {
+      enabled: true,
+      customColorsForSystemBars: true,
+      statusBarColor: '#452D9B',
+      statusBarStyle: 'light',
+      navigationBarColor: '#ffffff',
+      navigationBarStyle: 'dark',
+      offset: true
     },
     SplashScreen: {
       launchShowDuration: 2000,
@@ -30,9 +47,10 @@ const config: CapacitorConfig = {
       showSpinner: false
     },
     Keyboard: {
-      resize: 'native',
+      resize: 'none',
       style: 'dark',
-      resizeOnFullScreen: true
+      resizeOnFullScreen: false,
+      accessoryBarVisible: false
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],

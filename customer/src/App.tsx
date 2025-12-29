@@ -11,6 +11,7 @@ import { Keyboard } from '@capacitor/keyboard';
 import { App as CapApp } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import SafeAreaWrapper from './components/SafeAreaWrapper';
 import ErrorBoundary from './components/ErrorBoundary';
 import Welcome from "./pages/Welcome";
 import CheckAvailability from "./pages/CheckAvailability";
@@ -120,38 +121,24 @@ const App = () => {
     const initializeApp = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
-          // Hide splash screen with delay to ensure app is ready
+          // Configure StatusBar properly
+          await StatusBar.setStyle({ style: Style.Light });
+          await StatusBar.setOverlaysWebView({ overlay: false });
+          await StatusBar.setBackgroundColor({ color: '#452D9B' });
+          
+          // Add viewport meta tag for better mobile handling
+          const viewport = document.querySelector('meta[name="viewport"]');
+          if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+          }
+          
+          // Hide splash screen
           setTimeout(async () => {
-            try {
-              await SplashScreen.hide();
-            } catch (error) {
-              console.error('SplashScreen hide error:', error);
-            }
+            await SplashScreen.hide();
           }, 1000);
           
-          // Set status bar style with error handling
-          try {
-            await StatusBar.setStyle({ style: Style.Light });
-            await StatusBar.setOverlaysWebView({ overlay: true });
-          } catch (error) {
-            console.error('StatusBar configuration error:', error);
-          }
-          
-          // Add keyboard listeners with error handling
-          try {
-            Keyboard.addListener('keyboardWillShow', () => {
-              document.body.classList.add('keyboard-open');
-            });
-            
-            Keyboard.addListener('keyboardWillHide', () => {
-              document.body.classList.remove('keyboard-open');
-            });
-          } catch (error) {
-            console.error('Keyboard listener error:', error);
-          }
         } catch (error) {
           console.error('Capacitor initialization error:', error);
-          // Continue app initialization even if some Capacitor features fail
         }
       }
     };
@@ -163,11 +150,13 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
+          <SafeAreaWrapper>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </SafeAreaWrapper>
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>

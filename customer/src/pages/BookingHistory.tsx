@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shirt, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
+import { Shirt, Home as HomeIcon, Tag, ShoppingCart, RotateCcw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import group12Image from "@/assets/Group (12).png";
@@ -9,6 +9,7 @@ import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import BottomNavigation from "@/components/BottomNavigation";
+import Header from "@/components/Header";
 
 const BookingHistory = () => {
   const navigate = useNavigate();
@@ -82,12 +83,11 @@ const BookingHistory = () => {
 
   return (
     <div className="min-h-screen bg-background page-with-bottom-nav">
-      <header className="sticky top-0 px-4 sm:px-6 py-4 flex items-center z-10 shadow-lg gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-        <button onClick={() => navigate(-1)} className="flex-shrink-0" aria-label="Go back">
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </button>
-        <h1 className="text-lg sm:text-xl font-bold ml-3 sm:ml-4 text-white">Booking History</h1>
-      </header>
+      <Header 
+        title="Booking History" 
+        variant="gradient"
+        onBack={() => navigate(-1)}
+      />
 
       <div className="px-4 sm:px-6 py-4">
         <div className="overflow-x-auto pb-2 mb-4 sm:mb-6 scrollbar-hide">

@@ -240,19 +240,19 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
-      {/* Gradient Header Section */}
-      <div className="text-white px-4 sm:px-6 pb-6 sm:pb-8 shadow-xl gradient-header-safe" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+      {/* Gradient Header Section - SMALLER */}
+      <div className="text-white px-4 sm:px-6 pb-4 sm:pb-5 pt-3 shadow-xl" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Hi, {userName} 👋</h1>
+            <h1 className="text-xl sm:text-2xl font-bold mb-1">Hi, {userName} 👋</h1>
             <p className="text-white/90 text-sm sm:text-base">Let's schedule your order</p>
           </div>
           <button onClick={() => navigate("/profile")} className="flex-shrink-0">
             {profileImage ? (
-              <img src={profileImage} alt="Profile" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white/30 hover:border-white/50 transition-colors" />
+              <img src={profileImage} alt="Profile" className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover border-2 border-white/30 hover:border-white/50 transition-colors" />
             ) : (
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
             )}
           </button>

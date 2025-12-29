@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Shirt, CheckCircle2, MapPin, Circle } from "lucide-react";
+import { Shirt, CheckCircle2, MapPin, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
+import Header from "@/components/Header";
 
 declare global {
   interface Window {
@@ -185,13 +186,11 @@ const ContinueBooking = () => {
           </linearGradient>
         </defs>
       </svg>
-      <header className="text-white px-4 sm:px-6 py-5 flex items-center justify-between shadow-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
-        <button onClick={() => navigate('/home')} className="flex-shrink-0">
-          <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
-        <h1 className="text-lg sm:text-xl font-bold flex-1 text-center mx-4">Final Step</h1>
-        <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6"></div>
-      </header>
+      <Header 
+        title="Final Step" 
+        variant="gradient"
+        backTo="/home"
+      />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">

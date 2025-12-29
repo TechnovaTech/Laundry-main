@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Shirt, Star } from "lucide-react";
+import { Shirt, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
+import Header from "@/components/Header";
 
 const RateOrder = () => {
   const navigate = useNavigate();
@@ -105,12 +106,10 @@ const RateOrder = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-gray-50 px-4 sm:px-6 py-4 flex items-center">
-        <button onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-6 h-6 text-gray-600" />
-        </button>
-        <h1 className="text-xl font-bold ml-4 text-black">Rate Your Order</h1>
-      </header>
+      <Header 
+        title="Rate Your Order"
+        onBack={() => navigate(-1)}
+      />
 
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-2xl mx-auto">
         {loading ? (
