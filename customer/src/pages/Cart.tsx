@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, Trash2, ShoppingCart, Home as HomeIcon, Tag, RotateCcw, User, Clock, X } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Trash2, ShoppingCart, Clock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
 import BottomNavigation from "@/components/BottomNavigation";
@@ -29,16 +29,17 @@ const Cart = () => {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [pickupType, setPickupType] = useState<"now" | "later">("now");
-  const [loading, setLoading] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [minOrderPrice, setMinOrderPrice] = useState(500);
 
   useEffect(() => {
     loadCartItems();
     fetchTimeSlots();
+    fetchMinOrderPrice();
     
-    // Handle hardware back button
     const handleBackButton = () => {
       navigate('/home');
-      return true; // Prevent default behavior
+      return true;
     };
     
     App.addListener('backButton', handleBackButton);
@@ -47,6 +48,18 @@ const Cart = () => {
       App.removeAllListeners();
     };
   }, [navigate]);
+
+  const fetchMinOrderPrice = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/wallet-settings`);
+      const data = await response.json();
+      if (data.success && data.data) {
+        setMinOrderPrice(data.data.minOrderPrice || 500);
+      }
+    } catch (error) {
+      console.error('Failed to fetch minimum order price:', error);
+    }
+  };
 
   const fetchTimeSlots = async () => {
     try {
@@ -90,40 +103,38 @@ const Cart = () => {
     setSelectedSlot(slotTime);
   };
 
-  const handleProceedToCheckout = () => {
-    setShowSlotModal(true);
-  };
-
-  const confirmOrder = () => {
-    if (!selectedSlot) {
-      alert('Please select a pickup slot');
-      return;
-    }
-    const orderData = {
-      cartItems,
-      totalAmount: getTotalPrice(),
-      pickupType,
-      selectedSlot,
-      items: cartItems.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price
-      }))
-    };
-    setShowSlotModal(false);
-    navigate('/continue-booking', { state: orderData });
-  };
-
   const loadCartItems = () => {
     const savedCart = localStorage.getItem('cartItems');
     if (savedCart) {
       const items = JSON.parse(savedCart);
       setCartItems(items);
+      setSelectedItems(new Set(items.map((item: CartItem) => item.id)));
       
-      // Extract unique categories
       const uniqueCategories = ['All', ...new Set(items.map((item: CartItem) => item.category))];
       setCategories(uniqueCategories);
     }
+  };
+
+  const toggleItemSelection = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  const getSelectedCartItems = () => {
+    return cartItems.filter(item => selectedItems.has(item.id));
+  };
+
+  const getSelectedTotal = () => {
+    return getSelectedCartItems().reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const getSelectedItemsCount = () => {
+    return getSelectedCartItems().reduce((total, item) => total + item.quantity, 0);
   };
 
   const updateQuantity = (id: string, increment: boolean) => {
@@ -163,6 +174,44 @@ const Cart = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
+  const handleProceedToCheckout = () => {
+    if (selectedItems.size === 0) {
+      alert('Please select at least one item to order');
+      return;
+    }
+    if (getSelectedTotal() < minOrderPrice) {
+      alert(`Minimum order value is ₹${minOrderPrice}. Please add more items.`);
+      return;
+    }
+    setShowSlotModal(true);
+  };
+
+  const confirmOrder = () => {
+    if (!selectedSlot) {
+      alert('Please select a pickup slot');
+      return;
+    }
+    if (selectedItems.size === 0) {
+      alert('Please select at least one item to order');
+      return;
+    }
+    
+    const selectedCartItems = getSelectedCartItems();
+    const orderData = {
+      cartItems: selectedCartItems,
+      totalAmount: getSelectedTotal(),
+      pickupType,
+      selectedSlot,
+      items: selectedCartItems.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      }))
+    };
+    setShowSlotModal(false);
+    navigate('/continue-booking', { state: orderData });
+  };
+
   const filteredItems = getFilteredItems();
 
   return (
@@ -176,7 +225,6 @@ const Cart = () => {
         </defs>
       </svg>
 
-      {/* Header */}
       <header className="bg-white px-4 sm:px-6 flex items-center justify-between shadow-sm gradient-header-safe" style={{ paddingBottom: '1rem' }}>
         <button onClick={() => navigate('/home')} className="flex-shrink-0">
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
@@ -193,7 +241,6 @@ const Cart = () => {
 
       <div className="px-4 sm:px-6 py-4 sm:py-6">
         {cartItems.length === 0 ? (
-          // Empty Cart
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-6">
               <ShoppingCart className="w-12 h-12 text-gray-400" />
@@ -209,7 +256,6 @@ const Cart = () => {
           </div>
         ) : (
           <>
-            {/* Category Filter */}
             <div className="mb-6">
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 {categories.map((category) => (
@@ -229,80 +275,114 @@ const Cart = () => {
               </div>
             </div>
 
-            {/* Cart Items */}
             <div className="space-y-4 mb-6">
               {filteredItems.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-black text-base">{item.name}</h3>
-                      <p className="text-sm text-gray-500 mb-2">{item.category}</p>
-                      <p className="font-bold text-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        ₹{item.price} × {item.quantity} = ₹{item.price * item.quantity}
-                      </p>
-                    </div>
+                <div key={item.id} className={`bg-white rounded-2xl p-4 shadow-lg border-2 ${
+                  selectedItems.has(item.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-100'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => toggleItemSelection(item.id)}
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                        selectedItems.has(item.id)
+                          ? 'bg-blue-500 border-blue-500 text-white'
+                          : 'border-gray-300 hover:border-blue-400'
+                      }`}
+                    >
+                      {selectedItems.has(item.id) && (
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
                     
-                    <div className="flex flex-col items-end gap-3">
-                      {/* Quantity Controls */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => updateQuantity(item.id, false)}
-                          className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
-                          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="w-8 text-center font-semibold text-black">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.id, true)}
-                          className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
-                          style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
+                    <div className="flex items-center justify-between gap-3 flex-1">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-black text-base">{item.name}</h3>
+                        <p className="text-sm text-gray-500 mb-2">{item.category}</p>
+                        <p className="font-bold text-lg" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                          ₹{item.price} × {item.quantity} = ₹{item.price * item.quantity}
+                        </p>
                       </div>
                       
-                      {/* Remove Button */}
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex flex-col items-end gap-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.id, false)}
+                            className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
+                            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                          <span className="w-8 text-center font-semibold text-black">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, true)}
+                            className="w-8 h-8 rounded-lg text-white flex items-center justify-center font-bold shadow-md"
+                            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="text-red-500 hover:text-red-700 p-1"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Cart Summary */}
             <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100 mb-6">
               <h3 className="font-bold text-lg mb-3">Order Summary</h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span>Total Items:</span>
-                  <span className="font-semibold">{getTotalItems()}</span>
+                  <span>Selected Items:</span>
+                  <span className="font-semibold">{getSelectedItemsCount()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span className="font-semibold">₹{getTotalPrice()}</span>
+                  <span>Selected Total:</span>
+                  <span className="font-semibold">₹{getSelectedTotal()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Minimum Order:</span>
+                  <span className="font-semibold">₹{minOrderPrice}</span>
                 </div>
                 <hr className="my-2" />
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Total:</span>
+                  <span>Order Total:</span>
                   <span style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    ₹{getTotalPrice()}
+                    ₹{getSelectedTotal()}
                   </span>
                 </div>
+                {selectedItems.size === 0 && (
+                  <p className="text-red-500 text-sm mt-2">Please select items to place order</p>
+                )}
+                {getSelectedTotal() < minOrderPrice && selectedItems.size > 0 && (
+                  <p className="text-red-500 text-sm mt-2 font-semibold">⚠ Minimum order value of ₹{minOrderPrice} required</p>
+                )}
               </div>
             </div>
 
-            {/* Checkout Button */}
             <Button
               onClick={handleProceedToCheckout}
-              className="w-full h-12 sm:h-14 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl text-base font-semibold shadow-lg"
+              disabled={selectedItems.size === 0 || getSelectedTotal() < minOrderPrice}
+              className={`w-full h-12 sm:h-14 rounded-2xl text-base font-semibold shadow-lg ${
+                selectedItems.size === 0 || getSelectedTotal() < minOrderPrice
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
+              }`}
             >
-              Select Pickup Slot - ₹{getTotalPrice()}
+              {selectedItems.size === 0 
+                ? 'Select Items to Order' 
+                : getSelectedTotal() < minOrderPrice
+                  ? `Minimum Order ₹${minOrderPrice} Required`
+                  : `Select Pickup Slot - ₹${getSelectedTotal()}`
+              }
             </Button>
           </>
         )}
@@ -310,7 +390,6 @@ const Cart = () => {
 
       <BottomNavigation />
 
-      {/* Pickup Slot Modal */}
       {showSlotModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-md mx-4 shadow-2xl max-h-[80vh] overflow-y-auto">
@@ -321,7 +400,6 @@ const Cart = () => {
               </button>
             </div>
             
-            {/* Pickup Type Selection */}
             <div className="mb-4">
               <div className="flex gap-2">
                 <button
@@ -349,7 +427,6 @@ const Cart = () => {
               </div>
             </div>
             
-            {/* Time Slots */}
             <div className="mb-6">
               <h4 className="font-semibold mb-3 text-black">Available Time Slots</h4>
               <div className="grid grid-cols-2 gap-2">
@@ -374,13 +451,12 @@ const Cart = () => {
               </div>
             </div>
             
-            {/* Order Summary */}
             <div className="bg-gray-50 rounded-2xl p-4 mb-4">
               <h4 className="font-semibold mb-2">Order Summary</h4>
               <div className="text-sm space-y-1">
                 <div className="flex justify-between">
-                  <span>Items: {getTotalItems()}</span>
-                  <span>₹{getTotalPrice()}</span>
+                  <span>Selected Items: {getSelectedItemsCount()}</span>
+                  <span>₹{getSelectedTotal()}</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Pickup: {pickupType === 'now' ? 'Today' : 'Tomorrow'}</span>
@@ -389,7 +465,6 @@ const Cart = () => {
               </div>
             </div>
             
-            {/* Confirm Button */}
             <button 
               onClick={confirmOrder}
               disabled={!selectedSlot}
@@ -399,7 +474,7 @@ const Cart = () => {
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Confirm Order - ₹{getTotalPrice()}
+              Confirm Order - ₹{getSelectedTotal()}
             </button>
           </div>
         </div>

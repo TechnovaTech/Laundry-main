@@ -61,9 +61,6 @@ export const generateInvoicePDF = async (order: any) => {
   
   let hubAddress = {
     name: 'Urban Steam',
-    address: '#7/4B, 1st Cross, 5th Main Road,',
-    address2: 'Manjunatha Layout, R T Nagar Post, near',
-    address3: 'Mamtha School, Bengaluru - 560032',
     email: 'support@urbansteam.in',
     gst: '29ACLFAA519M1ZW'
   };
@@ -78,9 +75,6 @@ export const generateInvoicePDF = async (order: any) => {
       const hub = order.hub;
       hubAddress = {
         name: hub.name || 'Urban Steam',
-        address: hub.address?.street || hubAddress.address,
-        address2: '',
-        address3: hub.address ? `${hub.address.city}, ${hub.address.state} - ${hub.address.pincode}` : hubAddress.address3,
         email: hubAddress.email,
         gst: hubAddress.gst
       };
@@ -97,9 +91,6 @@ export const generateInvoicePDF = async (order: any) => {
           const hub = hubData.data;
           hubAddress = {
             name: hub.name || 'Urban Steam',
-            address: hub.address?.street || hubAddress.address,
-            address2: '',
-            address3: hub.address ? `${hub.address.city}, ${hub.address.state} - ${hub.address.pincode}` : hubAddress.address3,
             email: hubAddress.email,
             gst: hubAddress.gst
           };
@@ -183,18 +174,10 @@ export const generateInvoicePDF = async (order: any) => {
   doc.text(`Contact Number: ${customerMobile || 'N/A'}`, 64, sectionY + 28);
   doc.text(`Order Id: ${order.orderId || 'N/A'}`, 64, sectionY + 32);
   
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('From', 129, sectionY + 6);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text(hubAddress.name, 129, sectionY + 11);
   doc.setTextColor(80, 80, 80);
-  const hubAddr = doc.splitTextToSize(`${hubAddress.address} ${hubAddress.address2} ${hubAddress.address3}`, 52);
-  doc.text(hubAddr, 129, sectionY + 15);
   doc.setFontSize(7.5);
-  doc.text(`Email: ${hubAddress.email}`, 129, sectionY + 28);
-  doc.text(`GST: ${hubAddress.gst}`, 129, sectionY + 32);
+  doc.text(`Email: ${hubAddress.email}`, 129, sectionY + 11);
+  doc.text(`GST: ${hubAddress.gst}`, 129, sectionY + 15);
   doc.setTextColor(0, 0, 0);
   
   let yPos = 98;

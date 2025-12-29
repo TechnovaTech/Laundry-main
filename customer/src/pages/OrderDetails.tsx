@@ -113,9 +113,7 @@ const OrderDetails = () => {
           <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>
         <h1 className="text-lg sm:text-xl font-bold flex-1 text-center mx-4 text-white">Track Order</h1>
-        <button className="flex-shrink-0">
-          <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </button>
+        <div className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0"></div>
       </header>
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
@@ -279,37 +277,18 @@ const OrderDetails = () => {
           </p>
         </Card>
 
-        {order?.hub && (
-          <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #e0f2fe, #dbeafe)', borderColor: '#3b82f6' }}>
-            <div className="flex items-start gap-2">
-              <span className="text-2xl">🏢</span>
-              <div className="flex-1">
-                <p className="text-sm sm:text-base font-bold text-blue-800 mb-2">Processing Hub</p>
-                <p className="text-xs sm:text-sm text-blue-700 font-semibold">
-                  {order.hub.name || 'Urban Steam'}
-                </p>
-                {order.hub.address && (
-                  <>
-                    <p className="text-xs sm:text-sm text-blue-600 mt-1">
-                      {order.hub.address.street || ''}
-                    </p>
-                    <p className="text-xs sm:text-sm text-blue-600">
-                      {order.hub.address.city || ''}, {order.hub.address.state || ''} - {order.hub.address.pincode || ''}
-                    </p>
-                  </>
-                )}
-                {order.hub.contactNumber && (
-                  <p className="text-xs sm:text-sm text-blue-600 mt-1">
-                    📞 {order.hub.contactNumber}
-                  </p>
-                )}
-              </div>
-            </div>
-          </Card>
-        )}
-
         <div className="flex gap-2 sm:gap-3">
-          <Button variant="outline" className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm border-2 shadow-md" style={{ borderColor: '#452D9B', color: '#452D9B' }}>
+          <Button 
+            variant="outline" 
+            className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm border-2 shadow-md" 
+            style={{ borderColor: '#452D9B', color: '#452D9B' }}
+            disabled={!order?.assignedPartner?.phone}
+            onClick={() => {
+              if (order?.assignedPartner?.phone) {
+                window.open(`tel:${order.assignedPartner.phone}`, '_self');
+              }
+            }}
+          >
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
             Contact Partner
           </Button>
