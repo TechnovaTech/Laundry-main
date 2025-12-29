@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: process.env.BUILD_MODE === 'mobile' ? 'export' : undefined,
-  distDir: process.env.BUILD_MODE === 'mobile' ? 'out' : '.next',
+  output: 'export',
+  distDir: 'out',
   images: {
     unoptimized: true,
   },

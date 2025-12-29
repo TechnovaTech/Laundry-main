@@ -16,8 +16,29 @@ const OrderDetails = () => {
   const [showIssueForm, setShowIssueForm] = useState(false);
   const [issueText, setIssueText] = useState('');
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [partnerPhone, setPartnerPhone] = useState<string | null>(null);
   
   const orderId = location.state?.orderId;
+  
+  const fetchPartnerPhone = async () => {
+    if (!order?.assignedPartner) return;
+    
+    try {
+      const partnerId = typeof order.assignedPartner === 'string' ? order.assignedPartner : order.assignedPartner._id;
+      const response = await fetch(`${API_URL}/api/partners/${partnerId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data?.mobile) {
+        setPartnerPhone(data.data.mobile);
+        window.open(`tel:${data.data.mobile}`, '_self');
+      } else {
+        alert('Partner contact not available');
+      }
+    } catch (error) {
+      console.error('Error fetching partner phone:', error);
+      alert('Failed to get partner contact');
+    }
+  };
   
   useEffect(() => {
     if (orderId) {
@@ -282,12 +303,8 @@ const OrderDetails = () => {
             variant="outline" 
             className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm border-2 shadow-md" 
             style={{ borderColor: '#452D9B', color: '#452D9B' }}
-            disabled={!order?.assignedPartner?.phone}
-            onClick={() => {
-              if (order?.assignedPartner?.phone) {
-                window.open(`tel:${order.assignedPartner.phone}`, '_self');
-              }
-            }}
+            disabled={!order?.assignedPartner || (order?.status !== 'reached_location' && order?.status !== 'picked_up' && order?.status !== 'out_for_delivery')}
+            onClick={fetchPartnerPhone}
           >
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
             Contact Partner
