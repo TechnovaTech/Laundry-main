@@ -108,15 +108,35 @@ export default function PickForDelivery() {
       const partnerRes = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
       const partnerData = await partnerRes.json();
       
-      if (partnerData.success && partnerData.data.address?.pincode) {
-        const partnerPincode = partnerData.data.address.pincode;
+      if (partnerData.success && partnerData.data) {
+        const partner = partnerData.data;
+        
+        // Get partner's pincodes - check both single address pincode and pincodes array
+        let partnerPincodes = [];
+        if (partner.address?.pincode) {
+          partnerPincodes.push(partner.address.pincode);
+        }
+        if (partner.pincodes && partner.pincodes.length > 0) {
+          partnerPincodes = [...partnerPincodes, ...partner.pincodes];
+        }
+        
+        // Remove duplicates
+        partnerPincodes = [...new Set(partnerPincodes)];
+        
+        console.log('Partner pincodes:', partnerPincodes);
+        
+        if (partnerPincodes.length === 0) {
+          console.log('No pincodes found for partner');
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
         
         const ordersRes = await fetch(`${API_URL}/api/orders`);
         const ordersData = await ordersRes.json();
         
         if (ordersData.success) {
-          console.log('Partner pincode:', partnerPincode);
-          console.log('All orders:', ordersData.data);
+          console.log('All orders:', ordersData.data.length);
           
           // Check for active delivery
           const active = ordersData.data.find((order: any) => {
@@ -126,11 +146,33 @@ export default function PickForDelivery() {
           setActiveDelivery(active || null);
           
           const filteredOrders = ordersData.data.filter((order: any) => {
-            console.log('Order:', order.orderId, 'Status:', order.status, 'Delivery Pincode:', order.deliveryAddress?.pincode, 'Pickup Pincode:', order.pickupAddress?.pincode);
-            return order.status === 'process_completed' && 
-                   (order.deliveryAddress?.pincode === partnerPincode || order.pickupAddress?.pincode === partnerPincode);
+            console.log('Checking Order:', order.orderId, 'Status:', order.status);
+            console.log('Pickup Address:', order.pickupAddress);
+            console.log('Delivery Address:', order.deliveryAddress);
+            
+            // Check if order status is process_completed
+            if (order.status !== 'process_completed') {
+              console.log('Order status not process_completed:', order.status);
+              return false;
+            }
+            
+            // Check if order matches any of partner's pincodes (either pickup or delivery address)
+            const pickupPincode = order.pickupAddress?.pincode;
+            const deliveryPincode = order.deliveryAddress?.pincode;
+            
+            const matchesPickupPincode = pickupPincode && partnerPincodes.includes(pickupPincode);
+            const matchesDeliveryPincode = deliveryPincode && partnerPincodes.includes(deliveryPincode);
+            
+            console.log('Pickup pincode:', pickupPincode, 'matches:', matchesPickupPincode);
+            console.log('Delivery pincode:', deliveryPincode, 'matches:', matchesDeliveryPincode);
+            
+            const matches = matchesPickupPincode || matchesDeliveryPincode;
+            console.log('Order matches partner pincodes:', matches);
+            
+            return matches;
           });
-          console.log('Filtered orders:', filteredOrders);
+          
+          console.log('Filtered orders for delivery:', filteredOrders.length);
           setOrders(filteredOrders);
         }
       }
@@ -218,7 +260,7 @@ export default function PickForDelivery() {
                     </div>
                     <p className="text-xs text-gray-600 mt-2">Customer: <span className="text-black">{order.customerId?.name || 'N/A'}</span></p>
                     <p className="text-xs text-gray-600 mt-1">Items: <span className="text-black">{order.items?.map((item: any) => item.quantity + ' ' + item.name).join(', ')}</span></p>
-                    <p className="text-xs text-gray-600 mt-1">Address: <span className="text-black">{order.pickupAddress?.street}, {order.pickupAddress?.city}</span></p>
+                    <p className="text-xs text-gray-600 mt-1">Address: <span className="text-black">{order.deliveryAddress?.street || order.pickupAddress?.street}, {order.deliveryAddress?.city || order.pickupAddress?.city}</span></p>
                   </div>
                   <div className="flex items-center gap-3">
                     <button

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, Trash2, ShoppingCart, Home as HomeIcon, Tag, RotateCcw, User } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Trash2, ShoppingCart, Home as HomeIcon, Tag, RotateCcw, User, Clock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API_URL } from '@/config/api';
 import BottomNavigation from "@/components/BottomNavigation";
@@ -14,14 +14,26 @@ interface CartItem {
   category: string;
 }
 
+interface TimeSlot {
+  _id: string;
+  time: string;
+  type: string;
+}
+
 const Cart = () => {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [showSlotModal, setShowSlotModal] = useState(false);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<string>('');
+  const [pickupType, setPickupType] = useState<"now" | "later">("now");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadCartItems();
+    fetchTimeSlots();
     
     // Handle hardware back button
     const handleBackButton = () => {
@@ -35,6 +47,72 @@ const Cart = () => {
       App.removeAllListeners();
     };
   }, [navigate]);
+
+  const fetchTimeSlots = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/time-slots`);
+      const data = await response.json();
+      if (data.success) {
+        setTimeSlots(data.data);
+        const availableSlots = getAvailableSlots(data.data);
+        if (availableSlots.length > 0) {
+          setSelectedSlot(availableSlots[0].time);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch time slots:', error);
+    }
+  };
+
+  const isSlotPassed = (slotTime: string) => {
+    if (pickupType === 'later') return false;
+    const now = new Date();
+    const currentHour = now.getHours();
+    const timeMatch = slotTime.match(/(\d+)-(\d+)\s*(AM|PM)/i);
+    if (!timeMatch) return false;
+    const endHour = parseInt(timeMatch[2]);
+    const period = timeMatch[3].toUpperCase();
+    let slotEndHour = endHour;
+    if (period === 'PM' && endHour !== 12) {
+      slotEndHour = endHour + 12;
+    } else if (period === 'AM' && endHour === 12) {
+      slotEndHour = 0;
+    }
+    return currentHour >= slotEndHour;
+  };
+  
+  const getAvailableSlots = (slots: TimeSlot[]) => {
+    return slots.filter(slot => !isSlotPassed(slot.time));
+  };
+
+  const handleSlotSelection = (slotTime: string) => {
+    if (isSlotPassed(slotTime)) return;
+    setSelectedSlot(slotTime);
+  };
+
+  const handleProceedToCheckout = () => {
+    setShowSlotModal(true);
+  };
+
+  const confirmOrder = () => {
+    if (!selectedSlot) {
+      alert('Please select a pickup slot');
+      return;
+    }
+    const orderData = {
+      cartItems,
+      totalAmount: getTotalPrice(),
+      pickupType,
+      selectedSlot,
+      items: cartItems.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      }))
+    };
+    setShowSlotModal(false);
+    navigate('/continue-booking', { state: orderData });
+  };
 
   const loadCartItems = () => {
     const savedCart = localStorage.getItem('cartItems');
@@ -221,16 +299,111 @@ const Cart = () => {
 
             {/* Checkout Button */}
             <Button
-              onClick={() => navigate('/continue-booking', { state: { cartItems, totalAmount: getTotalPrice() } })}
+              onClick={handleProceedToCheckout}
               className="w-full h-12 sm:h-14 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl text-base font-semibold shadow-lg"
             >
-              Proceed to Checkout - ₹{getTotalPrice()}
+              Select Pickup Slot - ₹{getTotalPrice()}
             </Button>
           </>
         )}
       </div>
 
       <BottomNavigation />
+
+      {/* Pickup Slot Modal */}
+      {showSlotModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md mx-4 shadow-2xl max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-black">Select Pickup Slot</h3>
+              <button onClick={() => setShowSlotModal(false)} className="text-gray-500">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            {/* Pickup Type Selection */}
+            <div className="mb-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPickupType("now")}
+                  className={`flex-1 h-10 rounded-2xl font-semibold text-sm shadow-md ${
+                    pickupType === "now" 
+                      ? "text-white" 
+                      : "bg-white border border-gray-300 hover:bg-gray-50"
+                  }`}
+                  style={pickupType === "now" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
+                >
+                  Pickup Today
+                </button>
+                <button
+                  onClick={() => setPickupType("later")}
+                  className={`flex-1 h-10 rounded-2xl font-semibold text-sm shadow-md ${
+                    pickupType === "later" 
+                      ? "text-white" 
+                      : "bg-white border border-gray-300 hover:bg-gray-50"
+                  }`}
+                  style={pickupType === "later" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
+                >
+                  Pickup Tomorrow
+                </button>
+              </div>
+            </div>
+            
+            {/* Time Slots */}
+            <div className="mb-6">
+              <h4 className="font-semibold mb-3 text-black">Available Time Slots</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {timeSlots.map((slot) => (
+                  <button 
+                    key={slot._id}
+                    onClick={() => handleSlotSelection(slot.time)}
+                    disabled={isSlotPassed(slot.time) && pickupType === 'now'}
+                    className={`p-3 rounded-xl font-semibold text-sm ${
+                      isSlotPassed(slot.time) && pickupType === 'now'
+                        ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
+                        : selectedSlot === slot.time 
+                          ? 'text-white shadow-md' 
+                          : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
+                    }`}
+                    style={selectedSlot === slot.time && !(isSlotPassed(slot.time) && pickupType === 'now') ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
+                  >
+                    <Clock className="w-4 h-4 mx-auto mb-1" />
+                    {slot.time}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Order Summary */}
+            <div className="bg-gray-50 rounded-2xl p-4 mb-4">
+              <h4 className="font-semibold mb-2">Order Summary</h4>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span>Items: {getTotalItems()}</span>
+                  <span>₹{getTotalPrice()}</span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span>Pickup: {pickupType === 'now' ? 'Today' : 'Tomorrow'}</span>
+                  <span>{selectedSlot || 'No slot selected'}</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Confirm Button */}
+            <button 
+              onClick={confirmOrder}
+              disabled={!selectedSlot}
+              className={`w-full py-3 rounded-2xl font-semibold ${
+                selectedSlot 
+                  ? 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Confirm Order - ₹{getTotalPrice()}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
