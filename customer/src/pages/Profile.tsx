@@ -531,10 +531,10 @@ const Profile = () => {
                 {!option.isPrimary && (
                   <button 
                     onClick={() => handleSetPrimaryPayment(index)}
-                    className="text-gray-400 hover:text-green-500 transition-colors p-1"
-                    title="Set as Primary"
+                    className="text-xs px-2 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors font-medium"
+                    title="Set as Primary Payment Method"
                   >
-                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                    Set Primary
                   </button>
                 )}
                 <button 
@@ -568,22 +568,29 @@ const Profile = () => {
         </div>
 
         {showPaymentModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0" onClick={() => setShowPaymentModal(false)}>
-            <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md p-4 sm:p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 pt-20" onClick={() => setShowPaymentModal(false)}>
+            <div className="bg-white rounded-3xl w-full sm:max-w-md p-4 sm:p-6 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-base sm:text-lg font-bold text-black mb-3 sm:mb-4">{editingPaymentIndex !== null ? 'Edit' : 'Add'} Payment Method</h3>
               <div className="space-y-3 sm:space-y-4">
                 <div>
                   <label className="text-xs sm:text-sm font-medium text-black mb-1.5 sm:mb-2 block">Payment Type</label>
-                  <select
-                    value={newPayment.type}
-                    onChange={(e) => setNewPayment({ ...newPayment, type: e.target.value })}
-                    className="w-full p-2.5 sm:p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-sm sm:text-base"
-                    style={{ fontSize: '16px' }}
-                  >
-                    <option value="UPI">UPI</option>
-                    <option value="Card">Card</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={newPayment.type}
+                      onChange={(e) => setNewPayment({ ...newPayment, type: e.target.value })}
+                      className="w-full p-2.5 sm:p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-sm sm:text-base appearance-none pr-10"
+                      style={{ fontSize: '16px' }}
+                    >
+                      <option value="UPI">UPI</option>
+                      <option value="Card">Card</option>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
                 
                 {newPayment.type === 'UPI' && (
