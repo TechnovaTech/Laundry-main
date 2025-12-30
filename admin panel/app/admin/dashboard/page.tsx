@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [stats, setStats] = useState({
     ordersToday: 0,
     activeDeliveries: 0,
@@ -315,7 +317,7 @@ export default function AdminDashboard() {
               {/* Action Buttons */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
+                gridTemplateColumns: 'repeat(2, 1fr)',
                 gap: '1rem'
               }}>
                 <div style={{
@@ -325,17 +327,20 @@ export default function AdminDashboard() {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   textAlign: 'center'
                 }}>
-                  <button style={{
-                    backgroundColor: '#2563eb',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    fontSize: '0.9rem',
-                    cursor: 'pointer',
-                    fontWeight: '500',
-                    whiteSpace: 'nowrap'
-                  }}>
+                  <button 
+                    onClick={() => router.push('/admin/orders')}
+                    style={{
+                      backgroundColor: '#2563eb',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
                     Manage Orders
                   </button>
                 </div>
@@ -346,38 +351,20 @@ export default function AdminDashboard() {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                   textAlign: 'center'
                 }}>
-                  <button style={{
-                    backgroundColor: '#2563eb',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.75rem 0.8rem',
-                    borderRadius: '8px',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    fontWeight: '500',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    Assign Delivery Partner
-                  </button>
-                </div>
-                <div style={{
-                  backgroundColor: 'white',
-                  padding: '1.5rem',
-                  borderRadius: '12px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                  textAlign: 'center'
-                }}>
-                  <button style={{
-                    backgroundColor: '#2563eb',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    fontSize: '0.9rem',
-                    cursor: 'pointer',
-                    fontWeight: '500',
-                    whiteSpace: 'nowrap'
-                  }}>
+                  <button 
+                    onClick={() => router.push('/admin/pricing')}
+                    style={{
+                      backgroundColor: '#2563eb',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
                     Update Pricing
                   </button>
                 </div>
