@@ -31,6 +31,7 @@ const Cart = () => {
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [pickupType, setPickupType] = useState<"now" | "later">("now");
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [showSlotError, setShowSlotError] = useState(false);
   const [minOrderPrice, setMinOrderPrice] = useState(500);
 
   useEffect(() => {
@@ -79,20 +80,45 @@ const Cart = () => {
   };
 
   const isSlotPassed = (slotTime: string) => {
-    if (pickupType === 'later') return false;
+    if (pickupType === 'later') return false; // Tomorrow slots are always available
+    
     const now = new Date();
     const currentHour = now.getHours();
-    const timeMatch = slotTime.match(/(\d+)-(\d+)\s*(AM|PM)/i);
+    const currentMinute = now.getMinutes();
+    
+    // Extract start and end time from slot (e.g., "4 PM - 6 PM" -> start: 4, end: 6, period: PM)
+    const timeMatch = slotTime.match(/(\d+)\s*(AM|PM)?\s*-\s*(\d+)\s*(AM|PM)/i);
     if (!timeMatch) return false;
-    const endHour = parseInt(timeMatch[2]);
-    const period = timeMatch[3].toUpperCase();
-    let slotEndHour = endHour;
-    if (period === 'PM' && endHour !== 12) {
-      slotEndHour = endHour + 12;
-    } else if (period === 'AM' && endHour === 12) {
-      slotEndHour = 0;
+    
+    const startHour = parseInt(timeMatch[1]);
+    const startPeriod = timeMatch[2] || timeMatch[4]; // Use end period if start period is missing
+    const endHour = parseInt(timeMatch[3]);
+    const endPeriod = timeMatch[4];
+    
+    // Convert start time to 24-hour format
+    let slotStartHour = startHour;
+    if (startPeriod?.toUpperCase() === 'PM' && startHour !== 12) {
+      slotStartHour = startHour + 12;
+    } else if (startPeriod?.toUpperCase() === 'AM' && startHour === 12) {
+      slotStartHour = 0;
     }
-    return currentHour >= slotEndHour;
+    
+    // Convert end time to 24-hour format
+    let slotEndHour = endHour;
+    if (endPeriod?.toUpperCase() === 'PM' && endHour !== 12) {
+      slotEndHour = endHour + 12;
+    } else if (endPeriod?.toUpperCase() === 'AM' && endHour === 12) {
+      slotEndHour = 0; // 12 AM is midnight (0 hours)
+    }
+    
+    // Handle cross-day slots (e.g., "9 AM -12 AM" means 9 AM to midnight)
+    if (slotStartHour > slotEndHour) {
+      // Slot crosses midnight, check if current time is before end time (next day) or after start time (same day)
+      return false; // Cross-day slots are available until midnight
+    }
+    
+    // For same-day slots, check if current time is past the slot start time
+    return currentHour > slotStartHour || (currentHour === slotStartHour && currentMinute > 0);
   };
   
   const getAvailableSlots = (slots: TimeSlot[]) => {
@@ -100,7 +126,16 @@ const Cart = () => {
   };
 
   const handleSlotSelection = (slotTime: string) => {
-    if (isSlotPassed(slotTime)) return;
+    console.log('Cart - Slot clicked:', slotTime);
+    console.log('Cart - Current time:', new Date().getHours() + ':' + new Date().getMinutes());
+    console.log('Cart - Pickup type:', pickupType);
+    console.log('Cart - Is slot passed:', isSlotPassed(slotTime));
+    
+    if (isSlotPassed(slotTime) && pickupType === 'now') {
+      setShowSlotError(true);
+      setTimeout(() => setShowSlotError(false), 3000);
+      return;
+    }
     setSelectedSlot(slotTime);
   };
 
@@ -398,6 +433,9 @@ const Cart = () => {
             
             <div className="mb-4">
               <div className="flex gap-2">
+                <Button className="h-10 rounded-2xl font-semibold whitespace-nowrap text-white text-sm px-4 flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                  {pickupType === "now" ? "Today" : "Tomorrow"}
+                </Button>
                 <button
                   onClick={() => setPickupType("now")}
                   className={`flex-1 h-10 rounded-2xl font-semibold text-sm shadow-md ${
@@ -407,7 +445,7 @@ const Cart = () => {
                   }`}
                   style={pickupType === "now" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
                 >
-                  Pickup Today
+                  Pickup Now
                 </button>
                 <button
                   onClick={() => setPickupType("later")}
@@ -418,34 +456,43 @@ const Cart = () => {
                   }`}
                   style={pickupType === "later" ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { color: '#452D9B' }}
                 >
-                  Pickup Tomorrow
+                  Pickup Later
                 </button>
               </div>
             </div>
             
-            <div className="mb-6">
+            <div className="mb-4">
               <h4 className="font-semibold mb-3 text-black">Available Time Slots</h4>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 {timeSlots.map((slot) => (
                   <button 
                     key={slot._id}
                     onClick={() => handleSlotSelection(slot.time)}
-                    disabled={isSlotPassed(slot.time) && pickupType === 'now'}
-                    className={`p-3 rounded-xl font-semibold text-sm ${
+                    className={`h-10 rounded-2xl font-semibold whitespace-nowrap text-sm px-4 flex-shrink-0 ${
                       isSlotPassed(slot.time) && pickupType === 'now'
-                        ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
+                        ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-pointer'
                         : selectedSlot === slot.time 
                           ? 'text-white shadow-md' 
                           : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
                     }`}
                     style={selectedSlot === slot.time && !(isSlotPassed(slot.time) && pickupType === 'now') ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : {}}
                   >
-                    <Clock className="w-4 h-4 mx-auto mb-1" />
                     {slot.time}
                   </button>
                 ))}
               </div>
+              <p className="text-xs mt-3" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                Next available slot: {pickupType === "now" ? "Today" : "Tomorrow"}, {selectedSlot || 'No slots available'}
+              </p>
             </div>
+            
+            {showSlotError && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-3 mb-4 animate-pulse">
+                <p className="text-red-700 text-sm font-medium text-center">
+                  ⏰ This time slot has already passed. Please select an available time slot.
+                </p>
+              </div>
+            )}
             
             <div className="bg-gray-50 rounded-2xl p-4 mb-4">
               <h4 className="font-semibold mb-2">Order Summary</h4>

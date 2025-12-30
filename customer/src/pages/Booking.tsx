@@ -136,22 +136,41 @@ const Booking = () => {
     
     const now = new Date();
     const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
     
-    // Extract end time from slot (e.g., "7-8 AM" -> 8, "2-4 PM" -> 16)
-    const timeMatch = slotTime.match(/(\d+)-(\d+)\s*(AM|PM)/i);
+    // Extract start and end time from slot (e.g., "4 PM - 6 PM" -> start: 4, end: 6, period: PM)
+    const timeMatch = slotTime.match(/(\d+)\s*(AM|PM)?\s*-\s*(\d+)\s*(AM|PM)/i);
     if (!timeMatch) return false;
     
-    const endHour = parseInt(timeMatch[2]);
-    const period = timeMatch[3].toUpperCase();
+    const startHour = parseInt(timeMatch[1]);
+    const startPeriod = timeMatch[2] || timeMatch[4]; // Use end period if start period is missing
+    const endHour = parseInt(timeMatch[3]);
+    const endPeriod = timeMatch[4];
     
-    let slotEndHour = endHour;
-    if (period === 'PM' && endHour !== 12) {
-      slotEndHour = endHour + 12;
-    } else if (period === 'AM' && endHour === 12) {
-      slotEndHour = 0;
+    // Convert start time to 24-hour format
+    let slotStartHour = startHour;
+    if (startPeriod?.toUpperCase() === 'PM' && startHour !== 12) {
+      slotStartHour = startHour + 12;
+    } else if (startPeriod?.toUpperCase() === 'AM' && startHour === 12) {
+      slotStartHour = 0;
     }
     
-    return currentHour >= slotEndHour;
+    // Convert end time to 24-hour format
+    let slotEndHour = endHour;
+    if (endPeriod?.toUpperCase() === 'PM' && endHour !== 12) {
+      slotEndHour = endHour + 12;
+    } else if (endPeriod?.toUpperCase() === 'AM' && endHour === 12) {
+      slotEndHour = 0; // 12 AM is midnight (0 hours)
+    }
+    
+    // Handle cross-day slots (e.g., "9 AM -12 AM" means 9 AM to midnight)
+    if (slotStartHour > slotEndHour) {
+      // Slot crosses midnight, check if current time is before end time (next day) or after start time (same day)
+      return false; // Cross-day slots are available until midnight
+    }
+    
+    // For same-day slots, check if current time is past the slot start time
+    return currentHour > slotStartHour || (currentHour === slotStartHour && currentMinute > 0);
   };
   
   const getAvailableSlots = (slots: TimeSlot[]) => {
@@ -159,7 +178,12 @@ const Booking = () => {
   };
   
   const handleSlotSelection = (slotTime: string) => {
-    if (isSlotPassed(slotTime)) {
+    console.log('Slot clicked:', slotTime);
+    console.log('Current time:', new Date().getHours() + ':' + new Date().getMinutes());
+    console.log('Pickup type:', pickupType);
+    console.log('Is slot passed:', isSlotPassed(slotTime));
+    
+    if (isSlotPassed(slotTime) && pickupType === 'now') {
       setShowSlotError(true);
       setTimeout(() => setShowSlotError(false), 3000);
       return;
@@ -373,7 +397,7 @@ const Booking = () => {
                 onClick={() => handleSlotSelection(slot.time)}
                 className={`h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap text-sm sm:text-base px-3 sm:px-4 flex-shrink-0 ${
                   isSlotPassed(slot.time) && pickupType === 'now'
-                    ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-not-allowed'
+                    ? 'bg-gray-200 border border-gray-300 text-gray-400 cursor-pointer'
                     : selectedSlot === slot.time 
                       ? 'text-white shadow-md' 
                       : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
@@ -482,7 +506,7 @@ const Booking = () => {
         {showSlotError && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 animate-pulse">
             <p className="text-red-700 text-sm sm:text-base font-medium text-center">
-              ⏰ This time slot has passed. Please select another slot.
+              ⏰ This time slot has already passed. Please select an available time slot.
             </p>
           </div>
         )}
