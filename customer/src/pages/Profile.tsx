@@ -422,7 +422,10 @@ const Profile = () => {
         title="Profile" 
         variant="gradient"
         rightAction={
-          <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          <Bell 
+            className="w-5 h-5 sm:w-6 sm:h-6 text-white cursor-pointer" 
+            onClick={() => navigate("/notifications")}
+          />
         }
       />
 

@@ -201,7 +201,7 @@ export default function DropToHub() {
       <header className="sticky top-0 bg-white shadow-sm z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <h2 className="text-lg font-semibold text-black">Drop To Hub</h2>
-          <span style={{ color: '#452D9B' }}>🔔</span>
+          <span className="w-6" />
         </div>
       </header>
 

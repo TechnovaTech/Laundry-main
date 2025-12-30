@@ -37,6 +37,7 @@ import ReferEarn from "./pages/ReferEarn";
 import RateOrder from "./pages/RateOrder";
 import TermsConditions from "./pages/TermsConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -111,6 +112,7 @@ const AppContent = () => {
       <Route path="/rate-order/:orderId" element={<RateOrder />} />
       <Route path="/terms-conditions" element={<TermsConditions />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/notifications" element={<Notifications />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

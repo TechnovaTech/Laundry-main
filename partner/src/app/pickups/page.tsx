@@ -193,8 +193,16 @@ export default function Pickups() {
       <header className="px-4 pt-6 pb-4 bg-white shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900">Today&apos;s Pickups</h2>
-          <button className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0ebf8' }}>
-            <span className="text-xl">🔔</span>
+          <button 
+            onClick={() => router.push('/notifications')}
+            className="w-10 h-10 rounded-full flex items-center justify-center" 
+            style={{ backgroundColor: '#f0ebf8' }}
+          >
+            <svg className="w-5 h-5" style={{ color: '#452D9B' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5V3h0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
           </button>
         </div>
       </header>

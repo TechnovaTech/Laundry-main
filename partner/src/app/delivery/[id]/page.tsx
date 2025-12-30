@@ -52,7 +52,7 @@ export default function DeliveryDetails() {
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/delivery/pick" className="text-2xl leading-none text-black">←</Link>
           <h2 className="text-lg font-semibold text-black">Delivery Details</h2>
-          <span style={{ color: '#452D9B' }}>🔔</span>
+          <span className="w-6" />
         </div>
       </header>
 

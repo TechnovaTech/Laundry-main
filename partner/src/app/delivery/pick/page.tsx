@@ -208,7 +208,7 @@ export default function PickForDelivery() {
       <header className="sticky top-0 bg-white shadow-sm z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <h2 className="text-lg font-semibold text-black">Pick for Delivery</h2>
-          <span style={{ color: '#452D9B' }}>🔔</span>
+          <span className="w-6" />
         </div>
         <div className="text-white text-center py-2 text-sm font-semibold" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>Orders ready at Main Processing Hub</div>
       </header>
