@@ -24,6 +24,7 @@ const CreateProfile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [showImageOptions, setShowImageOptions] = useState(false);
+  const [termsError, setTermsError] = useState(false);
 
   useEffect(() => {
     const storedCustomerId = localStorage.getItem('customerId')
@@ -56,7 +57,8 @@ const CreateProfile = () => {
           })
 
           if (customer.name) {
-            setAgreedToTerms(true)
+            // Don't automatically set agreedToTerms to true
+            // User must manually agree to terms
           }
         }
       } catch (error) {
@@ -137,6 +139,32 @@ const CreateProfile = () => {
 
   const handleSubmit = async () => {
     if (isLoading) return
+    
+    // Reset error states
+    setTermsError(false)
+    
+    // Validate required fields including terms agreement
+    if (!formData.fullName.trim()) {
+      alert('Please enter your full name.')
+      return
+    }
+    
+    if (!formData.email.trim()) {
+      alert('Please enter your email address.')
+      return
+    }
+    
+    if (!formData.phone.trim()) {
+      alert('Please enter your mobile number.')
+      return
+    }
+    
+    // MANDATORY: Check terms agreement - this is the most important validation
+    if (!agreedToTerms) {
+      setTermsError(true)
+      alert('You must agree to the Terms and Conditions to create your profile.')
+      return
+    }
     
     setIsLoading(true)
     const controller = new AbortController()
@@ -269,31 +297,53 @@ const CreateProfile = () => {
           </div>
         </div>
 
-        <div className="mt-4 sm:mt-6 flex items-start gap-2">
+        <div className={`mt-4 sm:mt-6 flex items-start gap-3 p-3 rounded-lg ${termsError ? 'bg-red-50 border border-red-200' : ''}`}>
+          <div 
+            onClick={() => {
+              setAgreedToTerms(!agreedToTerms)
+              setTermsError(false) // Clear error when user checks the box
+            }}
+            className={`mt-1 w-5 h-5 flex-shrink-0 cursor-pointer rounded border-2 flex items-center justify-center transition-all ${
+              agreedToTerms 
+                ? 'bg-blue-500 border-blue-500 text-white' 
+                : termsError 
+                  ? 'bg-white border-red-500' 
+                  : 'bg-white border-gray-300 hover:border-blue-400'
+            }`}
+          >
+            {agreedToTerms && (
+              <span className="text-white text-sm font-bold">✓</span>
+            )}
+          </div>
           <input
             type="checkbox"
             id="terms"
             checked={agreedToTerms}
-            onChange={(e) => setAgreedToTerms(e.target.checked)}
-            className="mt-1 w-4 h-4 flex-shrink-0 cursor-pointer"
+            onChange={() => {}}
+            className="hidden"
           />
-          <label htmlFor="terms" className="text-xs sm:text-sm text-gray-700">
+          <label htmlFor="terms" className={`text-sm sm:text-base cursor-pointer ${termsError ? 'text-red-700' : 'text-gray-700'}`}>
             I agree with all{' '}
             <button
               type="button"
               onClick={() => setShowTermsModal(true)}
-              className="text-blue-500 underline hover:text-blue-600"
+              className="text-blue-500 underline hover:text-blue-600 font-medium"
             >
               terms and conditions
             </button>
+            {termsError && (
+              <div className="text-red-600 text-xs mt-1 font-medium">
+                ⚠️ You must agree to the terms and conditions
+              </div>
+            )}
           </label>
         </div>
 
         <Button
           onClick={handleSubmit}
-          disabled={!formData.fullName || !formData.email || !formData.phone || isLoading}
+          disabled={!formData.fullName || !formData.email || !formData.phone || !agreedToTerms || isLoading}
           className="w-full h-10 sm:h-12 rounded-xl text-white text-sm sm:text-base font-semibold mt-4 disabled:cursor-not-allowed"
-          style={!formData.fullName || !formData.email || !formData.phone || isLoading ? { background: '#9ca3af' } : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+          style={!formData.fullName || !formData.email || !formData.phone || !agreedToTerms || isLoading ? { background: '#9ca3af' } : { background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
         >
           {isLoading ? 'Saving...' : 'Save & Continue'}
         </Button>

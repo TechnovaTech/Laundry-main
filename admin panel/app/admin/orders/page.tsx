@@ -12,9 +12,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('')
-  const [partnerFilter, setPartnerFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [partners, setPartners] = useState<any[]>([])
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
 
@@ -32,12 +30,11 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders()
-    fetchPartners()
   }, [])
 
   useEffect(() => {
     applyFilters()
-  }, [orders, activeFilter, dateFilter, partnerFilter, searchQuery])
+  }, [orders, activeFilter, dateFilter, searchQuery])
 
   const fetchOrders = async () => {
     try {
@@ -103,11 +100,6 @@ export default function OrdersPage() {
         const orderDate = new Date(order.createdAt).toISOString().split('T')[0]
         return orderDate === dateFilter
       })
-    }
-
-    // Partner filter
-    if (partnerFilter !== 'all') {
-      filtered = filtered.filter((order: any) => order.partnerId?._id === partnerFilter)
     }
 
     // Search filter (customer name and mobile)
@@ -276,26 +268,6 @@ export default function OrdersPage() {
                 </span>
               )}
             </div>
-            <select
-              value={partnerFilter}
-              onChange={(e) => setPartnerFilter(e.target.value)}
-              aria-label="Filter orders by partner"
-              style={{
-                padding: '0.75rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                outline: 'none',
-                backgroundColor: 'white',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="all">All Partners</option>
-              {partners.map(partner => (
-                <option key={partner._id} value={partner._id}>
-                  {partner.name || partner.personalDetails?.name || `Partner ${partner.partnerId}`}
-                </option>
-              ))}
-            </select>
           </div>
 
           {/* Orders Table */}
