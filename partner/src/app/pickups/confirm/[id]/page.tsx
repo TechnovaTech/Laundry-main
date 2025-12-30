@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import { API_URL } from '@/config/api';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 interface Order {
   _id: string;
@@ -53,7 +55,41 @@ export default function PickupConfirm() {
     fetchOrder();
   }, []);
 
-  const fetchOrder = async () => {
+  const takePhoto = async () => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera
+      });
+      
+      if (image.dataUrl) {
+        setPhotos([...photos, image.dataUrl]);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      setToast({ message: 'Failed to take photo', type: 'error' });
+    }
+  };
+
+  const selectFromGallery = async () => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Photos
+      });
+      
+      if (image.dataUrl) {
+        setPhotos([...photos, image.dataUrl]);
+      }
+    } catch (error) {
+      console.error('Error selecting photo:', error);
+      setToast({ message: 'Failed to select photo', type: 'error' });
+    }
+  };
     try {
       const resolvedParams = await params;
       const response = await fetch(`${API_URL}/api/orders`);
@@ -115,26 +151,26 @@ export default function PickupConfirm() {
               </button>
             </div>
           ))}
-          <label className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center cursor-pointer relative overflow-hidden">
-            <span style={{ color: '#452D9B' }}>📷</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    setPhotos([...photos, reader.result as string]);
-                  };
-                  reader.readAsDataURL(file);
-                }
-              }}
-            />
-          </label>
+          
+          {/* Camera Button */}
+          <button
+            onClick={takePhoto}
+            className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex flex-col items-center justify-center cursor-pointer"
+          >
+            <span style={{ color: '#452D9B' }} className="text-2xl mb-1">📷</span>
+            <span style={{ color: '#452D9B' }} className="text-xs">Camera</span>
+          </button>
+          
+          {/* Gallery Button */}
+          <button
+            onClick={selectFromGallery}
+            className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex flex-col items-center justify-center cursor-pointer"
+          >
+            <span style={{ color: '#452D9B' }} className="text-2xl mb-1">🖼️</span>
+            <span style={{ color: '#452D9B' }} className="text-xs">Gallery</span>
+          </button>
         </div>
-        <p className="mt-2 text-xs text-gray-500">Upload at least 2 photos of the clothes</p>
+        <p className="mt-2 text-xs text-gray-500">Tap Camera to take photo or Gallery to select from photos</p>
         
         <button
           onClick={async () => {
