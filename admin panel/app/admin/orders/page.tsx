@@ -13,6 +13,7 @@ export default function OrdersPage() {
   const [activeFilter, setActiveFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('')
   const [partnerFilter, setPartnerFilter] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [partners, setPartners] = useState<any[]>([])
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
@@ -36,7 +37,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     applyFilters()
-  }, [orders, activeFilter, dateFilter, partnerFilter])
+  }, [orders, activeFilter, dateFilter, partnerFilter, searchQuery])
 
   const fetchOrders = async () => {
     try {
@@ -109,6 +110,17 @@ export default function OrdersPage() {
       filtered = filtered.filter((order: any) => order.partnerId?._id === partnerFilter)
     }
 
+    // Search filter (customer name and mobile)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim()
+      filtered = filtered.filter((order: any) => {
+        const customerName = (order.customerId?.name || '').toLowerCase()
+        const customerMobile = (order.customerId?.mobile || '').toLowerCase()
+        const orderId = (order.orderId || '').toLowerCase()
+        return customerName.includes(query) || customerMobile.includes(query) || orderId.includes(query)
+      })
+    }
+
     setFilteredOrders(filtered)
   }
 
@@ -121,16 +133,27 @@ export default function OrdersPage() {
       return status.charAt(0).toUpperCase() + status.slice(1)
     }
     
+    const formatDate = (dateString: string) => {
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      const day = date.getDate().toString().padStart(2, '0')
+      const month = (date.getMonth() + 1).toString().padStart(2, '0')
+      const year = date.getFullYear()
+      return `${day}-${month}-${year}`
+    }
+    
     return {
       id: order.orderId,
       customer: order.customerId?.name || 'Unknown Customer',
+      mobile: order.customerId?.mobile || 'N/A',
       items: order.items?.map((item: any) => `${item.quantity} ${item.name}`).join(', ') || 'No items',
       price: `₹${order.totalAmount}`,
       status: formatStatus(order.status),
       paymentMethod: order.paymentMethod || 'Cash on Delivery',
       paymentStatus: formatPaymentStatus(order.paymentStatus || 'pending'),
       partner: order.partnerId?.name || 'Not Assigned',
-      time: order.pickupSlot?.timeSlot || 'Not Scheduled'
+      time: order.pickupSlot?.timeSlot || 'Not Scheduled',
+      date: formatDate(order.createdAt)
     }
   }
 
@@ -138,6 +161,25 @@ export default function OrdersPage() {
     <ResponsiveLayout activePage="Orders" title="Orders Management" searchPlaceholder="Search by Order ID / Customer">
         {/* Orders Content */}
         <div style={{ padding: '1.5rem' }}>
+          {/* Search Bar */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <input
+              type="text"
+              placeholder="Search by Order ID, Customer Name, or Mobile Number"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                outline: 'none',
+                fontSize: '0.9rem'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+            />
+          </div>
           {/* Bulk Delete Button */}
           {selectedOrders.length > 0 && (
             <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -203,20 +245,37 @@ export default function OrdersPage() {
                 {filter.label}
               </button>
             ))}
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              aria-label="Filter orders by date"
-              style={{
-                padding: '0.75rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                outline: 'none',
-                marginLeft: '1rem',
-                cursor: 'pointer'
-              }}
-            />
+            <div style={{ position: 'relative', marginLeft: '1rem' }}>
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                aria-label="Filter orders by date"
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  width: '150px'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+              />
+              {!dateFilter && (
+                <span style={{
+                  position: 'absolute',
+                  left: '1rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#9ca3af',
+                  pointerEvents: 'none',
+                  fontSize: '0.9rem'
+                }}>
+                  dd-mm-yyyy
+                </span>
+              )}
+            </div>
             <select
               value={partnerFilter}
               onChange={(e) => setPartnerFilter(e.target.value)}
@@ -252,7 +311,7 @@ export default function OrdersPage() {
               color: 'white',
               padding: '1rem',
               display: 'grid',
-              gridTemplateColumns: '50px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
+              gridTemplateColumns: '50px 1fr 1.5fr 1fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1fr 1.5fr',
               gap: '1rem',
               fontSize: '0.9rem',
               fontWeight: '600'
@@ -274,13 +333,14 @@ export default function OrdersPage() {
               </div>
               <div>ORDER ID</div>
               <div>CUSTOMER NAME</div>
+              <div>MOBILE</div>
               <div>ITEMS</div>
               <div>PRICE</div>
               <div>STATUS</div>
               <div>PAYMENT METHOD</div>
               <div>PAYMENT STATUS</div>
               <div>DELIVERY PARTNER</div>
-              <div>PICKUP TIME SLOT</div>
+              <div>DATE</div>
               <div>ACTIONS</div>
             </div>
 
@@ -301,7 +361,7 @@ export default function OrdersPage() {
                 style={{
                   padding: '1rem',
                   display: 'grid',
-                  gridTemplateColumns: '50px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr',
+                  gridTemplateColumns: '50px 1fr 1.5fr 1fr 2fr 1fr 1fr 1fr 1fr 1.5fr 1fr 1.5fr',
                   gap: '1rem',
                   borderBottom: index < filteredOrders.length - 1 ? '1px solid #f3f4f6' : 'none',
                   fontSize: '0.9rem',
@@ -328,6 +388,7 @@ export default function OrdersPage() {
                 </div>
                 <div style={{ fontWeight: '500' }} onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.id}</div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.customer}</div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.mobile}</div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.items}</div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.price}</div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>
@@ -368,7 +429,7 @@ export default function OrdersPage() {
                   </span>
                 </div>
                 <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.partner}</div>
-                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.time}</div>
+                <div onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}>{order.date}</div>
                 <div onClick={(e) => e.stopPropagation()}>
                   {dbOrder.status === 'delivered_to_hub' ? (
                     <button
