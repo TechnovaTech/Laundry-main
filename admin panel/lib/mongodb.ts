@@ -1,10 +1,12 @@
 import mongoose from 'mongoose'
+import { MongoClient } from 'mongodb'
 
 declare global {
   var mongoose: {
     conn: typeof mongoose | null
     promise: Promise<typeof mongoose> | null
   }
+  var _mongoClientPromise: Promise<MongoClient>
 }
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/laundry'
@@ -34,6 +36,22 @@ async function dbConnect() {
   }
 
   return cached.conn
+}
+
+// MongoDB native client connection for notifications API
+let client: MongoClient
+let clientPromise: Promise<MongoClient>
+
+if (!global._mongoClientPromise) {
+  client = new MongoClient(MONGODB_URI)
+  global._mongoClientPromise = client.connect()
+}
+clientPromise = global._mongoClientPromise
+
+export async function connectToDatabase() {
+  const client = await clientPromise
+  const db = client.db('laundry')
+  return { client, db }
 }
 
 export default dbConnect

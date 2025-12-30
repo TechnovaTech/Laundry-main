@@ -31,43 +31,15 @@ export default function Notifications() {
         return;
       }
 
-      // Mock notifications for partners - replace with actual API call
-      const mockNotifications: Notification[] = [
-        {
-          id: '1',
-          title: 'New Pickup Available',
-          message: 'A new pickup order is available in your area. Order #LS001',
-          timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          read: false,
-          type: 'pickup'
-        },
-        {
-          id: '2',
-          title: 'Payment Received',
-          message: 'Payment of ₹150 has been credited to your account for order #LS002',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          read: false,
-          type: 'payment'
-        },
-        {
-          id: '3',
-          title: 'Delivery Completed',
-          message: 'Order #LS003 has been successfully delivered to the customer.',
-          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          read: true,
-          type: 'delivery'
-        },
-        {
-          id: '4',
-          title: 'Weekly Earnings Summary',
-          message: 'You earned ₹2,450 this week from 15 completed orders.',
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          read: true,
-          type: 'system'
-        }
-      ];
-
-      setNotifications(mockNotifications);
+      // Fetch real notifications from API
+      const response = await fetch(`${API_URL}/api/mobile/notifications?audience=partners`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setNotifications(data.data);
+      } else {
+        console.error('Failed to fetch notifications:', data.error);
+      }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     } finally {
@@ -178,10 +150,21 @@ export default function Notifications() {
                       </button>
                     </div>
                   </div>
-                  <p className={`text-sm mt-1 ${
+                  <p className={`text-sm mt-1 cursor-pointer ${
                     !notification.read ? 'text-gray-700' : 'text-gray-500'
-                  }`}>
-                    {notification.message}
+                  }`}
+                    onClick={() => {
+                      // Show full message in alert for now - can be replaced with modal
+                      alert(`${notification.title}\n\n${notification.message}`);
+                      if (!notification.read) {
+                        markAsRead(notification.id);
+                      }
+                    }}
+                  >
+                    {notification.message.length > 100 ? 
+                      `${notification.message.substring(0, 100)}... (tap to read more)` : 
+                      notification.message
+                    }
                   </p>
                   {!notification.read && (
                     <div className="w-2 h-2 rounded-full mt-2" style={{ backgroundColor: '#452D9B' }}></div>
