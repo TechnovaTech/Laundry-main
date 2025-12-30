@@ -125,9 +125,28 @@ function StartPickupContent() {
         <p className="text-base font-semibold text-black">Order Details</p>
         <div className="mt-2 text-sm text-black">
           <p>Order ID: {order.orderId}</p>
-          <p>Items: {order.items?.length || 0}</p>
-          <p>Total Price: ₹{order.totalAmount}</p>
-          <p>Delivery Instructions: {order.specialInstructions || 'None'}</p>
+          <div className="mt-2">
+            <p className="font-medium">Items:</p>
+            {order.items && order.items.length > 0 ? (
+              <ul className="ml-2 mt-1">
+                {order.items.map((item: any, index: number) => (
+                  <li key={index} className="text-xs text-gray-700">
+                    • {item.quantity}x {item.name} - ₹{item.price} each
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-gray-600 ml-2">No items found</p>
+            )}
+          </div>
+          <p className="mt-2">Total Price: ₹{order.totalAmount}</p>
+          <p>Special Instructions: {order.specialInstructions || 'None'}</p>
+          {order.specialInstructions && (
+            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-xs font-medium text-yellow-800">Customer Notes:</p>
+              <p className="text-xs text-yellow-700 mt-1">{order.specialInstructions}</p>
+            </div>
+          )}
         </div>
       </div>
 

@@ -32,6 +32,7 @@ const ContinueBooking = () => {
   const [paymentWarningMessage, setPaymentWarningMessage] = useState('');
   const [realItemData, setRealItemData] = useState<any[]>([]);
   const [loading, setLoading] = useState(isFromCart);
+  const [additionalNotes, setAdditionalNotes] = useState('');
   
   // Use real item data if fetched, otherwise use original data
   const items = realItemData.length > 0 ? realItemData : (isFromCart ? orderData.cartItems : (orderData.items || []));
@@ -279,6 +280,20 @@ const ContinueBooking = () => {
         </div>
 
         <div>
+          <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Additional Notes</h2>
+          <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
+            <textarea
+              placeholder="Add any special instructions for pickup/delivery (optional)..."
+              value={additionalNotes}
+              onChange={(e) => setAdditionalNotes(e.target.value)}
+              className="w-full h-20 rounded-xl border-2 border-gray-300 px-3 py-2 text-sm resize-none outline-none focus:border-[#452D9B] focus:ring-2 focus:ring-[#452D9B]/20"
+              maxLength={200}
+            />
+            <p className="text-xs text-gray-500 mt-2">{additionalNotes.length}/200 characters</p>
+          </div>
+        </div>
+
+        <div>
           <h2 className="text-base sm:text-lg font-bold mb-3 text-black">Coupon Code</h2>
           <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg space-y-3 sm:space-y-4">
             <div className="flex gap-2 sm:gap-3">
@@ -380,7 +395,8 @@ const ContinueBooking = () => {
                   paymentMethod: 'Wallet',
                   paymentStatus: 'paid',
                   walletUsed: walletUsed,
-                  appliedVoucherCode: appliedVoucher?.code || null
+                  appliedVoucherCode: appliedVoucher?.code || null,
+                  specialInstructions: additionalNotes.trim() || null
                 };
                 
                 const response = await fetch(`${API_URL}/api/orders`, {
@@ -476,7 +492,8 @@ const ContinueBooking = () => {
                         razorpayOrderId: response.razorpay_order_id,
                         razorpayPaymentId: response.razorpay_payment_id,
                         walletUsed: walletUsed,
-                        appliedVoucherCode: appliedVoucher?.code || null
+                        appliedVoucherCode: appliedVoucher?.code || null,
+                        specialInstructions: additionalNotes.trim() || null
                       };
                       
                       const placeOrderResponse = await fetch(`${API_URL}/api/orders`, {

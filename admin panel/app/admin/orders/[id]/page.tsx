@@ -275,6 +275,12 @@ export default function OrderDetails() {
                   <div><strong>Name:</strong> {order?.customerId?.name || 'N/A'}</div>
                   <div><strong>Mobile:</strong> {order?.customerId?.mobile || 'N/A'}</div>
                   <div><strong>Address:</strong> {order?.pickupAddress ? `${order.pickupAddress.street || ''}, ${order.pickupAddress.city || ''}, ${order.pickupAddress.state || ''} - ${order.pickupAddress.pincode || ''}` : 'N/A'}</div>
+                  {order?.specialInstructions && (
+                    <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #f59e0b' }}>
+                      <strong style={{ color: '#92400e' }}>Customer Notes:</strong>
+                      <div style={{ color: '#92400e', marginTop: '0.25rem', fontSize: '0.9rem' }}>{order.specialInstructions}</div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
