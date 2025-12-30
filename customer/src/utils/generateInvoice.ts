@@ -5,6 +5,29 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { ACS_LOGO_BASE64, URBAN_STEAM_LOGO_BASE64 } from './invoiceAssets';
 
+// Add custom font that supports rupee symbol
+const addRupeeFont = (doc: jsPDF) => {
+  try {
+    // Create a canvas to render rupee symbol as image
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      canvas.width = 20;
+      canvas.height = 20;
+      ctx.font = '16px Arial';
+      ctx.fillStyle = 'black';
+      ctx.fillText('₹', 2, 16);
+      const rupeeImage = canvas.toDataURL();
+      return rupeeImage;
+    }
+  } catch (e) {
+    console.log('Rupee symbol rendering failed');
+  }
+  return null;
+};
+
+const getRupeeSymbol = () => 'Rs';
+
 // Convert images to base64 for mobile compatibility
 const loadImageAsBase64 = (url: string): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -58,6 +81,10 @@ export const generateInvoicePDF = async (order: any) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    
+    // Set font
+    doc.setFont('helvetica');
+    const rupeeSymbol = getRupeeSymbol();
   
   let hubAddress = {
     name: 'Urban Steam',
@@ -167,8 +194,11 @@ export const generateInvoicePDF = async (order: any) => {
   doc.text(customerName, 64, sectionY + 11);
   doc.setTextColor(80, 80, 80);
   const address = doc.splitTextToSize(order.pickupAddress?.street || 'Customer address', 58);
-  doc.text(address, 64, sectionY + 15);
-  doc.text(`${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'State'} - ${order.pickupAddress?.pincode || '000000'}`, 64, sectionY + 19);
+  let addressY = sectionY + 15;
+  doc.text(address, 64, addressY);
+  addressY += address.length * 3;
+  const cityStatePin = doc.splitTextToSize(`${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'State'} - ${order.pickupAddress?.pincode || '000000'}`, 58);
+  doc.text(cityStatePin, 64, addressY);
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(7.5);
   doc.text(`Contact Number: ${customerMobile || 'N/A'}`, 64, sectionY + 28);
@@ -190,8 +220,8 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setFont('helvetica', 'bold');
   doc.text('Service', 17, yPos);
   doc.text('Qty', 135, yPos, { align: 'center' });
-  doc.text('Rate (Rs)', 160, yPos, { align: 'right' });
-  doc.text('Total (Rs)', pageWidth - 17, yPos, { align: 'right' });
+  doc.text('Rate (' + rupeeSymbol + ')', 160, yPos, { align: 'right' });
+  doc.text('Total (' + rupeeSymbol + ')', pageWidth - 17, yPos, { align: 'right' });
   
   yPos += 7;
   doc.setFont('helvetica', 'normal');
@@ -212,8 +242,8 @@ export const generateInvoicePDF = async (order: any) => {
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8.5);
       doc.text(String(item.quantity || 0), 135, yPos, { align: 'center' });
-      doc.text('Rs' + (item.price || 0).toFixed(2), 160, yPos, { align: 'right' });
-      doc.text('Rs' + itemTotal.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
+      doc.text(rupeeSymbol + ' ' + (item.price || 0).toFixed(2), 160, yPos, { align: 'right' });
+      doc.text(rupeeSymbol + ' ' + itemTotal.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
       yPos += 10;
     });
   }
@@ -230,7 +260,9 @@ export const generateInvoicePDF = async (order: any) => {
     doc.text(order.cancellationReason || 'Cancellation charge', 17, yPos + 3);
     doc.setTextColor(220, 38, 38);
     doc.setFontSize(8.5);
-    doc.text('Rs' + order.cancellationFee.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
+    doc.text('1', 135, yPos, { align: 'center' });
+    doc.text(rupeeSymbol + ' ' + order.cancellationFee.toFixed(2), 160, yPos, { align: 'right' });
+    doc.text(rupeeSymbol + ' ' + order.cancellationFee.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
     doc.setTextColor(0, 0, 0);
     subtotal += order.cancellationFee;
     yPos += 10;
@@ -248,7 +280,9 @@ export const generateInvoicePDF = async (order: any) => {
     doc.text(order.deliveryFailureReason || 'Delivery failure charge', 17, yPos + 3);
     doc.setTextColor(220, 38, 38);
     doc.setFontSize(8.5);
-    doc.text('Rs' + order.deliveryFailureFee.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
+    doc.text('1', 135, yPos, { align: 'center' });
+    doc.text(rupeeSymbol + ' ' + order.deliveryFailureFee.toFixed(2), 160, yPos, { align: 'right' });
+    doc.text(rupeeSymbol + ' ' + order.deliveryFailureFee.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
     doc.setTextColor(0, 0, 0);
     subtotal += order.deliveryFailureFee;
     yPos += 10;
@@ -262,9 +296,10 @@ export const generateInvoicePDF = async (order: any) => {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('Subtotal', 135, yPos);
-  doc.text('Rs' + subtotal.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
+  doc.text(rupeeSymbol + ' ' + subtotal.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
   yPos += 7;
   const discountPercent = order.discount || 0;
+  const discountAmount = (subtotal * discountPercent) / 100;
   doc.text('Discount/Coupon', 135, yPos);
   doc.text(discountPercent + '%', pageWidth - 17, yPos, { align: 'right' });
   yPos += 9;
@@ -273,15 +308,11 @@ export const generateInvoicePDF = async (order: any) => {
   doc.line(135, yPos, pageWidth - 15, yPos);
   yPos += 7;
   
+  const finalTotal = subtotal - discountAmount;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.text('Total', 135, yPos);
-  doc.text('Rs' + (order.totalAmount || subtotal).toFixed(2), pageWidth - 17, yPos, { align: 'right' });
-  yPos += 9;
-  doc.setFontSize(11);
-  doc.setTextColor(69, 45, 155);
-  doc.text('Amount due', 135, yPos);
-  doc.text('Rs' + (order.totalAmount || subtotal).toFixed(2), pageWidth - 17, yPos, { align: 'right' });
+  doc.text(rupeeSymbol + ' ' + (order.totalAmount || finalTotal).toFixed(2), pageWidth - 17, yPos, { align: 'right' });
   doc.setTextColor(0, 0, 0);
   
   yPos = pageHeight - 25;
