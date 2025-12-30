@@ -939,13 +939,9 @@ export default function OrderDetails() {
                 doc.setFont('helvetica', 'normal');
                 doc.text(hubAddress.name, 142, sectionY + 13);
                 doc.setTextColor(100, 100, 100);
-                doc.setFontSize(8);
-                doc.text('Address', 142, sectionY + 18);
-                const hubAddr = doc.splitTextToSize(`${hubAddress.address} ${hubAddress.address2} ${hubAddress.address3}`, 55);
-                doc.text(hubAddr, 142, sectionY + 22);
                 doc.setFontSize(9);
-                doc.text(`Email Id :${hubAddress.email}`, 142, sectionY + 34);
-                doc.text(`GST No: ${hubAddress.gst}`, 142, sectionY + 39);
+                doc.text(`Email Id :${hubAddress.email}`, 142, sectionY + 20);
+                doc.text(`GST No: ${hubAddress.gst}`, 142, sectionY + 25);
                 doc.setTextColor(0, 0, 0);
                 
                 let yPos = 115;
@@ -1061,7 +1057,75 @@ export default function OrderDetails() {
             }}>
               Download Invoice (PDF)
             </button>
-            <button style={{
+            <button 
+              onClick={() => {
+                const printWindow = window.open('', '_blank');
+                if (printWindow) {
+                  printWindow.document.write(`
+                    <html>
+                      <head>
+                        <title>Delivery Slip - ${order.orderId}</title>
+                        <style>
+                          body { font-family: Arial, sans-serif; margin: 20px; }
+                          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+                          .section { margin-bottom: 15px; }
+                          .label { font-weight: bold; }
+                          .items { border: 1px solid #ccc; padding: 10px; }
+                          @media print { body { margin: 0; } }
+                        </style>
+                      </head>
+                      <body>
+                        <div class="header">
+                          <h2>URBAN STEAM - DELIVERY SLIP</h2>
+                          <p>Order ID: ${order.orderId || 'N/A'}</p>
+                        </div>
+                        
+                        <div class="section">
+                          <div class="label">Customer Details:</div>
+                          <p>Name: ${order?.customerId?.name || 'N/A'}</p>
+                          <p>Mobile: ${order?.customerId?.mobile || 'N/A'}</p>
+                          <p>Address: ${order?.pickupAddress ? `${order.pickupAddress.street || ''}, ${order.pickupAddress.city || ''}, ${order.pickupAddress.state || ''} - ${order.pickupAddress.pincode || ''}` : 'N/A'}</p>
+                        </div>
+                        
+                        <div class="section">
+                          <div class="label">Partner Details:</div>
+                          <p>Partner: ${order?.partnerId?.name || 'Not Assigned'}</p>
+                          <p>Mobile: ${order?.partnerId?.mobile || 'N/A'}</p>
+                        </div>
+                        
+                        <div class="section items">
+                          <div class="label">Items:</div>
+                          ${order?.items?.map((item: any) => `<p>• ${item.quantity} ${item.name} - ₹${item.price * item.quantity}</p>`).join('') || '<p>No items</p>'}
+                          <hr>
+                          <p><strong>Total: ₹${order?.totalAmount || 0}</strong></p>
+                        </div>
+                        
+                        <div class="section">
+                          <div class="label">Status:</div>
+                          <p>${order?.status || 'N/A'}</p>
+                          <p>Date: ${order?.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB') : 'N/A'}</p>
+                        </div>
+                        
+                        <div class="section">
+                          <p>_________________________</p>
+                          <p>Customer Signature</p>
+                        </div>
+                        
+                        <script>
+                          window.onload = function() {
+                            window.print();
+                            window.onafterprint = function() {
+                              window.close();
+                            }
+                          }
+                        </script>
+                      </body>
+                    </html>
+                  `);
+                  printWindow.document.close();
+                }
+              }}
+              style={{
               backgroundColor: 'white',
               color: '#2563eb',
               border: '2px solid #2563eb',
