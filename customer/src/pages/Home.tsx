@@ -26,8 +26,6 @@ const Home = () => {
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
-  const [claimedVouchers, setClaimedVouchers] = useState<string[]>([]);
-  const [hasClaimedAny, setHasClaimedAny] = useState(false);
   const [recentOrders, setRecentOrders] = useState([]);
   const [heroItems, setHeroItems] = useState([]);
   const [currentHero, setCurrentHero] = useState(0);
@@ -50,11 +48,6 @@ const Home = () => {
     fetchCustomerData();
     fetchRecentOrders();
     fetchHeroItems();
-    
-    const claimed = localStorage.getItem('hasClaimedVoucher');
-    if (claimed === 'true') {
-      setHasClaimedAny(true);
-    }
 
     // Handle hardware back button
     if (Capacitor.isNativePlatform()) {
@@ -78,7 +71,19 @@ const Home = () => {
 
   const fetchVouchers = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/vouchers`);
+      const customerId = localStorage.getItem('customerId');
+      if (!customerId) {
+        // If no customer ID, fetch all vouchers
+        const response = await fetch(`${API_URL}/api/vouchers`);
+        const data = await response.json();
+        if (data.success) {
+          setVouchers(data.data);
+        }
+        return;
+      }
+      
+      // Fetch only available vouchers for this customer
+      const response = await fetch(`${API_URL}/api/vouchers/available?customerId=${customerId}`);
       const data = await response.json();
       if (data.success) {
         setVouchers(data.data);
@@ -224,12 +229,31 @@ const Home = () => {
     setShowVoucherModal(true);
   };
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     navigator.clipboard.writeText(selectedVoucherCode);
     setIsCopied(true);
-    setClaimedVouchers(prev => [...prev, selectedVoucherCode]);
-    setHasClaimedAny(true);
-    localStorage.setItem('hasClaimedVoucher', 'true');
+    
+    // Mark this specific voucher as used by this customer
+    try {
+      const customerId = localStorage.getItem('customerId');
+      if (customerId) {
+        await fetch(`${API_URL}/api/vouchers/use`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: customerId,
+            voucherCode: selectedVoucherCode
+          })
+        });
+        
+        // Refresh vouchers to remove the used one
+        setTimeout(() => {
+          fetchVouchers();
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Error marking voucher as used:', error);
+    }
   };
 
   const closeModal = () => {
@@ -358,14 +382,10 @@ const Home = () => {
                         <h3 className="font-bold text-base mb-1 text-blue-900">{voucher.slogan}</h3>
                         <p className="text-blue-700 text-sm mb-3">Limited time offer</p>
                         <Button 
-                          onClick={() => !hasClaimedAny && handleApplyVoucher(voucher.code)}
-                          className={`w-full h-9 rounded-xl text-sm font-semibold shadow-md ${
-                            hasClaimedAny
-                              ? 'bg-gray-400 text-white cursor-not-allowed'
-                              : 'bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white'
-                          }`}
+                          onClick={() => handleApplyVoucher(voucher.code)}
+                          className="w-full h-9 rounded-xl text-sm font-semibold shadow-md bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white"
                         >
-                          {hasClaimedAny ? '✓ Used' : 'Apply Now'}
+                          Apply Now
                         </Button>
                       </div>
                     </div>
