@@ -74,17 +74,7 @@ export default function OrdersPage() {
     }
   }
 
-  const fetchPartners = async () => {
-    try {
-      const response = await fetch('/api/partners')
-      const data = await response.json()
-      if (data.success) {
-        setPartners(data.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch partners:', error)
-    }
-  }
+
 
   const applyFilters = () => {
     let filtered = [...orders]
