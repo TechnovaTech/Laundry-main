@@ -528,7 +528,7 @@ const Profile = () => {
                 </div>
               </div>
               <div className="flex gap-1 sm:gap-2 flex-shrink-0">
-                {!option.isPrimary && (
+                {!option.isPrimary ? (
                   <button 
                     onClick={() => handleSetPrimaryPayment(index)}
                     className="text-xs px-2 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors font-medium"
@@ -536,6 +536,11 @@ const Profile = () => {
                   >
                     Set Primary
                   </button>
+                ) : (
+                  <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-green-50 text-green-600">
+                    <CheckCircle2 className="w-3 h-3" />
+                    <span className="font-medium">Primary</span>
+                  </div>
                 )}
                 <button 
                   onClick={() => handleEditPayment(index)}
