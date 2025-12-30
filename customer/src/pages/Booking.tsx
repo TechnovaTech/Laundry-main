@@ -294,7 +294,9 @@ const Booking = () => {
       <Header 
         title="Book Your Order" 
         rightAction={
-          <Info className="w-5 h-5 sm:w-6 sm:h-6" style={{ stroke: 'url(#gradient)' }} />
+          <button onClick={addToCart}>
+            <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" style={{ stroke: 'url(#gradient)' }} />
+          </button>
         }
       />
 
@@ -355,6 +357,15 @@ const Booking = () => {
               </div>
             ))}
           </div>
+          
+          {/* Add to Cart Button */}
+          <button
+            onClick={addToCart}
+            className="w-full h-12 sm:h-14 bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-2xl text-sm sm:text-base font-semibold shadow-lg flex items-center justify-center gap-2 mt-4"
+          >
+            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+            Add to Cart
+          </button>
         </div>
 
         <div>
@@ -386,7 +397,7 @@ const Booking = () => {
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Schedule Pickup & Delivery</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-black">Schedule Pickup</h2>
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
             <Button className="h-10 sm:h-12 rounded-2xl font-semibold whitespace-nowrap text-white text-sm sm:text-base px-3 sm:px-4 flex-shrink-0 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
               {pickupType === "now" ? "Today" : "Tomorrow"}
@@ -510,15 +521,6 @@ const Booking = () => {
             </p>
           </div>
         )}
-        
-        {/* Add to Cart Button */}
-        <button
-          onClick={addToCart}
-          className="w-full h-12 sm:h-14 bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-2xl text-sm sm:text-base font-semibold mb-4 shadow-lg flex items-center justify-center gap-2"
-        >
-          <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-          Add to Cart
-        </button>
         
         <button
           onClick={() => {
