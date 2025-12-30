@@ -58,7 +58,8 @@ const BookingHistory = () => {
             month: 'short',
             year: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            hour12: true
           }),
           price: `₹${order.totalAmount}`,
           status: order.status.charAt(0).toUpperCase() + order.status.slice(1),
