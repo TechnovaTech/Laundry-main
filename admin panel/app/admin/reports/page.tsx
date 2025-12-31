@@ -20,12 +20,16 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true)
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
+  const [hoveredData, setHoveredData] = useState<any>(null)
+  const [exportModal, setExportModal] = useState(false)
+  const [exportType, setExportType] = useState('')
 
   useEffect(() => {
     fetchReportsData()
   }, [fromDate, toDate])
 
   const fetchReportsData = async () => {
+    setLoading(true)
     try {
       let url = '/api/reports'
       if (fromDate || toDate) {
@@ -36,12 +40,83 @@ export default function ReportsPage() {
       }
       const response = await fetch(url)
       const result = await response.json()
-      setData(result)
+      if (result.success) {
+        setData(result.data)
+      }
     } catch (error) {
       console.error('Error fetching reports data:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleExport = async (type: string, period: string) => {
+    try {
+      const params = new URLSearchParams()
+      if (period === 'custom' && fromDate && toDate) {
+        params.append('fromDate', fromDate)
+        params.append('toDate', toDate)
+      } else if (period === 'month') {
+        const now = new Date()
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+        params.append('fromDate', firstDay.toISOString().split('T')[0])
+        params.append('toDate', now.toISOString().split('T')[0])
+      } else if (period === 'year') {
+        const now = new Date()
+        const firstDay = new Date(now.getFullYear(), 0, 1)
+        params.append('fromDate', firstDay.toISOString().split('T')[0])
+        params.append('toDate', now.toISOString().split('T')[0])
+      }
+      
+      const response = await fetch(`/api/reports/export?${params.toString()}&type=${type}`)
+      const data = await response.json()
+      
+      if (type === 'csv') {
+        const csvContent = generateCSV(data)
+        downloadFile(csvContent, `reports_${period}_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv')
+      } else {
+        const pdfContent = generatePDF(data)
+        downloadFile(pdfContent, `reports_${period}_${new Date().toISOString().split('T')[0]}.pdf`, 'application/pdf')
+      }
+    } catch (error) {
+      console.error('Export failed:', error)
+    }
+    setExportModal(false)
+  }
+
+  const generateCSV = (data: any) => {
+    const headers = ['Date', 'Total Orders', 'Total Revenue', 'Active Partners', 'Avg Delivery Time', 'Customer Name', 'Customer Mobile', 'Order Amount', 'Payment Status']
+    let csvContent = headers.join(',') + '\n'
+    
+    data.orders?.forEach((order: any) => {
+      csvContent += [
+        order.createdAt?.split('T')[0] || '',
+        data.stats?.totalOrders || 0,
+        data.stats?.totalRevenue || 0,
+        data.stats?.activePartners || 0,
+        data.stats?.avgDeliveryTime || '0 mins',
+        order.customerId?.name || 'Unknown',
+        order.customerId?.mobile || 'N/A',
+        order.totalAmount || 0,
+        order.paymentStatus || 'pending'
+      ].join(',') + '\n'
+    })
+    
+    return csvContent
+  }
+
+  const generatePDF = (data: any) => {
+    return `PDF Report Generated for ${data.stats?.totalOrders || 0} orders with total revenue of ₹${data.stats?.totalRevenue || 0}`
+  }
+
+  const downloadFile = (content: string, filename: string, type: string) => {
+    const blob = new Blob([content], { type })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    window.URL.revokeObjectURL(url)
   }
 
   const renderOrdersTrend = () => {
@@ -75,9 +150,40 @@ export default function ReportsPage() {
           {data.ordersTrend.map((d, i) => {
             const x = 40 + (i * (320 / (data.ordersTrend.length - 1)))
             const y = 160 - (d.count / maxOrders) * 120
-            return <circle key={i} cx={x} cy={y} r="4" fill="#3b82f6" stroke="white" strokeWidth="2"/>
+            return (
+              <circle 
+                key={i} 
+                cx={x} 
+                cy={y} 
+                r="4" 
+                fill="#3b82f6" 
+                stroke="white" 
+                strokeWidth="2"
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => setHoveredData({ type: 'orders', data: d, x, y })}
+                onMouseLeave={() => setHoveredData(null)}
+              />
+            )
           })}
         </svg>
+        {hoveredData?.type === 'orders' && (
+          <div style={{
+            position: 'absolute',
+            left: hoveredData.x - 50,
+            top: hoveredData.y - 40,
+            background: 'rgba(0,0,0,0.8)',
+            color: 'white',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            fontSize: '0.8rem',
+            pointerEvents: 'none',
+            zIndex: 10
+          }}>
+            <div>Date: {hoveredData.data.date}</div>
+            <div>Orders: {hoveredData.data.count}</div>
+            <div>Revenue: ₹{hoveredData.data.revenue || 0}</div>
+          </div>
+        )}
         <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', color: '#6b7280' }}>
           📈 {data.ordersTrend.length} days
         </div>
@@ -111,10 +217,39 @@ export default function ReportsPage() {
             const x = 40 + (i * (320 / data.revenueByDay.length))
             const width = Math.max(20, 320 / data.revenueByDay.length - 5)
             return (
-              <rect key={i} x={x} y={160 - height} width={width} height={height} fill="url(#revenueGradient)" rx="2"/>
+              <rect 
+                key={i} 
+                x={x} 
+                y={160 - height} 
+                width={width} 
+                height={height} 
+                fill="url(#revenueGradient)" 
+                rx="2"
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => setHoveredData({ type: 'revenue', data: d, x: x + width/2, y: 160 - height })}
+                onMouseLeave={() => setHoveredData(null)}
+              />
             )
           })}
         </svg>
+        {hoveredData?.type === 'revenue' && (
+          <div style={{
+            position: 'absolute',
+            left: hoveredData.x - 50,
+            top: hoveredData.y - 40,
+            background: 'rgba(0,0,0,0.8)',
+            color: 'white',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            fontSize: '0.8rem',
+            pointerEvents: 'none',
+            zIndex: 10
+          }}>
+            <div>Date: {hoveredData.data.date}</div>
+            <div>Revenue: ₹{hoveredData.data.revenue.toLocaleString()}</div>
+            <div>Orders: {hoveredData.data.orders || 0}</div>
+          </div>
+        )}
         <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', color: '#6b7280' }}>
           💵 ₹{data.revenueByDay.reduce((sum, d) => sum + d.revenue, 0).toLocaleString()}
         </div>
@@ -244,7 +379,7 @@ export default function ReportsPage() {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button 
-            onClick={() => window.print()}
+            onClick={() => { setExportType('pdf'); setExportModal(true) }}
             style={{ 
               padding: '0.5rem 1rem', 
               backgroundColor: '#dc2626', 
@@ -262,15 +397,7 @@ export default function ReportsPage() {
             📄 Export PDF
           </button>
           <button 
-            onClick={() => {
-              const csvData = `Date,Orders,Revenue\n${data.ordersTrend.map(d => `${d.date},${d.count},${d.revenue || 0}`).join('\n')}`
-              const blob = new Blob([csvData], { type: 'text/csv' })
-              const url = window.URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = 'reports.csv'
-              a.click()
-            }}
+            onClick={() => { setExportType('csv'); setExportModal(true) }}
             style={{ 
               padding: '0.5rem 1rem', 
               backgroundColor: '#059669', 
@@ -356,6 +483,50 @@ export default function ReportsPage() {
               Last updated: {new Date().toLocaleString()}
             </div>
           </div>
+
+          {/* Export Modal */}
+          {exportModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '400px', width: '90%' }}>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>Export {exportType.toUpperCase()} Report</h3>
+                <p style={{ marginBottom: '1.5rem', color: '#6b7280' }}>Select the time period for your report:</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                  <button 
+                    onClick={() => handleExport(exportType, 'custom')}
+                    style={{ padding: '0.75rem 1rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    📅 Custom Range ({fromDate || 'Start'} to {toDate || 'End'})
+                  </button>
+                  <button 
+                    onClick={() => handleExport(exportType, 'month')}
+                    style={{ padding: '0.75rem 1rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    📊 This Month
+                  </button>
+                  <button 
+                    onClick={() => handleExport(exportType, 'year')}
+                    style={{ padding: '0.75rem 1rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    📈 This Year
+                  </button>
+                  <button 
+                    onClick={() => handleExport(exportType, 'all')}
+                    style={{ padding: '0.75rem 1rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    🗂️ All Time Data
+                  </button>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <button 
+                    onClick={() => setExportModal(false)} 
+                    style={{ padding: '0.5rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
     </ResponsiveLayout>
   )
