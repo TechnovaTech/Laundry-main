@@ -29,6 +29,58 @@ const Home = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [heroItems, setHeroItems] = useState([]);
   const [currentHero, setCurrentHero] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const [voucherTouchStart, setVoucherTouchStart] = useState(0);
+  const [voucherTouchEnd, setVoucherTouchEnd] = useState(0);
+
+  // Handle hero swipe
+  const handleHeroTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsAutoScrolling(false);
+  };
+
+  const handleHeroTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleHeroTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      setCurrentHero(prev => (prev + 1) % heroItems.length);
+    }
+    if (isRightSwipe) {
+      setCurrentHero(prev => prev === 0 ? heroItems.length - 1 : prev - 1);
+    }
+  };
+
+  // Handle voucher swipe
+  const handleVoucherTouchStart = (e: React.TouchEvent) => {
+    setVoucherTouchStart(e.targetTouches[0].clientX);
+    setIsVoucherAutoScrolling(false);
+  };
+
+  const handleVoucherTouchMove = (e: React.TouchEvent) => {
+    setVoucherTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleVoucherTouchEnd = () => {
+    if (!voucherTouchStart || !voucherTouchEnd) return;
+    const distance = voucherTouchStart - voucherTouchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      setCurrentVoucher(prev => (prev + 1) % vouchers.length);
+    }
+    if (isRightSwipe) {
+      setCurrentVoucher(prev => prev === 0 ? vouchers.length - 1 : prev - 1);
+    }
+  };
 
   useEffect(() => {
     const savedName = localStorage.getItem('userName');
@@ -164,14 +216,24 @@ const Home = () => {
     }
   };
   
-  // Auto-scroll hero items
+  // Auto-scroll hero items with pause on interaction
   useEffect(() => {
-    if (heroItems.length === 0) return;
+    if (heroItems.length <= 1 || !isAutoScrolling) return;
     const interval = setInterval(() => {
       setCurrentHero(prev => (prev + 1) % heroItems.length);
-    }, 3000);
+    }, 4000);
     return () => clearInterval(interval);
-  }, [heroItems.length]);
+  }, [heroItems.length, isAutoScrolling]);
+  
+  // Resume hero auto-scroll after 6 seconds of no interaction
+  useEffect(() => {
+    if (!isAutoScrolling) {
+      const timeout = setTimeout(() => {
+        setIsAutoScrolling(true);
+      }, 6000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isAutoScrolling]);
   
   // Auto-scroll vouchers only if not manually controlled
   useEffect(() => {
@@ -292,8 +354,9 @@ const Home = () => {
               <div 
                 className="flex transition-transform duration-700 ease-in-out" 
                 style={{ transform: `translateX(-${currentHero * 100}%)` }}
-                onTouchStart={() => setIsAutoScrolling(false)}
-                onMouseDown={() => setIsAutoScrolling(false)}
+                onTouchStart={handleHeroTouchStart}
+                onTouchMove={handleHeroTouchMove}
+                onTouchEnd={handleHeroTouchEnd}
               >
                 {heroItems.map((item: any, index) => (
                   <div key={item._id} className="w-full flex-shrink-0 relative">
@@ -367,7 +430,8 @@ const Home = () => {
               <div 
                 className="overflow-hidden rounded-2xl"
                 onTouchStart={handleVoucherTouchStart}
-                onMouseDown={handleVoucherTouchStart}
+                onTouchMove={handleVoucherTouchMove}
+                onTouchEnd={handleVoucherTouchEnd}
               >
                 <div className="flex transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${currentVoucher * 100}%)` }}>
                   {vouchers.map((voucher: any, index) => (
