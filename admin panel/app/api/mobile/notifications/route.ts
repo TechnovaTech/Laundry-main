@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const { db } = await connectToDatabase();
     const { searchParams } = new URL(request.url);
     const audience = searchParams.get('audience'); // 'customers' or 'partners'
+    const customerId = searchParams.get('customerId'); // specific customer ID
 
     if (!audience || !['customers', 'partners'].includes(audience)) {
       return NextResponse.json(
@@ -14,15 +15,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Build query for notifications
+    let query: any = {
+      status: 'sent',
+      $or: [
+        { audience: audience === 'customers' ? 'Customers' : 'Partners' },
+        { audience: 'Both' }
+      ]
+    };
+
+    // If customerId is provided, also include notifications targeted to that specific customer
+    if (customerId && audience === 'customers') {
+      query.$or.push({ targetCustomerId: customerId });
+    }
+
     // Fetch notifications for the specific audience or 'Both'
     const notifications = await db.collection('notifications')
-      .find({
-        status: 'sent',
-        $or: [
-          { audience: audience === 'customers' ? 'Customers' : 'Partners' },
-          { audience: 'Both' }
-        ]
-      })
+      .find(query)
       .sort({ sentAt: -1 })
       .limit(50)
       .toArray();

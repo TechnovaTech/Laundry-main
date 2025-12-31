@@ -1,106 +1,107 @@
-import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
-import Customer from '@/models/Customer'
-import WalletTransaction from '@/models/WalletTransaction'
+import { NextRequest, NextResponse } from 'next/server';
+import { connectToDatabase } from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
 
-export async function OPTIONS() {
-  return NextResponse.json({}, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
-  })
-}
-
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    await connectDB()
-    const { id } = await params
-    const { type, action, amount, reason, adjustedBy } = await request.json()
+    const { db } = await connectToDatabase();
+    const { id } = await params;
+    const body = await request.json();
+    
+    const { type, action, amount, reason } = body;
 
-    if (!['balance', 'points'].includes(type)) {
-      return NextResponse.json({ success: false, error: 'Invalid type' }, { 
-      status: 400,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      }
-    })
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid customer ID' },
+        { status: 400 }
+      );
     }
 
-    if (!['increase', 'decrease'].includes(action)) {
-      return NextResponse.json({ success: false, error: 'Invalid action' }, { 
-      status: 400,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      }
-    })
+    if (!type || !action || !amount || !reason) {
+      return NextResponse.json(
+        { success: false, error: 'Type, action, amount, and reason are required' },
+        { status: 400 }
+      );
     }
 
-    if (!amount || amount <= 0) {
-      return NextResponse.json({ success: false, error: 'Invalid amount' }, { 
-      status: 400,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      }
-    })
-    }
+    // Get customer details
+    const customer = await db.collection('customers').findOne({
+      _id: new ObjectId(id)
+    });
 
-    const customer = await Customer.findById(id)
     if (!customer) {
-      return NextResponse.json({ success: false, error: 'Customer not found' }, { 
-      status: 404,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      }
-    })
+      return NextResponse.json(
+        { success: false, error: 'Customer not found' },
+        { status: 404 }
+      );
     }
 
-    const field = type === 'balance' ? 'walletBalance' : 'loyaltyPoints'
-    const previousValue = customer[field] || 0
-    const newValue = action === 'increase' ? previousValue + amount : previousValue - amount
+    // Calculate new value
+    const currentValue = type === 'balance' ? (customer.walletBalance || 0) : (customer.loyaltyPoints || 0);
+    const adjustmentAmount = action === 'increase' ? amount : -amount;
+    const newValue = Math.max(0, currentValue + adjustmentAmount);
 
-    if (newValue < 0) {
-      return NextResponse.json({ success: false, error: 'Insufficient balance' }, { 
-      status: 400,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
+    // Update customer
+    const updateField = type === 'balance' ? 'walletBalance' : 'loyaltyPoints';
+    await db.collection('customers').updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          [updateField]: newValue,
+          updatedAt: new Date().toISOString()
+        }
       }
-    })
-    }
+    );
 
-    customer[field] = newValue
-    customer.lastAdjustmentReason = reason || 'Admin adjustment'
-    customer.lastAdjustmentAction = action
-    customer.lastAdjustmentAt = new Date()
-    customer.updatedAt = new Date()
-    await customer.save()
+    // Create and send notification
+    const notificationTitle = type === 'balance' 
+      ? `Wallet ${action === 'increase' ? 'Credited' : 'Debited'}`
+      : `Points ${action === 'increase' ? 'Awarded' : 'Deducted'}`;
+    
+    const notificationMessage = type === 'balance'
+      ? `Your wallet has been ${action === 'increase' ? 'credited with' : 'debited by'} ₹${amount}. Reason: ${reason}. Current balance: ₹${newValue}`
+      : `${amount} loyalty points have been ${action === 'increase' ? 'awarded to' : 'deducted from'} your account. Reason: ${reason}. Current points: ${newValue}`;
 
-    await WalletTransaction.create({
-      customerId: id,
-      type,
-      action,
-      amount,
-      reason: reason || 'Admin adjustment',
-      previousValue,
-      newValue,
-      adjustedBy: adjustedBy || 'Admin'
-    })
+    // Save notification to database
+    await db.collection('notifications').insertOne({
+      title: notificationTitle,
+      message: notificationMessage,
+      audience: 'Customers',
+      status: 'sent',
+      targetCustomerId: id, // Specific customer targeting
+      sentAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
 
-    return NextResponse.json({ success: true, data: customer }, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
+    console.log(`Notification sent to customer ${customer.name}:`, {
+      title: notificationTitle,
+      message: notificationMessage
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `${type === 'balance' ? 'Balance' : 'Points'} adjusted successfully`,
+      data: {
+        customerId: id,
+        customerName: customer.name,
+        type,
+        action,
+        amount,
+        reason,
+        oldValue: currentValue,
+        newValue,
+        notificationSent: true
       }
-    })
+    });
   } catch (error) {
-    console.error('Error adjusting wallet:', error)
-    return NextResponse.json({ success: false, error: 'Failed to adjust' }, { 
-      status: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      }
-    })
+    console.error('Failed to adjust wallet/points:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to adjust wallet/points' },
+      { status: 500 }
+    );
   }
 }

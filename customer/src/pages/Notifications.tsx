@@ -31,8 +31,8 @@ const Notifications = () => {
         return;
       }
 
-      // Fetch real notifications from API
-      const response = await fetch(`${API_URL}/api/mobile/notifications?audience=customers`);
+      // Fetch real notifications from API with customer ID for personalized notifications
+      const response = await fetch(`${API_URL}/api/mobile/notifications?audience=customers&customerId=${customerId}`);
       const data = await response.json();
       
       if (data.success) {
