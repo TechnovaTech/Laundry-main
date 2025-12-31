@@ -52,61 +52,145 @@ export default function ReportsPage() {
 
   const handleExport = async (type: string, period: string) => {
     try {
-      const params = new URLSearchParams()
-      if (period === 'custom' && fromDate && toDate) {
-        params.append('fromDate', fromDate)
-        params.append('toDate', toDate)
+      let fromDateParam = ''
+      let toDateParam = ''
+      
+      if (period === 'custom') {
+        if (!fromDate || !toDate) {
+          alert('Please select both from and to dates for custom range')
+          return
+        }
+        fromDateParam = fromDate
+        toDateParam = toDate
       } else if (period === 'month') {
         const now = new Date()
         const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-        params.append('fromDate', firstDay.toISOString().split('T')[0])
-        params.append('toDate', now.toISOString().split('T')[0])
+        fromDateParam = firstDay.toISOString().split('T')[0]
+        toDateParam = now.toISOString().split('T')[0]
       } else if (period === 'year') {
         const now = new Date()
         const firstDay = new Date(now.getFullYear(), 0, 1)
-        params.append('fromDate', firstDay.toISOString().split('T')[0])
-        params.append('toDate', now.toISOString().split('T')[0])
+        fromDateParam = firstDay.toISOString().split('T')[0]
+        toDateParam = now.toISOString().split('T')[0]
+      } else if (period === 'all') {
+        // All time - no date filters
+        fromDateParam = ''
+        toDateParam = ''
       }
       
-      const response = await fetch(`/api/reports/export?${params.toString()}&type=${type}`)
-      const data = await response.json()
+      const params = new URLSearchParams()
+      if (fromDateParam) params.append('fromDate', fromDateParam)
+      if (toDateParam) params.append('toDate', toDateParam)
       
-      if (type === 'csv') {
-        const csvContent = generateCSV(data)
-        downloadFile(csvContent, `reports_${period}_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv')
+      const response = await fetch(`/api/reports/export?${params.toString()}`)
+      const result = await response.json()
+      
+      if (result.success) {
+        if (type === 'csv') {
+          const csvContent = generateCSV(result.data)
+          downloadFile(csvContent, `laundry_report_${period}_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv')
+        } else {
+          const pdfContent = generatePDFContent(result.data)
+          // For now, create a detailed text file that can be printed as PDF
+          downloadFile(pdfContent, `laundry_report_${period}_${new Date().toISOString().split('T')[0]}.txt`, 'text/plain')
+        }
       } else {
-        const pdfContent = generatePDF(data)
-        downloadFile(pdfContent, `reports_${period}_${new Date().toISOString().split('T')[0]}.pdf`, 'application/pdf')
+        alert('Export failed: ' + result.error)
       }
     } catch (error) {
       console.error('Export failed:', error)
+      alert('Export failed. Please try again.')
     }
     setExportModal(false)
   }
 
   const generateCSV = (data: any) => {
-    const headers = ['Date', 'Total Orders', 'Total Revenue', 'Active Partners', 'Avg Delivery Time', 'Customer Name', 'Customer Mobile', 'Order Amount', 'Payment Status']
+    const headers = [
+      'Order ID', 'Customer Name', 'Customer Mobile', 'Customer Email', 'Customer Total Spend', 'Customer Loyalty Points',
+      'Partner Name', 'Partner Mobile', 'Partner Hub', 'Order Date', 'Order Time', 'Order Amount',
+      'Payment Method', 'Payment Status', 'Order Status', 'Items', 'Pickup Address', 'Delivery Address',
+      'Pickup Slot', 'Delivery Slot', 'Special Instructions', 'Delivery Fee', 'Discount', 'Tax'
+    ]
+    
     let csvContent = headers.join(',') + '\n'
     
-    data.orders?.forEach((order: any) => {
-      csvContent += [
-        order.createdAt?.split('T')[0] || '',
-        data.stats?.totalOrders || 0,
-        data.stats?.totalRevenue || 0,
-        data.stats?.activePartners || 0,
-        data.stats?.avgDeliveryTime || '0 mins',
-        order.customerId?.name || 'Unknown',
-        order.customerId?.mobile || 'N/A',
-        order.totalAmount || 0,
-        order.paymentStatus || 'pending'
-      ].join(',') + '\n'
+    // Add summary stats first
+    csvContent += '\n=== SUMMARY STATISTICS ===\n'
+    csvContent += `Total Orders,${data.stats.totalOrders}\n`
+    csvContent += `Total Revenue,${data.stats.totalRevenue}\n`
+    csvContent += `Total Customers,${data.stats.totalCustomers}\n`
+    csvContent += `Active Partners,${data.stats.activePartners}\n`
+    csvContent += `Average Order Value,${data.stats.avgOrderValue}\n`
+    csvContent += `Completed Orders,${data.stats.completedOrders}\n`
+    csvContent += `Pending Orders,${data.stats.pendingOrders}\n`
+    csvContent += `Cancelled Orders,${data.stats.cancelledOrders}\n`
+    csvContent += '\n=== ORDER DETAILS ===\n'
+    csvContent += headers.join(',') + '\n'
+    
+    data.orders.forEach((order: any) => {
+      const row = [
+        order.orderId || '',
+        `"${order.customerName || ''}"`,
+        order.customerMobile || '',
+        order.customerEmail || '',
+        order.customerTotalSpend || 0,
+        order.customerLoyaltyPoints || 0,
+        `"${order.partnerName || ''}"`,
+        order.partnerMobile || '',
+        `"${order.partnerHub || ''}"`,
+        order.orderDate || '',
+        order.orderTime || '',
+        order.orderAmount || 0,
+        order.paymentMethod || '',
+        order.paymentStatus || '',
+        order.orderStatus || '',
+        `"${order.items || ''}"`,
+        `"${order.pickupAddress || ''}"`,
+        `"${order.deliveryAddress || ''}"`,
+        order.pickupSlot || '',
+        order.deliverySlot || '',
+        `"${order.specialInstructions || ''}"`,
+        order.deliveryFee || 0,
+        order.discount || 0,
+        order.tax || 0
+      ]
+      csvContent += row.join(',') + '\n'
     })
     
     return csvContent
   }
 
-  const generatePDF = (data: any) => {
-    return `PDF Report Generated for ${data.stats?.totalOrders || 0} orders with total revenue of ₹${data.stats?.totalRevenue || 0}`
+  const generatePDFContent = (data: any) => {
+    let content = `LAUNDRY MANAGEMENT SYSTEM - COMPREHENSIVE REPORT\n`
+    content += `Generated on: ${new Date().toLocaleString()}\n`
+    content += `Date Range: ${data.exportInfo.dateRange.from} to ${data.exportInfo.dateRange.to}\n`
+    content += `\n${'='.repeat(80)}\n`
+    
+    content += `\nSUMMARY STATISTICS:\n`
+    content += `${'='.repeat(40)}\n`
+    content += `Total Orders: ${data.stats.totalOrders}\n`
+    content += `Total Revenue: ₹${data.stats.totalRevenue.toLocaleString()}\n`
+    content += `Total Customers: ${data.stats.totalCustomers}\n`
+    content += `Active Partners: ${data.stats.activePartners}\n`
+    content += `Average Order Value: ₹${data.stats.avgOrderValue}\n`
+    content += `Completed Orders: ${data.stats.completedOrders}\n`
+    content += `Pending Orders: ${data.stats.pendingOrders}\n`
+    content += `Cancelled Orders: ${data.stats.cancelledOrders}\n`
+    
+    content += `\nORDER DETAILS:\n`
+    content += `${'='.repeat(40)}\n`
+    data.orders.forEach((order: any, index: number) => {
+      content += `\n${index + 1}. Order ID: ${order.orderId}\n`
+      content += `   Customer: ${order.customerName} (${order.customerMobile})\n`
+      content += `   Partner: ${order.partnerName} (${order.partnerHub})\n`
+      content += `   Date: ${order.orderDate} ${order.orderTime}\n`
+      content += `   Amount: ₹${order.orderAmount} | Status: ${order.orderStatus}\n`
+      content += `   Payment: ${order.paymentMethod} (${order.paymentStatus})\n`
+      content += `   Items: ${order.items}\n`
+      content += `   ${'-'.repeat(60)}\n`
+    })
+    
+    return content
   }
 
   const downloadFile = (content: string, filename: string, type: string) => {
@@ -493,9 +577,18 @@ export default function ReportsPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
                   <button 
                     onClick={() => handleExport(exportType, 'custom')}
-                    style={{ padding: '0.75rem 1rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', textAlign: 'left' }}
+                    disabled={!fromDate || !toDate}
+                    style={{ 
+                      padding: '0.75rem 1rem', 
+                      backgroundColor: (!fromDate || !toDate) ? '#d1d5db' : '#f3f4f6', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '6px', 
+                      cursor: (!fromDate || !toDate) ? 'not-allowed' : 'pointer', 
+                      textAlign: 'left',
+                      opacity: (!fromDate || !toDate) ? 0.5 : 1
+                    }}
                   >
-                    📅 Custom Range ({fromDate || 'Start'} to {toDate || 'End'})
+                    📅 Custom Range ({fromDate || 'Select start'} to {toDate || 'Select end'})
                   </button>
                   <button 
                     onClick={() => handleExport(exportType, 'month')}
