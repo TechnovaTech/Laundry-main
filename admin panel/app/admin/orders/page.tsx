@@ -11,7 +11,8 @@ export default function OrdersPage() {
   const [filteredOrders, setFilteredOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState('all')
-  const [dateFilter, setDateFilter] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
@@ -34,7 +35,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     applyFilters()
-  }, [orders, activeFilter, dateFilter, searchQuery])
+  }, [orders, activeFilter, fromDate, toDate, searchQuery])
 
   const fetchOrders = async () => {
     try {
@@ -84,11 +85,13 @@ export default function OrdersPage() {
       filtered = filtered.filter(order => order.status === activeFilter)
     }
 
-    // Date filter
-    if (dateFilter) {
+    // Date range filter
+    if (fromDate || toDate) {
       filtered = filtered.filter((order: any) => {
         const orderDate = new Date(order.createdAt).toISOString().split('T')[0]
-        return orderDate === dateFilter
+        const matchesFrom = !fromDate || orderDate >= fromDate
+        const matchesTo = !toDate || orderDate <= toDate
+        return matchesFrom && matchesTo
       })
     }
 
@@ -227,12 +230,13 @@ export default function OrdersPage() {
                 {filter.label}
               </button>
             ))}
-            <div style={{ position: 'relative', marginLeft: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '1rem' }}>
+              <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>From:</span>
               <input
                 type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                aria-label="Filter orders by date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                aria-label="Filter orders from date"
                 style={{
                   padding: '0.75rem 1rem',
                   border: '1px solid #d1d5db',
@@ -244,19 +248,23 @@ export default function OrdersPage() {
                 onFocus={(e) => e.target.style.borderColor = '#2563eb'}
                 onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
               />
-              {!dateFilter && (
-                <span style={{
-                  position: 'absolute',
-                  left: '1rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#9ca3af',
-                  pointerEvents: 'none',
-                  fontSize: '0.9rem'
-                }}>
-                  dd-mm-yyyy
-                </span>
-              )}
+              <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>To:</span>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                aria-label="Filter orders to date"
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  width: '150px'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+              />
             </div>
           </div>
 

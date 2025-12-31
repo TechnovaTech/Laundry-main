@@ -20,7 +20,7 @@ export async function GET() {
         
         return {
           ...customer.toObject(),
-          totalSpent,
+          totalSpend: totalSpent,
           totalOrders: orders.length,
           lastOrderDate: lastOrder?.createdAt || null
         }
