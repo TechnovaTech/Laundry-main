@@ -90,9 +90,8 @@ export default function ReportsPage() {
           const csvContent = generateCSV(result.data)
           downloadFile(csvContent, `laundry_report_${period}_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv')
         } else {
-          const pdfContent = generatePDFContent(result.data)
-          // For now, create a detailed text file that can be printed as PDF
-          downloadFile(pdfContent, `laundry_report_${period}_${new Date().toISOString().split('T')[0]}.txt`, 'text/plain')
+          // Generate actual PDF
+          generateAndDownloadPDF(result.data, period)
         }
       } else {
         alert('Export failed: ' + result.error)
@@ -107,7 +106,7 @@ export default function ReportsPage() {
   const generateCSV = (data: any) => {
     const headers = [
       'Order ID', 'Customer Name', 'Customer Mobile', 'Customer Email', 'Customer Total Spend', 'Customer Loyalty Points',
-      'Partner Name', 'Partner Mobile', 'Partner Hub', 'Order Date', 'Order Time', 'Order Amount',
+      'Partner Name', 'Partner Mobile', 'Order Date', 'Order Time', 'Order Amount',
       'Payment Method', 'Payment Status', 'Order Status', 'Items', 'Pickup Address', 'Delivery Address',
       'Pickup Slot', 'Delivery Slot', 'Special Instructions', 'Delivery Fee', 'Discount', 'Tax'
     ]
@@ -137,7 +136,6 @@ export default function ReportsPage() {
         order.customerLoyaltyPoints || 0,
         `"${order.partnerName || ''}"`,
         order.partnerMobile || '',
-        `"${order.partnerHub || ''}"`,
         order.orderDate || '',
         order.orderTime || '',
         order.orderAmount || 0,
@@ -160,37 +158,104 @@ export default function ReportsPage() {
     return csvContent
   }
 
-  const generatePDFContent = (data: any) => {
-    let content = `LAUNDRY MANAGEMENT SYSTEM - COMPREHENSIVE REPORT\n`
-    content += `Generated on: ${new Date().toLocaleString()}\n`
-    content += `Date Range: ${data.exportInfo.dateRange.from} to ${data.exportInfo.dateRange.to}\n`
-    content += `\n${'='.repeat(80)}\n`
+  const generateAndDownloadPDF = (data: any, period: string) => {
+    // Create HTML content for PDF
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Laundry Management Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #2563eb; }
+        .stat-label { color: #6b7280; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+        th { background-color: #f8fafc; font-weight: bold; }
+        .section-title { font-size: 18px; font-weight: bold; margin: 20px 0 10px 0; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>🧺 Urban Steam - Laundry Management Report</h1>
+        <p>Generated on: ${new Date().toLocaleString()}</p>
+        <p>Period: ${period === 'all' ? 'All Time' : period === 'month' ? 'Current Month' : period === 'year' ? 'Current Year' : 'Custom Range'}</p>
+      </div>
+      
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value">${data.stats.totalOrders}</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">₹${data.stats.totalRevenue.toLocaleString()}</div>
+          <div class="stat-label">Total Revenue</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${data.stats.totalCustomers}</div>
+          <div class="stat-label">Total Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${data.stats.activePartners}</div>
+          <div class="stat-label">Active Partners</div>
+        </div>
+      </div>
+      
+      <div class="section-title">📋 Order Details</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Mobile</th>
+            <th>Partner</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Payment</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.orders.map((order: any) => `
+            <tr>
+              <td>${order.orderId}</td>
+              <td>${order.customerName}</td>
+              <td>${order.customerMobile}</td>
+              <td>${order.partnerName}</td>
+              <td>${order.orderDate}</td>
+              <td>₹${order.orderAmount}</td>
+              <td>${order.orderStatus}</td>
+              <td>${order.paymentStatus}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </body>
+    </html>
+    `
     
-    content += `\nSUMMARY STATISTICS:\n`
-    content += `${'='.repeat(40)}\n`
-    content += `Total Orders: ${data.stats.totalOrders}\n`
-    content += `Total Revenue: ₹${data.stats.totalRevenue.toLocaleString()}\n`
-    content += `Total Customers: ${data.stats.totalCustomers}\n`
-    content += `Active Partners: ${data.stats.activePartners}\n`
-    content += `Average Order Value: ₹${data.stats.avgOrderValue}\n`
-    content += `Completed Orders: ${data.stats.completedOrders}\n`
-    content += `Pending Orders: ${data.stats.pendingOrders}\n`
-    content += `Cancelled Orders: ${data.stats.cancelledOrders}\n`
+    // Create blob and download
+    const blob = new Blob([htmlContent], { type: 'text/html' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `laundry_report_${period}_${new Date().toISOString().split('T')[0]}.html`
+    a.click()
+    window.URL.revokeObjectURL(url)
     
-    content += `\nORDER DETAILS:\n`
-    content += `${'='.repeat(40)}\n`
-    data.orders.forEach((order: any, index: number) => {
-      content += `\n${index + 1}. Order ID: ${order.orderId}\n`
-      content += `   Customer: ${order.customerName} (${order.customerMobile})\n`
-      content += `   Partner: ${order.partnerName} (${order.partnerHub})\n`
-      content += `   Date: ${order.orderDate} ${order.orderTime}\n`
-      content += `   Amount: ₹${order.orderAmount} | Status: ${order.orderStatus}\n`
-      content += `   Payment: ${order.paymentMethod} (${order.paymentStatus})\n`
-      content += `   Items: ${order.items}\n`
-      content += `   ${'-'.repeat(60)}\n`
-    })
-    
-    return content
+    // Also trigger print dialog for PDF conversion
+    const printWindow = window.open('', '_blank')
+    if (printWindow) {
+      printWindow.document.write(htmlContent)
+      printWindow.document.close()
+      setTimeout(() => {
+        printWindow.print()
+      }, 500)
+    }
   }
 
   const downloadFile = (content: string, filename: string, type: string) => {
