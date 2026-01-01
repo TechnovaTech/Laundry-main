@@ -179,16 +179,28 @@ class NotificationService {
               id: parseInt(notification.id.replace(/\D/g, '').slice(-8)) || Math.floor(Math.random() * 100000),
               title: notification.title,
               body: notification.message,
+              largeBody: notification.message,
+              summaryText: 'Urban Steam',
               schedule: { at: new Date(Date.now() + 1000) }, // 1 second delay
               sound: 'default',
               attachments: [],
               actionTypeId: 'ORDER_NOTIFICATION',
               extra: {
                 orderId: notification.orderId,
-                orderStatus: notification.orderStatus
-              }
+                orderStatus: notification.orderStatus,
+                notificationId: notification.id
+              },
+              smallIcon: 'ic_stat_icon_config_sample',
+              iconColor: '#452D9B',
+              ongoing: false,
+              autoCancel: true,
+              channelId: 'order-updates'
             }]
           });
+          
+          console.log('Mobile push notification sent:', notification.title);
+        } else {
+          console.log('Notification permission not granted');
         }
       }
     } catch (error) {
@@ -227,21 +239,34 @@ class NotificationService {
 
   // Request notification permission
   async requestPermission(): Promise<boolean> {
-    if (!('Notification' in window)) {
-      console.log('This browser does not support notifications');
+    try {
+      // For mobile apps using Capacitor
+      if (window.Capacitor?.isNativePlatform()) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        const permission = await LocalNotifications.requestPermissions();
+        return permission.display === 'granted';
+      }
+      
+      // For web browsers
+      if (!('Notification' in window)) {
+        console.log('This browser does not support notifications');
+        return false;
+      }
+
+      if (Notification.permission === 'granted') {
+        return true;
+      }
+
+      if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        return permission === 'granted';
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
       return false;
     }
-
-    if (Notification.permission === 'granted') {
-      return true;
-    }
-
-    if (Notification.permission !== 'denied') {
-      const permission = await Notification.requestPermission();
-      return permission === 'granted';
-    }
-
-    return false;
   }
 
   // Fetch notifications from server (for future server-side notifications)

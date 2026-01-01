@@ -133,6 +133,20 @@ const App = () => {
           await StatusBar.setOverlaysWebView({ overlay: false });
           await StatusBar.setBackgroundColor({ color: '#452D9B' });
           
+          // Initialize notification channels
+          const { LocalNotifications } = await import('@capacitor/local-notifications');
+          await LocalNotifications.createChannel({
+            id: 'order-updates',
+            name: 'Order Updates',
+            description: 'Notifications for order status updates',
+            sound: 'default',
+            importance: 4,
+            visibility: 1,
+            lights: true,
+            lightColor: '#452D9B',
+            vibration: true
+          });
+          
           // Add viewport meta tag for better mobile handling
           const viewport = document.querySelector('meta[name="viewport"]');
           if (viewport) {

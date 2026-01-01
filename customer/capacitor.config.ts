@@ -55,7 +55,12 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: 'ic_stat_icon_config_sample',
       iconColor: '#452D9B',
-      sound: 'beep.wav'
+      sound: 'default',
+      channelId: 'order-updates',
+      channelName: 'Order Updates',
+      channelDescription: 'Notifications for order status updates',
+      channelImportance: 4,
+      visibility: 1
     },
       scopes: ['profile', 'email'],
       serverClientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',

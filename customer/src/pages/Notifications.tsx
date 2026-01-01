@@ -9,9 +9,13 @@ const Notifications = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPermissionRequest, setShowPermissionRequest] = useState(false);
   const notificationService = NotificationService.getInstance();
 
   useEffect(() => {
+    // Check notification permission status
+    checkNotificationPermission();
+    
     // Load notifications from service
     notificationService.loadNotifications();
     setNotifications(notificationService.getNotifications());
@@ -28,6 +32,36 @@ const Notifications = () => {
 
     return unsubscribe;
   }, []);
+
+  const checkNotificationPermission = async () => {
+    try {
+      if (window.Capacitor?.isNativePlatform()) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        const permission = await LocalNotifications.checkPermissions();
+        
+        if (permission.display !== 'granted') {
+          setShowPermissionRequest(true);
+        }
+      } else if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+          setShowPermissionRequest(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking notification permission:', error);
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    try {
+      const granted = await notificationService.requestPermission();
+      if (granted) {
+        setShowPermissionRequest(false);
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+    }
+  };
 
   const markAsRead = (id: string) => {
     notificationService.markAsRead(id);
@@ -103,6 +137,35 @@ const Notifications = () => {
       />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4">
+        {/* Notification Permission Request */}
+        {showPermissionRequest && (
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-2xl p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">🔔</div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-800 mb-2">Enable Notifications</h3>
+                <p className="text-blue-700 text-sm mb-3">
+                  Get instant updates about your order status - when it's picked up, processed, and delivered!
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={requestNotificationPermission}
+                    className="bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white px-4 py-2 rounded-xl text-sm font-semibold"
+                  >
+                    Allow Notifications
+                  </button>
+                  <button
+                    onClick={() => setShowPermissionRequest(false)}
+                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-semibold"
+                  >
+                    Maybe Later
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {notifications.length === 0 ? (
           <div className="text-center py-12">
             <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
