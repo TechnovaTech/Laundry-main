@@ -52,7 +52,11 @@ const config: CapacitorConfig = {
       resizeOnFullScreen: false,
       accessoryBarVisible: false
     },
-    GoogleAuth: {
+    LocalNotifications: {
+      smallIcon: 'ic_stat_icon_config_sample',
+      iconColor: '#452D9B',
+      sound: 'beep.wav'
+    },
       scopes: ['profile', 'email'],
       serverClientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,

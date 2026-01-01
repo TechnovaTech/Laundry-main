@@ -271,7 +271,7 @@ const Home = () => {
   };
   
   // Detect manual voucher interaction
-  const handleVoucherTouchStart = () => {
+  const handleVoucherInteraction = () => {
     setIsVoucherAutoScrolling(false);
   };
   

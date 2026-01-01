@@ -13,6 +13,8 @@ import type { PluginListenerHandle } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import SafeAreaWrapper from './components/SafeAreaWrapper';
 import ErrorBoundary from './components/ErrorBoundary';
+import { useOrderStatusMonitor } from './hooks/useOrderStatusMonitor';
+import './utils/testNotifications'; // For testing notifications
 import Welcome from "./pages/Welcome";
 import CheckAvailability from "./pages/CheckAvailability";
 import Congrats from "./pages/Congrats";
@@ -45,6 +47,9 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Initialize order status monitoring
+  useOrderStatusMonitor();
 
   // Check if user is logged in on app start
   useEffect(() => {

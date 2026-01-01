@@ -3,68 +3,69 @@ import { useNavigate } from "react-router-dom";
 import { Bell, ArrowLeft, Trash2 } from "lucide-react";
 import Header from "@/components/Header";
 import BottomNavigation from "@/components/BottomNavigation";
-import { API_URL } from '@/config/api';
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  type: 'order' | 'promotion' | 'system';
-}
+import NotificationService, { OrderNotification } from "@/services/notificationService";
 
 const Notifications = () => {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const notificationService = NotificationService.getInstance();
 
   useEffect(() => {
-    fetchNotifications();
+    // Load notifications from service
+    notificationService.loadNotifications();
+    setNotifications(notificationService.getNotifications());
+    
+    // Subscribe to notification updates
+    const unsubscribe = notificationService.subscribe((updatedNotifications) => {
+      setNotifications(updatedNotifications);
+    });
+
+    // Fetch server notifications from admin panel
+    notificationService.fetchServerNotifications();
+    
+    setLoading(false);
+
+    return unsubscribe;
   }, []);
 
-  const fetchNotifications = async () => {
-    try {
-      const customerId = localStorage.getItem('customerId');
-      if (!customerId) {
-        navigate('/login');
-        return;
-      }
-
-      // Fetch real notifications from API with customer ID for personalized notifications
-      const response = await fetch(`${API_URL}/api/mobile/notifications?audience=customers&customerId=${customerId}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setNotifications(data.data);
-      } else {
-        console.error('Failed to fetch notifications:', data.error);
-      }
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
+    notificationService.markAsRead(id);
   };
 
   const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
+    notificationService.deleteNotification(id);
   };
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'order': return '📦';
+  const getNotificationIcon = (notification: OrderNotification) => {
+    if (notification.type === 'order_status' && notification.orderStatus) {
+      switch (notification.orderStatus) {
+        case 'delivered_to_hub': return '🏭';
+        case 'out_for_delivery': return '🚚';
+        case 'delivered': return '✅';
+        case 'cancelled': return '❌';
+        case 'delivery_failed': return '⚠️';
+        case 'suspended': return '🚫';
+        default: return '📦';
+      }
+    }
+    
+    switch (notification.type) {
+      case 'order_status': return '📦';
       case 'promotion': return '🎉';
       case 'system': return '⚙️';
       default: return '🔔';
+    }
+  };
+
+  const handleNotificationClick = (notification: OrderNotification) => {
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
+    
+    // If it's an order notification, navigate to order details
+    if (notification.type === 'order_status' && notification.orderId) {
+      navigate('/order-details', { state: { orderId: notification.orderId } });
     }
   };
 
@@ -112,14 +113,14 @@ const Notifications = () => {
           notifications.map((notification) => (
             <div 
               key={notification.id}
-              className={`bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-shadow ${
+              className={`bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl transition-shadow cursor-pointer ${
                 !notification.read ? 'border-l-4 border-blue-500' : ''
               }`}
-              onClick={() => !notification.read && markAsRead(notification.id)}
+              onClick={() => handleNotificationClick(notification)}
             >
               <div className="flex items-start gap-3">
                 <div className="text-2xl flex-shrink-0">
-                  {getNotificationIcon(notification.type)}
+                  {getNotificationIcon(notification)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
@@ -143,19 +144,11 @@ const Notifications = () => {
                       </button>
                     </div>
                   </div>
-                  <p className={`text-sm mt-1 cursor-pointer ${
+                  <p className={`text-sm mt-1 ${
                     !notification.read ? 'text-gray-700' : 'text-gray-500'
-                  }`}
-                    onClick={() => {
-                      // Show full message in alert for now - can be replaced with modal
-                      alert(`${notification.title}\n\n${notification.message}`);
-                      if (!notification.read) {
-                        markAsRead(notification.id);
-                      }
-                    }}
-                  >
+                  }`}>
                     {notification.message.length > 100 ? 
-                      `${notification.message.substring(0, 100)}... (tap to read more)` : 
+                      `${notification.message.substring(0, 100)}...` : 
                       notification.message
                     }
                   </p>
