@@ -3,6 +3,7 @@ import { Montserrat, Manrope } from "next/font/google";
 import "./globals.css";
 import ClientBottomNav from "@/components/ClientBottomNav";
 import CapacitorInit from "@/components/CapacitorInit";
+import OrderMonitor from "@/components/OrderMonitor";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const montserrat = Montserrat({
@@ -45,6 +46,7 @@ export default function RootLayout({
         <GoogleOAuthProvider clientId={GOOGLE_WEB_CLIENT_ID}>
           <div className="w-full min-h-screen flex flex-col bg-white safe-area" suppressHydrationWarning>
             <CapacitorInit />
+            <OrderMonitor />
             <main className="flex-1">{children}</main>
             <ClientBottomNav />
           </div>

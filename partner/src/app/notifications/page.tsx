@@ -4,24 +4,59 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { API_URL } from '@/config/api';
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  type: 'pickup' | 'delivery' | 'payment' | 'system';
-}
+import PartnerNotificationService, { PartnerNotification } from '@/services/notificationService';
 
 export default function Notifications() {
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<PartnerNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPermissionRequest, setShowPermissionRequest] = useState(false);
+  const notificationService = PartnerNotificationService.getInstance();
 
   useEffect(() => {
+    checkNotificationPermission();
     fetchNotifications();
   }, []);
+
+  const checkNotificationPermission = async () => {
+    try {
+      if (window.Capacitor?.isNativePlatform()) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        const permission = await LocalNotifications.checkPermissions();
+        
+        if (permission.display !== 'granted') {
+          setShowPermissionRequest(true);
+        }
+      } else if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+          setShowPermissionRequest(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking notification permission:', error);
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    try {
+      let granted = false;
+      
+      if (window.Capacitor?.isNativePlatform()) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        const permission = await LocalNotifications.requestPermissions();
+        granted = permission.display === 'granted';
+      } else if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+        granted = permission === 'granted';
+      }
+      
+      if (granted) {
+        setShowPermissionRequest(false);
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -31,23 +66,39 @@ export default function Notifications() {
         return;
       }
 
-      // Fetch real notifications from API
-      const response = await fetch(`${API_URL}/api/mobile/notifications?audience=partners`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setNotifications(data.data);
-      } else {
-        console.error('Failed to fetch notifications:', data.error);
+      // Try to fetch real notifications from API
+      try {
+        const response = await fetch(`${API_URL}/api/mobile/notifications?audience=partners&partnerId=${partnerId}`);
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          // Filter notifications using the service
+          const filteredNotifications = notificationService.filterNotifications(data.data);
+          setNotifications(filteredNotifications);
+          return;
+        }
+      } catch (apiError) {
+        console.log('API not available, using mock data');
       }
+      
+      // Fallback to mock notifications
+      const mockNotifications = notificationService.getMockNotifications();
+      const filteredNotifications = notificationService.filterNotifications(mockNotifications);
+      setNotifications(filteredNotifications);
+      
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
+      // Final fallback
+      const mockNotifications = notificationService.getMockNotifications();
+      const filteredNotifications = notificationService.filterNotifications(mockNotifications);
+      setNotifications(filteredNotifications);
     } finally {
       setLoading(false);
     }
   };
 
   const markAsRead = (id: string) => {
+    notificationService.markAsRead(id);
     setNotifications(prev => 
       prev.map(notif => 
         notif.id === id ? { ...notif, read: true } : notif
@@ -56,6 +107,7 @@ export default function Notifications() {
   };
 
   const deleteNotification = (id: string) => {
+    notificationService.deleteNotification(id);
     setNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
@@ -103,6 +155,35 @@ export default function Notifications() {
       </header>
 
       <div className="px-4 py-6 space-y-4">
+        {/* Notification Permission Request */}
+        {showPermissionRequest && (
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-2xl p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">🔔</div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-800 mb-2">Enable Notifications</h3>
+                <p className="text-blue-700 text-sm mb-3">
+                  Get instant updates about new orders and when orders are ready for delivery!
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={requestNotificationPermission}
+                    className="bg-gradient-to-r from-[#452D9B] to-[#07C8D0] text-white px-4 py-2 rounded-xl text-sm font-semibold"
+                  >
+                    Allow Notifications
+                  </button>
+                  <button
+                    onClick={() => setShowPermissionRequest(false)}
+                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-semibold"
+                  >
+                    Maybe Later
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {notifications.length === 0 ? (
           <div className="text-center py-12">
             <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

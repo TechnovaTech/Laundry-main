@@ -1,7 +1,11 @@
 "use client";
 import { useEffect } from "react";
+import { usePartnerOrderMonitor } from "@/hooks/usePartnerOrderMonitor";
 
 export default function CapacitorInit() {
+  // Initialize partner order monitoring
+  usePartnerOrderMonitor();
+  
   useEffect(() => {
     (async () => {
       try {
@@ -9,6 +13,25 @@ export default function CapacitorInit() {
         if (!Capacitor.isNativePlatform()) return;
         
         console.log('Initializing Capacitor for Android...');
+        
+        // Initialize notification channels
+        try {
+          const { LocalNotifications } = await import('@capacitor/local-notifications');
+          await LocalNotifications.createChannel({
+            id: 'partner-orders',
+            name: 'Order Updates',
+            description: 'Notifications for new orders and delivery updates',
+            sound: 'default',
+            importance: 4,
+            visibility: 1,
+            lights: true,
+            lightColor: '#452D9B',
+            vibration: true
+          });
+          console.log('✓ Notification channels created');
+        } catch (error) {
+          console.error('✗ Notification channel creation failed:', error);
+        }
         
         // Initialize Google Auth with proper configuration
         try {

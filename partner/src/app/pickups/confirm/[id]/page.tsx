@@ -48,15 +48,35 @@ export default function PickupConfirm() {
   const [notes, setNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
-  const [hub, setHub] = useState<Hub | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  
+  // Debug: Log modal state changes
+  useEffect(() => {
+    console.log('Modal state changed:', showPermissionModal);
+  }, [showPermissionModal]);
 
   useEffect(() => {
     fetchOrder();
   }, []);
 
   const takePhoto = async () => {
+    console.log('takePhoto function called');
     try {
+      // Always request permission first on mobile
+      if (window.Capacitor?.isNativePlatform()) {
+        console.log('Requesting camera permission...');
+        const { Camera } = await import('@capacitor/camera');
+        const permission = await Camera.requestPermissions({ permissions: ['camera'] });
+        console.log('Camera permission result:', permission);
+        
+        if (permission.camera !== 'granted') {
+          setToast({ message: 'Camera permission denied. Please enable in settings.', type: 'error' });
+          return;
+        }
+      }
+
+      console.log('Opening camera...');
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: false,
@@ -66,6 +86,7 @@ export default function PickupConfirm() {
       
       if (image.dataUrl) {
         setPhotos([...photos, image.dataUrl]);
+        setToast({ message: 'Photo captured successfully!', type: 'success' });
       }
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -74,22 +95,56 @@ export default function PickupConfirm() {
   };
 
   const selectFromGallery = async () => {
+    console.log('selectFromGallery function called');
     try {
-      const image = await Camera.getPhoto({
-        quality: 90,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Photos
-      });
+      // Always request permission first on mobile
+      if (window.Capacitor?.isNativePlatform()) {
+        console.log('Requesting gallery permission...');
+        const { Camera } = await import('@capacitor/camera');
+        const permission = await Camera.requestPermissions({ permissions: ['photos'] });
+        console.log('Gallery permission result:', permission);
+        
+        if (permission.photos !== 'granted') {
+          setToast({ message: 'Photo access denied. Please enable in settings.', type: 'error' });
+          return;
+        }
+      }
+
+      console.log('Opening gallery...');
+      const images = [];
       
-      if (image.dataUrl) {
-        setPhotos([...photos, image.dataUrl]);
+      for (let i = 0; i < 5; i++) {
+        try {
+          const image = await Camera.getPhoto({
+            quality: 90,
+            allowEditing: false,
+            resultType: CameraResultType.DataUrl,
+            source: CameraSource.Photos
+          });
+          
+          if (image.dataUrl) {
+            images.push(image.dataUrl);
+          }
+          
+          const selectMore = confirm('Photo selected! Select another photo?');
+          if (!selectMore) break;
+        } catch (error) {
+          console.log('User cancelled or no more photos');
+          break;
+        }
+      }
+      
+      if (images.length > 0) {
+        setPhotos([...photos, ...images]);
+        setToast({ message: `${images.length} photo(s) selected successfully!`, type: 'success' });
       }
     } catch (error) {
-      console.error('Error selecting photo:', error);
-      setToast({ message: 'Failed to select photo', type: 'error' });
+      console.error('Error selecting photos:', error);
+      setToast({ message: 'Failed to select photos', type: 'error' });
     }
   };
+
+  const fetchOrder = async () => {
     try {
       const resolvedParams = await params;
       const response = await fetch(`${API_URL}/api/orders`);
@@ -110,6 +165,13 @@ export default function PickupConfirm() {
   if (!order) return <div className="p-8 text-center">Order not found</div>;
   return (
     <div className="pb-6">
+      {/* DEBUG: Show modal state */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-0 right-0 bg-red-500 text-white p-2 text-xs z-[10000]">
+          Modal: {showPermissionModal ? 'OPEN' : 'CLOSED'}
+        </div>
+      )}
+      
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
       <header className="sticky top-0 bg-white shadow-sm">
@@ -139,39 +201,41 @@ export default function PickupConfirm() {
       {/* Upload section */}
       <div className="mt-4 mx-4">
         <p className="text-base font-semibold text-black">Upload Clothes Photos (Min 2)</p>
-        <div className="mt-3 grid grid-cols-3 gap-3">
-          {photos.map((photo, i) => (
-            <div key={i} className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center relative overflow-hidden">
-              <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
-              <button
-                onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}
-                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-          
-          {/* Camera Button */}
+        
+        {/* Photo Grid - Show selected photos */}
+        {photos.length > 0 && (
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            {photos.map((photo, i) => (
+              <div key={i} className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center relative overflow-hidden">
+                <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                <button
+                  onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Single Add Photo Box */}
+        <div className="mt-3">
           <button
-            onClick={takePhoto}
-            className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex flex-col items-center justify-center cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Add Photo button clicked');
+              setShowPermissionModal(true);
+            }}
+            className="w-full aspect-[3/2] rounded-xl border-2 border-dashed border-gray-400 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100"
           >
-            <span style={{ color: '#452D9B' }} className="text-2xl mb-1">📷</span>
-            <span style={{ color: '#452D9B' }} className="text-xs">Camera</span>
-          </button>
-          
-          {/* Gallery Button */}
-          <button
-            onClick={selectFromGallery}
-            className="aspect-square rounded-xl bg-gray-100 border border-gray-300 flex flex-col items-center justify-center cursor-pointer"
-          >
-            <span style={{ color: '#452D9B' }} className="text-2xl mb-1">🖼️</span>
-            <span style={{ color: '#452D9B' }} className="text-xs">Gallery</span>
+            <div className="text-4xl text-gray-400 mb-2">📷</div>
+            <span className="text-sm font-medium text-gray-600">Add Photo</span>
           </button>
         </div>
-        <p className="mt-2 text-xs text-gray-500">Tap Camera to take photo or Gallery to select from photos</p>
         
+        {/* Upload Images Button */}
         <button
           onClick={async () => {
             if (photos.length < 2) {
@@ -195,16 +259,17 @@ export default function PickupConfirm() {
             }
           }}
           disabled={photos.length < 2}
-          className="mt-3 w-full inline-flex justify-center items-center bg-green-600 text-white rounded-xl py-3 text-base font-semibold disabled:bg-gray-400"
+          className="mt-4 w-full py-3 rounded-xl font-semibold text-white"
+          style={{ backgroundColor: photos.length >= 2 ? '#6B7280' : '#9CA3AF' }}
         >
-          Upload Images ({photos.length})
+          Upload Images ({photos.length}/2)
         </button>
 
         <input
-          className="mt-4 w-full rounded-xl border border-gray-300 px-3 py-3 text-base text-black placeholder:text-gray-600 outline-none"
-          onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px #452D9B'; }}
+          className="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-base text-black placeholder:text-gray-500 outline-none"
+          onFocus={(e) => { e.target.style.borderColor = '#452D9B'; e.target.style.boxShadow = '0 0 0 2px rgba(69, 45, 155, 0.1)'; }}
           onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none'; }}
-          placeholder="Add Notes (optional)…"
+          placeholder="Add Notes (optional)..."
           type="text"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -243,12 +308,73 @@ export default function PickupConfirm() {
             }
           }}
           disabled={!confirmed || order.status !== 'reached_location'}
-          className="mt-5 w-full inline-flex justify-center items-center text-white rounded-xl py-3 text-base font-semibold"
-          style={confirmed && order.status === 'reached_location' ? { background: 'linear-gradient(to right, #452D9B, #07C8D0)' } : { background: '#9ca3af' }}
+          className="mt-4 w-full py-3 rounded-xl font-semibold text-white"
+          style={{ backgroundColor: confirmed && order.status === 'reached_location' ? '#6B7280' : '#9CA3AF' }}
         >
           {order.status === 'reached_location' ? 'Confirm & Proceed' : 'Already Picked Up'}
         </button>
       </div>
+
+      {/* Photo Selection Modal - ALWAYS RENDER WHEN STATE IS TRUE */}
+      {showPermissionModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowPermissionModal(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="text-4xl mb-4">📷</div>
+              <h3 className="text-lg font-semibold text-black mb-2">Add Photos</h3>
+              <p className="text-gray-600 text-sm mb-6">
+                Choose how you want to add photos of the clothes
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    console.log('Camera option selected');
+                    setShowPermissionModal(false);
+                    setTimeout(() => takePhoto(), 200);
+                  }}
+                  className="w-full flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 py-4 rounded-xl transition-colors"
+                >
+                  <span className="text-2xl">📷</span>
+                  <div className="text-left">
+                    <div className="font-semibold text-black">Take Photo</div>
+                    <div className="text-xs text-gray-600">Use camera to capture</div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('Gallery option selected');
+                    setShowPermissionModal(false);
+                    setTimeout(() => selectFromGallery(), 200);
+                  }}
+                  className="w-full flex items-center justify-center gap-3 bg-gray-100 hover:bg-gray-200 py-4 rounded-xl transition-colors"
+                >
+                  <span className="text-2xl">🖼️</span>
+                  <div className="text-left">
+                    <div className="font-semibold text-black">Choose from Gallery</div>
+                    <div className="text-xs text-gray-600">Select multiple photos</div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('Cancel selected');
+                    setShowPermissionModal(false);
+                  }}
+                  className="w-full bg-gray-300 text-gray-700 py-3 rounded-xl font-semibold mt-4"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

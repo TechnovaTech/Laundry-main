@@ -25,6 +25,16 @@ const config: CapacitorConfig = {
       backgroundColor: '#452D9B',
       overlaysWebView: false
     },
+    LocalNotifications: {
+      smallIcon: 'ic_stat_icon_config_sample',
+      iconColor: '#452D9B',
+      sound: 'default',
+      channelId: 'partner-orders',
+      channelName: 'Order Updates',
+      channelDescription: 'Notifications for new orders and delivery updates',
+      channelImportance: 4,
+      visibility: 1
+    },
     GoogleAuth: {
       scopes: ['profile', 'email'],
       serverClientId: '514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com',
