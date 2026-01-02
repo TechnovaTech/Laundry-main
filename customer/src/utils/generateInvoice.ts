@@ -5,25 +5,14 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { ACS_LOGO_BASE64, URBAN_STEAM_LOGO_BASE64 } from './invoiceAssets';
 
-// Add custom font that supports rupee symbol
-const addRupeeFont = (doc: jsPDF) => {
+// Add custom font with rupee support
+const addCustomFont = (doc: jsPDF) => {
   try {
-    // Create a canvas to render rupee symbol as image
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      canvas.width = 20;
-      canvas.height = 20;
-      ctx.font = '16px Arial';
-      ctx.fillStyle = 'black';
-      ctx.fillText('₹', 2, 16);
-      const rupeeImage = canvas.toDataURL();
-      return rupeeImage;
-    }
+    // Use Times font which has better Unicode support
+    doc.setFont('times', 'normal');
   } catch (e) {
-    console.log('Rupee symbol rendering failed');
+    doc.setFont('helvetica', 'normal');
   }
-  return null;
 };
 
 const getRupeeSymbol = () => 'Rs';
@@ -59,10 +48,9 @@ export const generateInvoicePDF = async (order: any) => {
   if (!order) return;
 
   try {
-    // Fetch customer data if not populated
+    // Fetch customer data
     let customerName = order.customerId?.name || order.customer?.name || 'Customer';
     let customerMobile = order.customerId?.mobile || order.customer?.mobile || '';
-    let customerEmail = order.customerId?.email || order.customer?.email || '';
     
     if (!customerName || customerName === 'Customer' || !customerMobile) {
       try {
@@ -71,7 +59,6 @@ export const generateInvoicePDF = async (order: any) => {
         if (data.success && data.data) {
           customerName = data.data.name || customerName;
           customerMobile = data.data.mobile || customerMobile;
-          customerEmail = data.data.email || customerEmail;
         }
       } catch (error) {
         console.log('Could not fetch customer data');
@@ -82,249 +69,181 @@ export const generateInvoicePDF = async (order: any) => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     
-    // Set font
-    doc.setFont('helvetica');
+    // Set custom font for rupee symbol support
+    addCustomFont(doc);
     const rupeeSymbol = getRupeeSymbol();
-  
-  let hubAddress = {
-    name: 'Urban Steam',
-    email: 'support@urbansteam.in',
-    gst: '29ACLFAA519M1ZW'
-  };
-  
-  // Fetch hub details from MongoDB if hub ID exists
-  if (order.hub) {
-    console.log('Hub found in order:', order.hub);
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
-    // Check if hub is already populated with full data
-    if (typeof order.hub === 'object' && order.hub.name) {
-      console.log('Hub already populated');
-      const hub = order.hub;
-      hubAddress = {
-        name: hub.name || 'Urban Steam',
-        email: hubAddress.email,
-        gst: hubAddress.gst
-      };
-    } else {
-      // Hub is just an ID, fetch from API
-      try {
-        const hubId = typeof order.hub === 'string' ? order.hub : order.hub._id || order.hub;
-        console.log('Fetching hub from API:', hubId);
-        const hubResponse = await fetch(`${API_URL}/api/hubs/${hubId}`);
-        const hubData = await hubResponse.json();
-        console.log('Hub API response:', hubData);
-        
-        if (hubData.success && hubData.data) {
-          const hub = hubData.data;
-          hubAddress = {
-            name: hub.name || 'Urban Steam',
-            email: hubAddress.email,
-            gst: hubAddress.gst
-          };
-          console.log('Hub address set:', hubAddress);
-        }
-      } catch (error) {
-        console.log('Could not fetch hub data, using default:', error);
-      }
+    // Header logos - same width, increase height
+    try {
+      doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 45, 32);
+      doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 60, 8, 45, 32);
+    } catch (imgError) {
+      doc.setFontSize(16);
+      doc.setFont('times', 'bold');
+      doc.text('ACS Group', 15, 24);
+      doc.text('Urban Steam', pageWidth - 55, 24);
     }
-  } else {
-    console.log('No hub in order');
-  }
-  
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, pageWidth, pageHeight, 'F');
-  
-  // Add compressed logos (400x400px, ~20KB total)
-  try {
-    doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 40, 18);
-    doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 55, 8, 40, 18);
-  } catch (imgError) {
-    console.log('Logo error:', imgError);
+    
+    // Invoice header box
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.rect(15, 30, pageWidth - 30, 25);
+    
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('ORIGINAL FOR RECIPIENT', 17, 36);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TAX INVOICE', 17, 45);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`#${order.orderId || 'RW0R7'}`, 17, 51);
+    doc.setTextColor(0, 0, 0);
+    
+    // Three column section
+    let yStart = 65;
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(15, yStart, 60, 40); // Issued/Due
+    doc.rect(75, yStart, 70, 40); // Billed to
+    doc.rect(145, yStart, pageWidth - 160, 40); // From
+    
+    // Issued section
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('ACS Group', 15, 20);
-    doc.text('Urban Steam', pageWidth - 45, 20);
-  }
-  doc.setTextColor(0, 0, 0);
-  
-  // Invoice header section
-  doc.setDrawColor(220, 220, 220);
-  doc.setLineWidth(0.5);
-  doc.rect(15, 30, pageWidth - 30, 20);
-  
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text('ORIGINAL FOR RECIPIENT', 17, 36);
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('TAX INVOICE', 17, 43);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
-  doc.text(`#${order.orderId || 'N/A'}`, 17, 48);
-  doc.setTextColor(0, 0, 0);
-  
-  // Date, Billed to, From section
-  const sectionY = 55;
-  const sectionHeight = 38;
-  doc.setDrawColor(220, 220, 220);
-  doc.setLineWidth(0.5);
-  doc.rect(15, sectionY, 45, sectionHeight);
-  doc.rect(62, sectionY, 63, sectionHeight);
-  doc.rect(127, sectionY, pageWidth - 142, sectionHeight);
-  
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Issued', 17, sectionY + 6);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, sectionY + 11);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Due', 17, sectionY + 19);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, sectionY + 24);
-  
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Billed to', 64, sectionY + 6);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text(customerName, 64, sectionY + 11);
-  doc.setTextColor(80, 80, 80);
-  const address = doc.splitTextToSize(order.pickupAddress?.street || 'Customer address', 58);
-  let addressY = sectionY + 15;
-  doc.text(address, 64, addressY);
-  addressY += address.length * 3;
-  const cityStatePin = doc.splitTextToSize(`${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'State'} - ${order.pickupAddress?.pincode || '000000'}`, 58);
-  doc.text(cityStatePin, 64, addressY);
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(7.5);
-  doc.text(`Contact Number: ${customerMobile || 'N/A'}`, 64, sectionY + 28);
-  doc.text(`Order Id: ${order.orderId || 'N/A'}`, 64, sectionY + 32);
-  
-  doc.setTextColor(80, 80, 80);
-  doc.setFontSize(7.5);
-  doc.text(`Email: ${hubAddress.email}`, 129, sectionY + 11);
-  doc.text(`GST: ${hubAddress.gst}`, 129, sectionY + 15);
-  doc.setTextColor(0, 0, 0);
-  
-  let yPos = 98;
-  doc.setDrawColor(220, 220, 220);
-  doc.setLineWidth(0.5);
-  doc.setFillColor(245, 245, 245);
-  doc.rect(15, yPos, pageWidth - 30, 7, 'FD');
-  yPos += 5;
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Service', 17, yPos);
-  doc.text('Qty', 135, yPos, { align: 'center' });
-  doc.text('Rate (' + rupeeSymbol + ')', 160, yPos, { align: 'right' });
-  doc.text('Total (' + rupeeSymbol + ')', pageWidth - 17, yPos, { align: 'right' });
-  
-  yPos += 7;
-  doc.setFont('helvetica', 'normal');
-  let subtotal = 0;
-  
-  if (order.items && order.items.length > 0) {
-    order.items.forEach((item: any) => {
-      const itemTotal = (item.quantity || 0) * (item.price || 0);
-      subtotal += itemTotal;
-      doc.setFontSize(8.5);
+    doc.text('Issued', 17, yStart + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, yStart + 14);
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Due', 17, yStart + 22);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, yStart + 28);
+    
+    // Billed to section
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Billed to', 77, yStart + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(customerName, 77, yStart + 14);
+    
+    const address = order.pickupAddress?.street || 'Xiv hall';
+    const cityState = `${order.pickupAddress?.city || 'Rajkot'}, ${order.pickupAddress?.state || 'Gujarat'} - ${order.pickupAddress?.pincode || '360001'}`;
+    doc.text(address, 77, yStart + 19);
+    doc.text(cityState, 77, yStart + 24);
+    
+    doc.setFontSize(8);
+    doc.text(`Contact Number: ${customerMobile || '8140126027'}`, 77, yStart + 30);
+    doc.text(`Order Id: ${order.orderId || 'RW0R7'}`, 77, yStart + 35);
+    
+    // From section
+    doc.setFontSize(9);
+    doc.text('Email: support@urbansteam.in', 147, yStart + 8);
+    doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 14);
+    
+    // Service table
+    yStart = 115;
+    doc.setDrawColor(200, 200, 200);
+    doc.setFillColor(245, 245, 245);
+    doc.rect(15, yStart, pageWidth - 30, 10, 'FD');
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Service & Description', 17, yStart + 7);
+    doc.text('Qty', 130, yStart + 7, { align: 'center' });
+    doc.text('Rate', 155, yStart + 7, { align: 'center' });
+    doc.text('Total', pageWidth - 17, yStart + 7, { align: 'right' });
+    
+    yStart += 15;
+    let subtotal = 0;
+    
+    if (order.items && order.items.length > 0) {
+      order.items.forEach((item: any) => {
+        const itemTotal = (item.quantity || 0) * (item.price || 0);
+        subtotal += itemTotal;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(item.name || 'Curtain', 17, yStart);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text(item.description || 'Description', 17, yStart + 5);
+        doc.setTextColor(0, 0, 0);
+        
+        doc.setFontSize(10);
+        doc.text(String(item.quantity || 10), 130, yStart, { align: 'center' });
+        doc.text('Rs' + (item.price || 75), 155, yStart, { align: 'center' });
+        doc.text('Rs' + itemTotal, pageWidth - 17, yStart, { align: 'right' });
+        yStart += 15;
+      });
+    } else {
+      // Default items for demo
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text(item.name || 'Service name', 17, yPos);
+      doc.text('Curtain', 17, yStart);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(80, 80, 80);
-      doc.setFontSize(7.5);
-      const desc = doc.splitTextToSize(item.description || 'Description', 110);
-      doc.text(desc, 17, yPos + 3);
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Description', 17, yStart + 5);
       doc.setTextColor(0, 0, 0);
-      doc.setFontSize(8.5);
-      doc.text(String(item.quantity || 0), 135, yPos, { align: 'center' });
-      doc.text(rupeeSymbol + ' ' + (item.price || 0).toFixed(2), 160, yPos, { align: 'right' });
-      doc.text(rupeeSymbol + ' ' + itemTotal.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
-      yPos += 10;
-    });
-  }
-  
-  // Add cancellation fee if exists
-  if (order.cancellationFee && order.cancellationFee > 0) {
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(220, 38, 38);
-    doc.text('Cancellation Fee Applied', 17, yPos);
+      doc.setFontSize(10);
+      doc.text('10', 130, yStart, { align: 'center' });
+      doc.text('Rs75', 155, yStart, { align: 'center' });
+      doc.text('Rs750', pageWidth - 17, yStart, { align: 'right' });
+      subtotal = 750;
+    }
+    
+    // Summary section
+    yStart += 20;
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    doc.setFontSize(7.5);
-    doc.text(order.cancellationReason || 'Cancellation charge', 17, yPos + 3);
-    doc.setTextColor(220, 38, 38);
-    doc.setFontSize(8.5);
-    doc.text('1', 135, yPos, { align: 'center' });
-    doc.text(rupeeSymbol + ' ' + order.cancellationFee.toFixed(2), 160, yPos, { align: 'right' });
-    doc.text(rupeeSymbol + ' ' + order.cancellationFee.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
-    doc.setTextColor(0, 0, 0);
-    subtotal += order.cancellationFee;
-    yPos += 10;
-  }
-  
-  // Add delivery failure fee if exists
-  if (order.deliveryFailureFee && order.deliveryFailureFee > 0) {
-    doc.setFontSize(8.5);
+    
+    doc.text('Subtotal', 130, yStart);
+    doc.text('Rs' + subtotal, pageWidth - 17, yStart, { align: 'right' });
+    yStart += 8;
+    
+    doc.text('Tax (0%)', 130, yStart);
+    doc.text('Rs0.00', pageWidth - 17, yStart, { align: 'right' });
+    yStart += 8;
+    
+    const discountPercent = order.discount || 25;
+    doc.text('Discount/ Coupon code', 130, yStart);
+    doc.text(discountPercent + '%', pageWidth - 17, yStart, { align: 'right' });
+    yStart += 12;
+    
+    doc.setDrawColor(200, 200, 200);
+    doc.line(130, yStart, pageWidth - 15, yStart);
+    yStart += 8;
+    
+    const discountAmount = (subtotal * discountPercent) / 100;
+    const finalTotal = subtotal - discountAmount;
+    
+    doc.setFont('times', 'bold');
+    doc.text('Total', 130, yStart);
+    doc.text('Rs' + Math.round(finalTotal), pageWidth - 17, yStart, { align: 'right' });
+    yStart += 10;
+    
+    doc.setFont('times', 'bold');
+    doc.setFontSize(12);
+    doc.text('Grand Total', 130, yStart);
+    doc.text('Rs' + Math.round(order.totalAmount || finalTotal), pageWidth - 17, yStart, { align: 'right' });
+    
+    // Footer
+    yStart = pageHeight - 30;
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(220, 38, 38);
-    doc.text('Delivery Failure Fee Applied', 17, yPos);
+    doc.text('Thank you for choosing Urban Steam', 15, yStart);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    doc.setFontSize(7.5);
-    doc.text(order.deliveryFailureReason || 'Delivery failure charge', 17, yPos + 3);
-    doc.setTextColor(220, 38, 38);
-    doc.setFontSize(8.5);
-    doc.text('1', 135, yPos, { align: 'center' });
-    doc.text(rupeeSymbol + ' ' + order.deliveryFailureFee.toFixed(2), 160, yPos, { align: 'right' });
-    doc.text(rupeeSymbol + ' ' + order.deliveryFailureFee.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
-    doc.setTextColor(0, 0, 0);
-    subtotal += order.deliveryFailureFee;
-    yPos += 10;
-  }
+    doc.setTextColor(100, 100, 100);
+    doc.text('📧 In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yStart + 6);
   
-  yPos += 10;
-  doc.setDrawColor(220, 220, 220);
-  doc.line(15, yPos, pageWidth - 15, yPos);
-  yPos += 6;
-  
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Subtotal', 135, yPos);
-  doc.text(rupeeSymbol + ' ' + subtotal.toFixed(2), pageWidth - 17, yPos, { align: 'right' });
-  yPos += 7;
-  const discountPercent = order.discount || 0;
-  const discountAmount = (subtotal * discountPercent) / 100;
-  doc.text('Discount/Coupon', 135, yPos);
-  doc.text(discountPercent + '%', pageWidth - 17, yPos, { align: 'right' });
-  yPos += 9;
-  
-  doc.setDrawColor(220, 220, 220);
-  doc.line(135, yPos, pageWidth - 15, yPos);
-  yPos += 7;
-  
-  const finalTotal = subtotal - discountAmount;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text('Total', 135, yPos);
-  doc.text(rupeeSymbol + ' ' + (order.totalAmount || finalTotal).toFixed(2), pageWidth - 17, yPos, { align: 'right' });
-  doc.setTextColor(0, 0, 0);
-  
-  yPos = pageHeight - 25;
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Thank you for choosing Urban Steam', 15, yPos);
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
-  doc.text('In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yPos + 5);
-  
-    // Check if running on mobile (Capacitor)
     if (Capacitor.isNativePlatform()) {
       try {
         const pdfBlob = doc.output('blob');
