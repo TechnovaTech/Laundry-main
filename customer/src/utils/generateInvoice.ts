@@ -5,13 +5,63 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { ACS_LOGO_BASE64, URBAN_STEAM_LOGO_BASE64 } from './invoiceAssets';
 
-// Add custom font with rupee support
-const addCustomFont = (doc: jsPDF) => {
+// Brand typography system
+const setBrandFont = (doc: jsPDF, type: 'primary' | 'secondary', weight: 'light' | 'regular' | 'medium' | 'semibold' | 'bold' | 'extrabold' | 'black' = 'regular') => {
   try {
-    // Use Times font which has better Unicode support
-    doc.setFont('times', 'normal');
+    // Primary: Montserrat, Secondary: Manrope
+    // jsPDF doesn't support custom fonts directly, so we'll use closest system fonts
+    const fontMap = {
+      primary: 'helvetica', // Closest to Montserrat
+      secondary: 'helvetica' // Closest to Manrope
+    };
+    
+    const weightMap = {
+      light: 'normal',
+      regular: 'normal', 
+      medium: 'normal',
+      semibold: 'bold',
+      bold: 'bold',
+      extrabold: 'bold',
+      black: 'bold'
+    };
+    
+    doc.setFont(fontMap[type], weightMap[weight]);
   } catch (e) {
     doc.setFont('helvetica', 'normal');
+  }
+};
+
+// Typography scale based on brand system
+const setTypography = (doc: jsPDF, style: 'h1' | 'h2' | 'h3' | 'h4' | 'subtitle' | 'button' | 'body') => {
+  switch (style) {
+    case 'h1': // Montserrat Bold Size 16
+      setBrandFont(doc, 'primary', 'bold');
+      doc.setFontSize(16);
+      break;
+    case 'h2': // Montserrat Semibold Size 14  
+      setBrandFont(doc, 'primary', 'semibold');
+      doc.setFontSize(14);
+      break;
+    case 'h3': // Montserrat Medium Size 14
+      setBrandFont(doc, 'primary', 'medium');
+      doc.setFontSize(14);
+      break;
+    case 'h4': // Montserrat Regular Size 13
+      setBrandFont(doc, 'primary', 'regular');
+      doc.setFontSize(13);
+      break;
+    case 'subtitle': // Manrope Size 14
+      setBrandFont(doc, 'secondary', 'bold');
+      doc.setFontSize(14);
+      break;
+    case 'button': // Montserrat Size 12
+      setBrandFont(doc, 'primary', 'medium');
+      doc.setFontSize(12);
+      break;
+    case 'body': // Manrope Regular Size 12
+      setBrandFont(doc, 'secondary', 'regular');
+      doc.setFontSize(12);
+      break;
   }
 };
 
@@ -69,8 +119,7 @@ export const generateInvoicePDF = async (order: any) => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     
-    // Set custom font for rupee symbol support
-    addCustomFont(doc);
+    // Set brand typography
     const rupeeSymbol = getRupeeSymbol();
     doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
@@ -80,8 +129,7 @@ export const generateInvoicePDF = async (order: any) => {
       doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 45, 32);
       doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 60, 8, 45, 32);
     } catch (imgError) {
-      doc.setFontSize(16);
-      doc.setFont('times', 'bold');
+      setTypography(doc, 'h1');
       doc.text('ACS Group', 15, 24);
       doc.text('Urban Steam', pageWidth - 55, 24);
     }
@@ -91,12 +139,15 @@ export const generateInvoicePDF = async (order: any) => {
     doc.setLineWidth(0.3);
     doc.rect(15, 30, pageWidth - 30, 25);
     
+    setTypography(doc, 'body');
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
     doc.text('ORIGINAL FOR RECIPIENT', 17, 36);
+    
+    setTypography(doc, 'h1');
     doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
     doc.text('TAX INVOICE', 17, 45);
+    
+    setTypography(doc, 'body');
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(`#${order.orderId || 'RW0R7'}`, 17, 51);
@@ -110,25 +161,28 @@ export const generateInvoicePDF = async (order: any) => {
     doc.rect(145, yStart, pageWidth - 160, 40); // From
     
     // Issued section
+    setTypography(doc, 'subtitle');
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
     doc.text('Issued', 17, yStart + 8);
-    doc.setFont('helvetica', 'normal');
+    
+    setTypography(doc, 'body');
     doc.setFontSize(9);
     doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, yStart + 14);
     
+    setTypography(doc, 'subtitle');
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
     doc.text('Due', 17, yStart + 22);
-    doc.setFont('helvetica', 'normal');
+    
+    setTypography(doc, 'body');
     doc.setFontSize(9);
     doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, yStart + 28);
     
     // Billed to section
+    setTypography(doc, 'subtitle');
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
     doc.text('Billed to', 77, yStart + 8);
-    doc.setFont('helvetica', 'normal');
+    
+    setTypography(doc, 'body');
     doc.setFontSize(9);
     doc.text(customerName, 77, yStart + 14);
     
@@ -137,11 +191,13 @@ export const generateInvoicePDF = async (order: any) => {
     doc.text(address, 77, yStart + 19);
     doc.text(cityState, 77, yStart + 24);
     
+    setTypography(doc, 'body');
     doc.setFontSize(8);
     doc.text(`Contact Number: ${customerMobile || '8140126027'}`, 77, yStart + 30);
     doc.text(`Order Id: ${order.orderId || 'RW0R7'}`, 77, yStart + 35);
     
     // From section
+    setTypography(doc, 'body');
     doc.setFontSize(9);
     doc.text('Email: support@urbansteam.in', 147, yStart + 8);
     doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 14);
@@ -152,8 +208,8 @@ export const generateInvoicePDF = async (order: any) => {
     doc.setFillColor(245, 245, 245);
     doc.rect(15, yStart, pageWidth - 30, 10, 'FD');
     
+    setTypography(doc, 'h3');
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
     doc.text('Service & Description', 17, yStart + 7);
     doc.text('Qty', 130, yStart + 7, { align: 'center' });
     doc.text('Rate', 155, yStart + 7, { align: 'center' });
@@ -167,15 +223,17 @@ export const generateInvoicePDF = async (order: any) => {
         const itemTotal = (item.quantity || 0) * (item.price || 0);
         subtotal += itemTotal;
         
+        setTypography(doc, 'h4');
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
         doc.text(item.name || 'Curtain', 17, yStart);
-        doc.setFont('helvetica', 'normal');
+        
+        setTypography(doc, 'body');
         doc.setFontSize(9);
         doc.setTextColor(100, 100, 100);
         doc.text(item.description || 'Description', 17, yStart + 5);
         doc.setTextColor(0, 0, 0);
         
+        setTypography(doc, 'body');
         doc.setFontSize(10);
         doc.text(String(item.quantity || 10), 130, yStart, { align: 'center' });
         doc.text('Rs' + (item.price || 75), 155, yStart, { align: 'center' });
@@ -184,14 +242,17 @@ export const generateInvoicePDF = async (order: any) => {
       });
     } else {
       // Default items for demo
+      setTypography(doc, 'h4');
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
       doc.text('Curtain', 17, yStart);
-      doc.setFont('helvetica', 'normal');
+      
+      setTypography(doc, 'body');
       doc.setFontSize(9);
       doc.setTextColor(100, 100, 100);
       doc.text('Description', 17, yStart + 5);
       doc.setTextColor(0, 0, 0);
+      
+      setTypography(doc, 'body');
       doc.setFontSize(10);
       doc.text('10', 130, yStart, { align: 'center' });
       doc.text('Rs75', 155, yStart, { align: 'center' });
@@ -201,8 +262,8 @@ export const generateInvoicePDF = async (order: any) => {
     
     // Summary section
     yStart += 20;
+    setTypography(doc, 'body');
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
     
     doc.text('Subtotal', 130, yStart);
     doc.text('Rs' + subtotal, pageWidth - 17, yStart, { align: 'right' });
@@ -224,23 +285,24 @@ export const generateInvoicePDF = async (order: any) => {
     const discountAmount = (subtotal * discountPercent) / 100;
     const finalTotal = subtotal - discountAmount;
     
-    doc.setFont('times', 'bold');
+    setTypography(doc, 'h3');
     doc.text('Total', 130, yStart);
     doc.text('Rs' + Math.round(finalTotal), pageWidth - 17, yStart, { align: 'right' });
     yStart += 10;
     
-    doc.setFont('times', 'bold');
+    setTypography(doc, 'h2');
     doc.setFontSize(12);
     doc.text('Grand Total', 130, yStart);
     doc.text('Rs' + Math.round(order.totalAmount || finalTotal), pageWidth - 17, yStart, { align: 'right' });
     
     // Footer
     yStart = pageHeight - 30;
+    setTypography(doc, 'h3');
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
     doc.text('Thank you for choosing Urban Steam', 15, yStart);
+    
+    setTypography(doc, 'body');
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
     doc.text('📧 In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yStart + 6);
   
