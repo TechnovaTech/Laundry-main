@@ -22,27 +22,39 @@ const OrderDetails = () => {
   const orderId = location.state?.orderId;
   
   const fetchPartnerPhone = async () => {
-    if (!order?.assignedPartner) {
+    const partnerId = order?.assignedPartner || order?.partnerId;
+    
+    if (!partnerId) {
       alert('No partner assigned yet');
       return;
     }
     
     try {
-      const partnerId = typeof order.assignedPartner === 'string' ? order.assignedPartner : order.assignedPartner._id;
-      const response = await fetch(`${API_URL}/api/mobile/partners?partnerId=${partnerId}`);
+      const partnerIdString = typeof partnerId === 'string' ? partnerId : partnerId._id;
+      console.log('Partner ID:', partnerIdString);
+      console.log('Order data:', order);
+      
+      // Direct API call to get partner details
+      const response = await fetch(`${API_URL}/api/mobile/partners/${partnerIdString}`);
       const data = await response.json();
+      console.log('Partner API response:', data);
       
       if (data.success && data.data?.mobile) {
+        const phoneNumber = data.data.mobile;
+        console.log('Calling partner:', phoneNumber);
+        
+        // Open phone dialer
         if (Capacitor.isNativePlatform()) {
-          window.open(`tel:${data.data.mobile}`, '_system');
+          window.open(`tel:${phoneNumber}`, '_system');
         } else {
-          window.location.href = `tel:${data.data.mobile}`;
+          window.location.href = `tel:${phoneNumber}`;
         }
       } else {
+        console.log('No mobile number found');
         alert('Partner contact not available');
       }
     } catch (error) {
-      console.error('Error fetching partner phone:', error);
+      console.error('Error:', error);
       alert('Failed to get partner contact');
     }
   };
@@ -308,7 +320,7 @@ const OrderDetails = () => {
             variant="outline" 
             className="flex-1 h-10 sm:h-12 rounded-2xl font-semibold text-xs sm:text-sm border-2 shadow-md" 
             style={{ borderColor: '#452D9B', color: '#452D9B' }}
-            disabled={!order?.assignedPartner}
+            disabled={!order?.assignedPartner && !order?.partnerId}
             onClick={fetchPartnerPhone}
           >
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />

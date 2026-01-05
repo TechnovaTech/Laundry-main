@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import { API_URL } from '@/config/api';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface Order {
   _id: string;
@@ -35,6 +38,74 @@ function PickupConfirmContent() {
   const [confirmed, setConfirmed] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
+  const [showImageOptions, setShowImageOptions] = useState(false);
+
+  // Request camera permissions on component mount
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      requestCameraPermissions();
+    }
+  }, []);
+
+  const requestCameraPermissions = async () => {
+    try {
+      const permissions = await Camera.requestPermissions();
+      console.log('Camera permissions:', permissions);
+    } catch (error) {
+      console.error('Failed to request camera permissions:', error);
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera
+      });
+      
+      if (image.dataUrl) {
+        setPhotos([...photos, image.dataUrl]);
+        setShowImageOptions(false);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      setToast({ message: 'Failed to take photo', type: 'error' });
+    }
+  };
+
+  const selectFromGallery = async () => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Photos
+      });
+      
+      if (image.dataUrl) {
+        setPhotos([...photos, image.dataUrl]);
+        setShowImageOptions(false);
+      }
+    } catch (error) {
+      console.error('Error selecting from gallery:', error);
+      setToast({ message: 'Failed to select image', type: 'error' });
+    }
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPhotos(prev => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
 
   useEffect(() => {
     if (orderId) fetchOrder(orderId);
@@ -98,27 +169,16 @@ function PickupConfirmContent() {
               </button>
             </div>
           ))}
-          <label className="aspect-square rounded-xl bg-gray-100 border-2 border-dashed flex items-center justify-center cursor-pointer" style={{ borderColor: '#452D9B' }}>
+          <button
+            onClick={() => setShowImageOptions(true)}
+            className="aspect-square rounded-xl bg-gray-100 border-2 border-dashed flex items-center justify-center cursor-pointer"
+            style={{ borderColor: '#452D9B' }}
+          >
             <div className="text-center">
               <span className="text-2xl block mb-1" style={{ color: '#452D9B' }}>📷</span>
               <span className="text-xs" style={{ color: '#452D9B' }}>Add Photo</span>
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    setPhotos([...photos, reader.result as string]);
-                  };
-                  reader.readAsDataURL(file);
-                }
-              }}
-            />
-          </label>
+          </button>
         </div>
 
         <button
@@ -208,6 +268,84 @@ function PickupConfirmContent() {
           </div>
         )}
       </div>
+
+      {/* Image Options Modal */}
+      {showImageOptions && (
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-[9999]">
+          <div className="bg-white rounded-t-2xl w-full max-w-md p-6 animate-slide-up">
+            <h3 className="text-lg font-bold text-black mb-4 text-center">Add Photo</h3>
+            <div className="space-y-3">
+              {Capacitor.isNativePlatform() ? (
+                <>
+                  <button
+                    onClick={takePhoto}
+                    className="w-full flex items-center gap-4 p-4 rounded-xl border-2 hover:bg-gray-50"
+                    style={{ borderColor: '#452D9B' }}
+                  >
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                      <span className="text-2xl">📷</span>
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-black">Take Photo</p>
+                      <p className="text-sm text-gray-600">Use camera to take a new photo</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={selectFromGallery}
+                    className="w-full flex items-center gap-4 p-4 rounded-xl border-2 hover:bg-gray-50"
+                    style={{ borderColor: '#452D9B' }}
+                  >
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                      <span className="text-2xl">🖼️</span>
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-black">Choose from Gallery</p>
+                      <p className="text-sm text-gray-600">Select from existing photos</p>
+                    </div>
+                  </button>
+                </>
+              ) : (
+                <label className="w-full flex items-center gap-4 p-4 rounded-xl border-2 hover:bg-gray-50 cursor-pointer" style={{ borderColor: '#452D9B' }}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                    <span className="text-2xl">🖼️</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-black">Select Images</p>
+                    <p className="text-sm text-gray-600">Choose multiple images from device</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileInput}
+                  />
+                </label>
+              )}
+            </div>
+            <button
+              onClick={() => setShowImageOptions(false)}
+              className="w-full mt-4 py-3 rounded-xl border-2 border-gray-300 font-semibold text-gray-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes slide-up {
+          from {
+            transform: translateY(100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
