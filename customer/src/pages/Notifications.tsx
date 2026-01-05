@@ -10,6 +10,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPermissionRequest, setShowPermissionRequest] = useState(false);
+  const [allRead, setAllRead] = useState(false);
   const notificationService = NotificationService.getInstance();
 
   useEffect(() => {
@@ -23,6 +24,7 @@ const Notifications = () => {
     // Subscribe to notification updates
     const unsubscribe = notificationService.subscribe((updatedNotifications) => {
       setNotifications(updatedNotifications);
+      setAllRead(updatedNotifications.every(n => n.read));
     });
 
     // Fetch server notifications from admin panel
@@ -63,6 +65,14 @@ const Notifications = () => {
     }
   };
 
+  const handleMarkAllAsRead = () => {
+    notificationService.markAllAsRead();
+  };
+
+  const handleClearAll = () => {
+    notificationService.clearAllNotifications();
+  };
+
   const markAsRead = (id: string) => {
     notificationService.markAsRead(id);
   };
@@ -74,9 +84,16 @@ const Notifications = () => {
   const getNotificationIcon = (notification: OrderNotification) => {
     if (notification.type === 'order_status' && notification.orderStatus) {
       switch (notification.orderStatus) {
+        case 'pending': return '📋';
+        case 'reached_location': return '🚗';
+        case 'picked_up': return '📦';
         case 'delivered_to_hub': return '🏭';
+        case 'processing': return '🧺';
+        case 'ironing': return '👔';
+        case 'process_completed': return '✨';
+        case 'ready': return '✅';
         case 'out_for_delivery': return '🚚';
-        case 'delivered': return '✅';
+        case 'delivered': return '🎉';
         case 'cancelled': return '❌';
         case 'delivery_failed': return '⚠️';
         case 'suspended': return '🚫';
@@ -128,11 +145,16 @@ const Notifications = () => {
       <Header 
         title="Notifications" 
         variant="gradient"
-        leftAction={
-          <ArrowLeft 
-            className="w-5 h-5 sm:w-6 sm:h-6 text-white cursor-pointer" 
-            onClick={() => navigate(-1)}
-          />
+        onBack={() => navigate(-1)}
+        rightAction={
+          notifications.length > 0 && (
+            <button
+              onClick={allRead ? handleClearAll : handleMarkAllAsRead}
+              className="text-white text-xs font-medium px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+            >
+              {allRead ? 'Clear All' : 'Mark Read'}
+            </button>
+          )
         }
       />
 

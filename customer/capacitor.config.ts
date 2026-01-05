@@ -62,6 +62,7 @@ const config: CapacitorConfig = {
       channelImportance: 4,
       visibility: 1
     },
+    GoogleAuth: {
       scopes: ['profile', 'email'],
       serverClientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,

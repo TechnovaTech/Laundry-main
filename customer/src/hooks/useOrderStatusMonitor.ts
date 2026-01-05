@@ -11,8 +11,15 @@ interface Order {
 
 // Statuses that should trigger notifications
 const NOTIFICATION_STATUSES = [
+  'pending',
+  'reached_location',
+  'picked_up',
   'delivered_to_hub',
-  'out_for_delivery', 
+  'processing',
+  'ironing',
+  'process_completed',
+  'ready',
+  'out_for_delivery',
   'delivered',
   'cancelled',
   'delivery_failed',
@@ -32,28 +39,20 @@ export const useOrderStatusMonitor = () => {
 
     const checkOrderStatuses = async () => {
       try {
-        console.log('Checking order statuses for customer:', customerId);
         const response = await fetch(`${API_URL}/api/orders?customerId=${customerId}`);
         const data = await response.json();
         
-        console.log('Orders API response:', data);
-        
         if (data.success && data.data && Array.isArray(data.data)) {
           const orders: Order[] = data.data;
-          console.log('Found orders:', orders.length);
           
           orders.forEach((order) => {
             const lastStatus = lastOrderStatuses.current.get(order.orderId);
             const currentStatus = order.status;
             
-            console.log(`Order ${order.orderId}: ${lastStatus || 'NEW'} -> ${currentStatus}`);
-            
-            // Create notification if status is notification-worthy and either:
-            // 1. Status changed from a different status
-            // 2. First time seeing this order with a notification-worthy status
+            // Create notification for ALL notification-worthy statuses
             if (NOTIFICATION_STATUSES.includes(currentStatus)) {
               if (!lastStatus || (lastStatus !== currentStatus)) {
-                console.log(`Creating notification for order ${order.orderId} status: ${currentStatus}`);
+                console.log(`Creating notification: ${order.orderId} -> ${currentStatus}`);
                 notificationService.createOrderStatusNotification(order.orderId, currentStatus);
               }
             }
@@ -61,8 +60,6 @@ export const useOrderStatusMonitor = () => {
             // Update the last known status
             lastOrderStatuses.current.set(order.orderId, currentStatus);
           });
-        } else {
-          console.log('No orders found or invalid response format');
         }
       } catch (error) {
         console.error('Failed to check order statuses:', error);
@@ -72,8 +69,8 @@ export const useOrderStatusMonitor = () => {
     // Initial check
     checkOrderStatuses();
 
-    // Set up polling every 3 seconds for real-time updates
-    const interval = setInterval(checkOrderStatuses, 3000);
+    // Set up polling every 5 seconds
+    const interval = setInterval(checkOrderStatuses, 5000);
 
     return () => {
       clearInterval(interval);

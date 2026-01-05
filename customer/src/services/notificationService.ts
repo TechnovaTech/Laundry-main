@@ -13,16 +13,44 @@ export interface OrderNotification {
 
 // Order status notification templates
 const statusNotifications = {
+  'pending': {
+    title: '📋 Order Confirmed',
+    message: 'Your order has been confirmed and is being prepared for pickup.'
+  },
+  'reached_location': {
+    title: '🚗 Partner Reached Location',
+    message: 'Our delivery partner has reached your pickup location.'
+  },
+  'picked_up': {
+    title: '📦 Order Picked Up',
+    message: 'Your order has been picked up and is on the way to our processing hub.'
+  },
   'delivered_to_hub': {
-    title: '📦 Order at Processing Hub',
+    title: '🏭 Order at Processing Hub',
     message: 'Your order has been delivered to our processing hub and will be processed soon.'
+  },
+  'processing': {
+    title: '🧺 Order Processing Started',
+    message: 'Your laundry is now being processed at our facility.'
+  },
+  'ironing': {
+    title: '👔 Ironing in Progress',
+    message: 'Your clothes are being ironed and will be ready soon.'
+  },
+  'process_completed': {
+    title: '✨ Processing Complete',
+    message: 'Your laundry has been processed and is ready for delivery.'
+  },
+  'ready': {
+    title: '✅ Order Ready',
+    message: 'Your order is ready and will be out for delivery soon.'
   },
   'out_for_delivery': {
     title: '🚚 Out for Delivery',
     message: 'Great news! Your order is out for delivery and will reach you soon.'
   },
   'delivered': {
-    title: '✅ Order Delivered Successfully',
+    title: '🎉 Order Delivered Successfully',
     message: 'Your order has been successfully delivered. Thank you for choosing Urban Steam!'
   },
   'cancelled': {
@@ -96,6 +124,11 @@ class NotificationService {
     
     if (exists) return;
 
+    // Check if this notification was permanently cleared
+    const clearedIds = this.getClearedNotificationIds();
+    const clearedKey = `${notification.orderId}_${notification.orderStatus}`;
+    if (clearedIds.includes(clearedKey)) return;
+
     this.notifications.unshift(notification);
     
     // Keep only last 100 notifications
@@ -105,18 +138,19 @@ class NotificationService {
 
     this.saveNotifications();
     this.notifyListeners();
-
-    // Show browser notification if permission granted
-    this.showBrowserNotification(notification);
   }
 
   // Create order status notification
   createOrderStatusNotification(orderId: string, status: string) {
     const template = statusNotifications[status as keyof typeof statusNotifications];
-    if (!template) return;
+    if (!template) {
+      return;
+    }
+
+    const notificationId = `order_${orderId}_${status}_${Date.now()}`;
 
     const notification: OrderNotification = {
-      id: `order_${orderId}_${status}_${Date.now()}`,
+      id: notificationId,
       title: template.title,
       message: `${template.message} (Order #${orderId})`,
       type: 'order_status',
@@ -126,10 +160,91 @@ class NotificationService {
       read: false
     };
 
+    // Add to local storage and notify listeners
     this.addNotification(notification);
     
     // Send mobile push notification
     this.sendMobilePushNotification(notification);
+    
+    // Send browser notification
+    this.showBrowserNotification(notification);
+  }
+
+  // Public method to create and send notification immediately
+  async sendImmediateNotification(title: string, message: string, orderId?: string, status?: string) {
+    const notification: OrderNotification = {
+      id: `immediate_${Date.now()}`,
+      title,
+      message,
+      type: 'order_status',
+      orderId,
+      orderStatus: status,
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+
+    this.addNotification(notification);
+    await this.sendMobilePushNotification(notification);
+    this.showBrowserNotification(notification);
+  }
+
+  // Create promotion notification
+  createPromotionNotification(title: string, message: string) {
+    const notification: OrderNotification = {
+      id: `promotion_${Date.now()}`,
+      title: `🎉 ${title}`,
+      message,
+      type: 'promotion',
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+
+    this.addNotification(notification);
+    this.sendMobilePushNotification(notification);
+    this.showBrowserNotification(notification);
+  }
+
+  // Create system notification
+  createSystemNotification(title: string, message: string) {
+    const notification: OrderNotification = {
+      id: `system_${Date.now()}`,
+      title: `⚙️ ${title}`,
+      message,
+      type: 'system',
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+
+    this.addNotification(notification);
+    this.sendMobilePushNotification(notification);
+    this.showBrowserNotification(notification);
+  }
+
+  // Mark all notifications as read
+  markAllAsRead() {
+    this.notifications = this.notifications.map(notif => ({ ...notif, read: true }));
+    this.saveNotifications();
+    this.notifyListeners();
+  }
+
+  // Clear all notifications permanently
+  clearAllNotifications() {
+    // Save cleared notification keys to prevent showing again
+    this.notifications.forEach(notif => {
+      if (notif.orderId && notif.orderStatus) {
+        this.saveClearedNotificationId(`${notif.orderId}_${notif.orderStatus}`);
+        // Also clear from mobile system drawer
+        this.clearMobileNotification(notif.orderId, notif.orderStatus);
+      }
+    });
+    
+    // Clear all notifications
+    this.notifications = [];
+    this.saveNotifications();
+    this.notifyListeners();
+    
+    // Clear all from mobile system drawer
+    this.clearAllMobileNotifications();
   }
 
   // Mark notification as read
@@ -141,13 +256,44 @@ class NotificationService {
     this.notifyListeners();
   }
 
+  // Get cleared notification IDs
+  private getClearedNotificationIds(): string[] {
+    try {
+      const cleared = localStorage.getItem('cleared_notifications');
+      return cleared ? JSON.parse(cleared) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // Save cleared notification ID
+  private saveClearedNotificationId(key: string) {
+    try {
+      const clearedIds = this.getClearedNotificationIds();
+      if (!clearedIds.includes(key)) {
+        clearedIds.push(key);
+        localStorage.setItem('cleared_notifications', JSON.stringify(clearedIds));
+      }
+    } catch (error) {
+      console.error('Failed to save cleared notification ID:', error);
+    }
+  }
+
   // Delete notification permanently
   deleteNotification(id: string) {
+    // Find the notification to get its details
+    const notification = this.notifications.find(n => n.id === id);
+    
     // Remove from current notifications
     this.notifications = this.notifications.filter(notif => notif.id !== id);
     
     // Save to deleted list so it won't show again
     this.saveDeletedNotificationId(id);
+    
+    // If it's an order notification, also clear it from mobile system drawer
+    if (notification?.orderId && notification?.orderStatus) {
+      this.clearMobileNotification(notification.orderId, notification.orderStatus);
+    }
     
     this.saveNotifications();
     this.notifyListeners();
@@ -166,45 +312,44 @@ class NotificationService {
   // Send mobile push notification using Capacitor
   private async sendMobilePushNotification(notification: OrderNotification) {
     try {
-      // For Capacitor apps, we can use Local Notifications
       if (window.Capacitor?.isNativePlatform()) {
         const { LocalNotifications } = await import('@capacitor/local-notifications');
         
-        // Request permission first
         const permission = await LocalNotifications.requestPermissions();
         
         if (permission.display === 'granted') {
+          // Check if this notification was already dismissed/deleted
+          const deletedIds = this.getDeletedNotificationIds();
+          const clearedIds = this.getClearedNotificationIds();
+          const notificationKey = `${notification.orderId}_${notification.orderStatus}`;
+          
+          if (deletedIds.includes(notification.id) || clearedIds.includes(notificationKey)) {
+            return; // Don't send if user already dismissed it
+          }
+          
+          const notificationId = Math.floor(Math.random() * 100000);
+          
           await LocalNotifications.schedule({
             notifications: [{
-              id: parseInt(notification.id.replace(/\D/g, '').slice(-8)) || Math.floor(Math.random() * 100000),
+              id: notificationId,
               title: notification.title,
               body: notification.message,
-              largeBody: notification.message,
               summaryText: 'Urban Steam',
-              schedule: { at: new Date(Date.now() + 1000) }, // 1 second delay
+              schedule: { at: new Date(Date.now() + 100) },
               sound: 'default',
-              attachments: [],
-              actionTypeId: 'ORDER_NOTIFICATION',
-              extra: {
-                orderId: notification.orderId,
-                orderStatus: notification.orderStatus,
-                notificationId: notification.id
-              },
               smallIcon: 'ic_stat_icon_config_sample',
               iconColor: '#452D9B',
-              ongoing: false,
-              autoCancel: true,
-              channelId: 'order-updates'
+              channelId: 'order-updates',
+              extra: {
+                orderId: notification.orderId,
+                notificationId: notification.id
+              }
             }]
           });
-          
-          console.log('Mobile push notification sent:', notification.title);
-        } else {
-          console.log('Notification permission not granted');
         }
       }
     } catch (error) {
-      console.error('Failed to send mobile push notification:', error);
+      console.error('Mobile notification failed:', error);
     }
   }
 
@@ -331,6 +476,40 @@ class NotificationService {
       }
     } catch (error) {
       console.error('Failed to save deleted notification ID:', error);
+    }
+  }
+
+  // Clear specific mobile notification from system drawer
+  private async clearMobileNotification(orderId: string, orderStatus: string) {
+    try {
+      if (window.Capacitor?.isNativePlatform()) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        // Get all delivered notifications and remove matching ones
+        const delivered = await LocalNotifications.getDeliveredNotifications();
+        const toRemove = delivered.notifications.filter(n => 
+          n.extra?.orderId === orderId && n.body?.includes(orderStatus)
+        );
+        
+        if (toRemove.length > 0) {
+          await LocalNotifications.removeDeliveredNotifications({
+            notifications: toRemove.map(n => ({ id: n.id }))
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to clear mobile notification:', error);
+    }
+  }
+
+  // Clear all mobile notifications from system drawer
+  private async clearAllMobileNotifications() {
+    try {
+      if (window.Capacitor?.isNativePlatform()) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        await LocalNotifications.removeAllDeliveredNotifications();
+      }
+    } catch (error) {
+      console.error('Failed to clear all mobile notifications:', error);
     }
   }
 }

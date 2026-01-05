@@ -14,7 +14,6 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import SafeAreaWrapper from './components/SafeAreaWrapper';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useOrderStatusMonitor } from './hooks/useOrderStatusMonitor';
-import './utils/testNotifications'; // For testing notifications
 import Welcome from "./pages/Welcome";
 import CheckAvailability from "./pages/CheckAvailability";
 import Congrats from "./pages/Congrats";
@@ -133,7 +132,7 @@ const App = () => {
           await StatusBar.setOverlaysWebView({ overlay: false });
           await StatusBar.setBackgroundColor({ color: '#452D9B' });
           
-          // Initialize notification channels
+          // Initialize notification channels and background tasks
           const { LocalNotifications } = await import('@capacitor/local-notifications');
           await LocalNotifications.createChannel({
             id: 'order-updates',
@@ -146,6 +145,25 @@ const App = () => {
             lightColor: '#452D9B',
             vibration: true
           });
+          
+          // Clear old notifications from system drawer on app start
+          await LocalNotifications.removeAllDeliveredNotifications();
+          
+          // Listen for notification actions
+          await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+            console.log('Notification action performed:', notification);
+            // Handle notification tap - navigate to order details if needed
+            if (notification.notification.extra?.orderId) {
+              // You can dispatch a custom event here to navigate
+              window.dispatchEvent(new CustomEvent('notificationTap', {
+                detail: { orderId: notification.notification.extra.orderId }
+              }));
+            }
+          });
+          
+          // Request notification permission immediately
+          const permission = await LocalNotifications.requestPermissions();
+          console.log('Notification permission:', permission.display);
           
           // Add viewport meta tag for better mobile handling
           const viewport = document.querySelector('meta[name="viewport"]');
