@@ -124,21 +124,17 @@ export const generateInvoicePDF = async (order: any) => {
     doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
-    // Header logos - same width, increase height
+    // Header logos - increase height, keep width same
     try {
-      doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 45, 32);
-      doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 60, 8, 45, 32);
+      doc.addImage(ACS_LOGO_BASE64, 'PNG', 15, 8, 45, 40);
+      doc.addImage(URBAN_STEAM_LOGO_BASE64, 'PNG', pageWidth - 50, 8, 35, 32);
     } catch (imgError) {
       setTypography(doc, 'h1');
       doc.text('ACS Group', 15, 24);
       doc.text('Urban Steam', pageWidth - 55, 24);
     }
     
-    // Invoice header box
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.3);
-    doc.rect(15, 30, pageWidth - 30, 25);
-    
+    // Invoice header - remove border
     setTypography(doc, 'body');
     doc.setFontSize(8);
     doc.text('ORIGINAL FOR RECIPIENT', 17, 36);
@@ -153,12 +149,11 @@ export const generateInvoicePDF = async (order: any) => {
     doc.text(`#${order.orderId || 'RW0R7'}`, 17, 51);
     doc.setTextColor(0, 0, 0);
     
-    // Three column section
+    // Three column section - only one light border around all
     let yStart = 65;
-    doc.setDrawColor(200, 200, 200);
-    doc.rect(15, yStart, 60, 40); // Issued/Due
-    doc.rect(75, yStart, 70, 40); // Billed to
-    doc.rect(145, yStart, pageWidth - 160, 40); // From
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.2);
+    doc.rect(15, yStart, pageWidth - 30, 40);
     
     // Issued section
     setTypography(doc, 'subtitle');
@@ -202,11 +197,10 @@ export const generateInvoicePDF = async (order: any) => {
     doc.text('Email: support@urbansteam.in', 147, yStart + 8);
     doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 14);
     
-    // Service table
+    // Service table - remove border, keep background
     yStart = 115;
-    doc.setDrawColor(200, 200, 200);
     doc.setFillColor(245, 245, 245);
-    doc.rect(15, yStart, pageWidth - 30, 10, 'FD');
+    doc.rect(15, yStart, pageWidth - 30, 10, 'F');
     
     setTypography(doc, 'h3');
     doc.setFontSize(10);
@@ -217,15 +211,35 @@ export const generateInvoicePDF = async (order: any) => {
     
     yStart += 15;
     let subtotal = 0;
+    const itemsPerPage = 15; // Max items per page
+    const maxYPosition = pageHeight - 80; // Reserve space for footer
     
     if (order.items && order.items.length > 0) {
-      order.items.forEach((item: any) => {
+      order.items.forEach((item: any, index: number) => {
+        // Check if we need a new page
+        if (yStart > maxYPosition) {
+          doc.addPage();
+          yStart = 20;
+          
+          // Add service table header on new page
+          doc.setFillColor(245, 245, 245);
+          doc.rect(15, yStart, pageWidth - 30, 10, 'F');
+          
+          setTypography(doc, 'h3');
+          doc.setFontSize(10);
+          doc.text('Service & Description', 17, yStart + 7);
+          doc.text('Qty', 130, yStart + 7, { align: 'center' });
+          doc.text('Rate', 155, yStart + 7, { align: 'center' });
+          doc.text('Total', pageWidth - 17, yStart + 7, { align: 'right' });
+          yStart += 15;
+        }
+        
         const itemTotal = (item.quantity || 0) * (item.price || 0);
         subtotal += itemTotal;
         
         setTypography(doc, 'h4');
         doc.setFontSize(10);
-        doc.text(item.name || 'Curtain', 17, yStart);
+        doc.text(item.name || 'Item', 17, yStart);
         
         setTypography(doc, 'body');
         doc.setFontSize(9);
@@ -235,8 +249,8 @@ export const generateInvoicePDF = async (order: any) => {
         
         setTypography(doc, 'body');
         doc.setFontSize(10);
-        doc.text(String(item.quantity || 10), 130, yStart, { align: 'center' });
-        doc.text('Rs' + (item.price || 75), 155, yStart, { align: 'center' });
+        doc.text(String(item.quantity || 1), 130, yStart, { align: 'center' });
+        doc.text('Rs' + (item.price || 0), 155, yStart, { align: 'center' });
         doc.text('Rs' + itemTotal, pageWidth - 17, yStart, { align: 'right' });
         yStart += 15;
       });
@@ -260,40 +274,60 @@ export const generateInvoicePDF = async (order: any) => {
       subtotal = 750;
     }
     
-    // Summary section
+    // Check if summary section needs new page
+    if (yStart > maxYPosition - 100) {
+      doc.addPage();
+      yStart = 20;
+    }
+    
+    // Summary section with lines - all BOLD and same size
     yStart += 20;
-    setTypography(doc, 'body');
-    doc.setFontSize(10);
+    setTypography(doc, 'h2');
+    doc.setFontSize(12);
     
     doc.text('Subtotal', 130, yStart);
     doc.text('Rs' + subtotal, pageWidth - 17, yStart, { align: 'right' });
+    yStart += 8;
+    
+    // Line after subtotal
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.2);
+    doc.line(130, yStart, pageWidth - 15, yStart);
     yStart += 8;
     
     doc.text('Tax (0%)', 130, yStart);
     doc.text('Rs0.00', pageWidth - 17, yStart, { align: 'right' });
     yStart += 8;
     
+    // Line after tax
+    doc.line(130, yStart, pageWidth - 15, yStart);
+    yStart += 8;
+    
     const discountPercent = order.discount || 25;
     doc.text('Discount/ Coupon code', 130, yStart);
     doc.text(discountPercent + '%', pageWidth - 17, yStart, { align: 'right' });
-    yStart += 12;
+    yStart += 8;
     
-    doc.setDrawColor(200, 200, 200);
+    // Line after discount
     doc.line(130, yStart, pageWidth - 15, yStart);
     yStart += 8;
     
     const discountAmount = (subtotal * discountPercent) / 100;
     const finalTotal = subtotal - discountAmount;
     
-    setTypography(doc, 'h3');
     doc.text('Total', 130, yStart);
     doc.text('Rs' + Math.round(finalTotal), pageWidth - 17, yStart, { align: 'right' });
-    yStart += 10;
+    yStart += 8;
     
-    setTypography(doc, 'h2');
-    doc.setFontSize(12);
+    // Line after total
+    doc.line(130, yStart, pageWidth - 15, yStart);
+    yStart += 8;
+    
+    // Grand Total in blue color
+    doc.setTextColor(69, 45, 155);
     doc.text('Grand Total', 130, yStart);
     doc.text('Rs' + Math.round(order.totalAmount || finalTotal), pageWidth - 17, yStart, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
     
     // Footer
     yStart = pageHeight - 30;
@@ -304,7 +338,7 @@ export const generateInvoicePDF = async (order: any) => {
     setTypography(doc, 'body');
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text('📧 In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yStart + 6);
+    doc.text('In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yStart + 6);
   
     if (Capacitor.isNativePlatform()) {
       try {
