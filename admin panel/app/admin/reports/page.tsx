@@ -23,6 +23,8 @@ export default function ReportsPage() {
   const [hoveredData, setHoveredData] = useState<any>(null)
   const [exportModal, setExportModal] = useState(false)
   const [exportType, setExportType] = useState('')
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
   useEffect(() => {
     fetchReportsData()
@@ -63,15 +65,15 @@ export default function ReportsPage() {
         fromDateParam = fromDate
         toDateParam = toDate
       } else if (period === 'month') {
-        const now = new Date()
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+        const firstDay = new Date(selectedYear, selectedMonth - 1, 1)
+        const lastDay = new Date(selectedYear, selectedMonth, 0)
         fromDateParam = firstDay.toISOString().split('T')[0]
-        toDateParam = now.toISOString().split('T')[0]
+        toDateParam = lastDay.toISOString().split('T')[0]
       } else if (period === 'year') {
-        const now = new Date()
-        const firstDay = new Date(now.getFullYear(), 0, 1)
+        const firstDay = new Date(selectedYear, 0, 1)
+        const lastDay = new Date(selectedYear, 11, 31)
         fromDateParam = firstDay.toISOString().split('T')[0]
-        toDateParam = now.toISOString().split('T')[0]
+        toDateParam = lastDay.toISOString().split('T')[0]
       } else if (period === 'all') {
         // All time - no date filters
         fromDateParam = ''
@@ -636,9 +638,48 @@ export default function ReportsPage() {
           {/* Export Modal */}
           {exportModal && (
             <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-              <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '400px', width: '90%' }}>
+              <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '500px', width: '90%' }}>
                 <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>Export {exportType.toUpperCase()} Report</h3>
                 <p style={{ marginBottom: '1.5rem', color: '#6b7280' }}>Select the time period for your report:</p>
+                
+                {/* Month and Year Selectors */}
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500', color: '#374151' }}>Month:</label>
+                    <select 
+                      value={selectedMonth} 
+                      onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem' }}
+                    >
+                      <option value={1}>January</option>
+                      <option value={2}>February</option>
+                      <option value={3}>March</option>
+                      <option value={4}>April</option>
+                      <option value={5}>May</option>
+                      <option value={6}>June</option>
+                      <option value={7}>July</option>
+                      <option value={8}>August</option>
+                      <option value={9}>September</option>
+                      <option value={10}>October</option>
+                      <option value={11}>November</option>
+                      <option value={12}>December</option>
+                    </select>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500', color: '#374151' }}>Year:</label>
+                    <select 
+                      value={selectedYear} 
+                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                      style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem' }}
+                    >
+                      {Array.from({ length: 10 }, (_, i) => {
+                        const year = new Date().getFullYear() - 5 + i
+                        return <option key={year} value={year}>{year}</option>
+                      })}
+                    </select>
+                  </div>
+                </div>
+                
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
                   <button 
                     onClick={() => handleExport(exportType, 'custom')}
@@ -659,13 +700,13 @@ export default function ReportsPage() {
                     onClick={() => handleExport(exportType, 'month')}
                     style={{ padding: '0.75rem 1rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', textAlign: 'left' }}
                   >
-                    📊 This Month
+                    📊 {new Date(selectedYear, selectedMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </button>
                   <button 
                     onClick={() => handleExport(exportType, 'year')}
                     style={{ padding: '0.75rem 1rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', textAlign: 'left' }}
                   >
-                    📈 This Year
+                    📈 Year {selectedYear}
                   </button>
                   <button 
                     onClick={() => handleExport(exportType, 'all')}
