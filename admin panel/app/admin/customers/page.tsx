@@ -37,6 +37,12 @@ export default function CustomersPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [spendingFilter, setSpendingFilter] = useState('all')
   const [orderCountFilter, setOrderCountFilter] = useState('all')
+  const [showHighValueModal, setShowHighValueModal] = useState(false)
+  const [highValueType, setHighValueType] = useState('')
+  const [minOrderValue, setMinOrderValue] = useState('')
+  const [minSpendValue, setMinSpendValue] = useState('')
+  const [highValueCustomers, setHighValueCustomers] = useState<Customer[]>([])
+  const [showHighValueResults, setShowHighValueResults] = useState(false)
 
   useEffect(() => {
     fetchCustomers()
@@ -55,6 +61,28 @@ export default function CustomersPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchHighValueCustomers = async (type: string, value: number) => {
+    try {
+      const response = await fetch(`/api/customers/high-value?type=${type}&value=${value}`)
+      const data = await response.json()
+      if (data.success) {
+        setHighValueCustomers(data.data)
+        setShowHighValueResults(true)
+      }
+    } catch (error) {
+      console.error('Failed to fetch high value customers:', error)
+    }
+  }
+
+  const handleHighValueFilter = () => {
+    if (highValueType === 'orders' && minOrderValue) {
+      fetchHighValueCustomers('orders', parseInt(minOrderValue))
+    } else if (highValueType === 'spending' && minSpendValue) {
+      fetchHighValueCustomers('spending', parseInt(minSpendValue))
+    }
+    setShowHighValueModal(false)
   }
 
   const calculateStats = (customerData: any[]) => {
@@ -500,13 +528,30 @@ export default function CustomersPage() {
               backgroundColor: 'white',
               padding: '1.5rem',
               borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              position: 'relative'
             }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>High Value Customers</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                 <span style={{ color: '#f59e0b', fontSize: '1.2rem' }}>⭐</span>
                 <span style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{stats.highValueCustomers}</span>
               </div>
+              <button
+                onClick={() => setShowHighValueModal(true)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#f59e0b',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '0.8rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
+              >
+                Filter High Value
+              </button>
             </div>
           </div>
 
@@ -793,6 +838,181 @@ export default function CustomersPage() {
                 cursor: 'pointer',
                 padding: '0 0.25rem'
               }}>×</button>
+            </div>
+          )}
+
+          {/* High Value Customers Modal */}
+          {showHighValueModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '400px', width: '90%' }}>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: '600' }}>High Value Customer Filter</h3>
+                <p style={{ marginBottom: '1.5rem', color: '#6b7280', fontSize: '0.9rem' }}>Filter customers based on monthly performance</p>
+                
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Filter Type:</label>
+                  <select
+                    value={highValueType}
+                    onChange={(e) => setHighValueType(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">Select filter type</option>
+                    <option value="orders">Based on Monthly Orders</option>
+                    <option value="spending">Based on Monthly Spending</option>
+                  </select>
+                </div>
+
+                {highValueType === 'orders' && (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Minimum Orders per Month:</label>
+                    <input
+                      type="number"
+                      placeholder="Enter minimum orders"
+                      value={minOrderValue}
+                      onChange={(e) => setMinOrderValue(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                )}
+
+                {highValueType === 'spending' && (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Minimum Spending per Month (₹):</label>
+                    <input
+                      type="number"
+                      placeholder="Enter minimum amount"
+                      value={minSpendValue}
+                      onChange={(e) => setMinSpendValue(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <button 
+                    onClick={() => {
+                      setShowHighValueModal(false)
+                      setHighValueType('')
+                      setMinOrderValue('')
+                      setMinSpendValue('')
+                    }} 
+                    style={{ 
+                      padding: '0.75rem 1.5rem', 
+                      backgroundColor: '#6b7280', 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '6px', 
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleHighValueFilter}
+                    disabled={!highValueType || (!minOrderValue && !minSpendValue)}
+                    style={{ 
+                      padding: '0.75rem 1.5rem', 
+                      backgroundColor: (!highValueType || (!minOrderValue && !minSpendValue)) ? '#d1d5db' : '#f59e0b', 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '6px', 
+                      cursor: (!highValueType || (!minOrderValue && !minSpendValue)) ? 'not-allowed' : 'pointer' 
+                    }}
+                  >
+                    Apply Filter
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* High Value Results Modal */}
+          {showHighValueResults && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '800px', width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>High Value Customers</h3>
+                  <button 
+                    onClick={() => setShowHighValueResults(false)}
+                    style={{ 
+                      backgroundColor: '#ef4444', 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '6px', 
+                      padding: '0.5rem 1rem', 
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+                
+                <p style={{ marginBottom: '1rem', color: '#6b7280' }}>
+                  Found {highValueCustomers.length} customers with {highValueType === 'orders' ? `${minOrderValue}+ orders` : `₹${minSpendValue}+ spending`} per month
+                </p>
+
+                {highValueCustomers.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                    No customers found matching the criteria
+                  </div>
+                ) : (
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                    <div style={{
+                      backgroundColor: '#f8fafc',
+                      padding: '1rem',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr',
+                      gap: '1rem',
+                      fontSize: '0.9rem',
+                      fontWeight: '600',
+                      color: '#6b7280'
+                    }}>
+                      <div>ID</div>
+                      <div>Name</div>
+                      <div>Mobile</div>
+                      <div>Monthly Orders</div>
+                      <div>Monthly Spend</div>
+                    </div>
+                    {highValueCustomers.map((customer, index) => (
+                      <div
+                        key={customer._id}
+                        style={{
+                          padding: '1rem',
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr',
+                          gap: '1rem',
+                          borderBottom: index < highValueCustomers.length - 1 ? '1px solid #f3f4f6' : 'none',
+                          fontSize: '0.9rem',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <div style={{ fontWeight: '500' }}>#{customer._id.slice(-6)}</div>
+                        <div>{customer.name || 'User'}</div>
+                        <div>{customer.mobile}</div>
+                        <div>{(customer as any).monthlyOrders || 0}</div>
+                        <div>₹{(customer as any).monthlySpend || 0}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

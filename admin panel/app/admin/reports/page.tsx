@@ -5,13 +5,13 @@ import ResponsiveLayout from '../../components/ResponsiveLayout'
 
 export default function ReportsPage() {
   const [data, setData] = useState<{
-    stats: { totalOrders: number; totalRevenue: number; activePartners: number; avgDeliveryTime: string };
+    stats: { totalOrders: number; totalRevenue: number; activePartners: number; activeCustomers: number; avgDeliveryTime: string };
     ordersTrend: any[];
     revenueByDay: any[];
     partnerPerformance: any[];
     loyaltyData: { redemptionRate: number };
   }>({
-    stats: { totalOrders: 0, totalRevenue: 0, activePartners: 0, avgDeliveryTime: '0 mins' },
+    stats: { totalOrders: 0, totalRevenue: 0, activePartners: 0, activeCustomers: 0, avgDeliveryTime: '0 mins' },
     ordersTrend: [],
     revenueByDay: [],
     partnerPerformance: [],
@@ -25,6 +25,8 @@ export default function ReportsPage() {
   const [exportType, setExportType] = useState('')
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+  const [showFromCalendar, setShowFromCalendar] = useState(false)
+  const [showToCalendar, setShowToCalendar] = useState(false)
 
   useEffect(() => {
     fetchReportsData()
@@ -36,8 +38,14 @@ export default function ReportsPage() {
       let url = '/api/reports'
       if (fromDate || toDate) {
         const params = new URLSearchParams()
-        if (fromDate) params.append('fromDate', fromDate)
-        if (toDate) params.append('toDate', toDate)
+        if (fromDate) {
+          const convertedDate = fromDate.split('-').reverse().join('-')
+          params.append('fromDate', convertedDate)
+        }
+        if (toDate) {
+          const convertedDate = toDate.split('-').reverse().join('-')
+          params.append('toDate', convertedDate)
+        }
         url += `?${params.toString()}`
       }
       const response = await fetch(url)
@@ -49,6 +57,26 @@ export default function ReportsPage() {
       console.error('Error fetching reports data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const formatDateToDDMMYYYY = (dateStr: string) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}-${month}-${year}`
+  }
+
+  const handleDateSelect = (dateStr: string, isFromDate: boolean) => {
+    const formatted = formatDateToDDMMYYYY(dateStr)
+    if (isFromDate) {
+      setFromDate(formatted)
+      setShowFromCalendar(false)
+    } else {
+      setToDate(formatted)
+      setShowToCalendar(false)
     }
   }
 
@@ -498,35 +526,135 @@ export default function ReportsPage() {
       <div style={{ backgroundColor: 'white', padding: '1rem 2rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <span style={{ color: '#6b7280', fontSize: '0.9rem', fontWeight: '500' }}>From:</span>
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            style={{
-              padding: '0.5rem 1rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              outline: 'none',
-              fontSize: '0.9rem'
-            }}
-            onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              placeholder="DD-MM-YYYY"
+              value={fromDate}
+              onClick={() => setShowFromCalendar(!showFromCalendar)}
+              readOnly
+              style={{
+                padding: '0.5rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                outline: 'none',
+                fontSize: '0.9rem',
+                width: '120px',
+                cursor: 'pointer',
+                backgroundColor: 'white'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            />
+            {showFromCalendar && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                zIndex: 1000,
+                backgroundColor: 'white',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                padding: '0.5rem'
+              }}>
+                <input
+                  type="date"
+                  onChange={(e) => handleDateSelect(e.target.value, true)}
+                  style={{
+                    border: 'none',
+                    outline: 'none',
+                    padding: '0.5rem'
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    setFromDate('')
+                    setShowFromCalendar(false)
+                  }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '0.25rem',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    marginTop: '0.25rem'
+                  }}
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+          </div>
           <span style={{ color: '#6b7280', fontSize: '0.9rem', fontWeight: '500' }}>To:</span>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            style={{
-              padding: '0.5rem 1rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              outline: 'none',
-              fontSize: '0.9rem'
-            }}
-            onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              placeholder="DD-MM-YYYY"
+              value={toDate}
+              onClick={() => setShowToCalendar(!showToCalendar)}
+              readOnly
+              style={{
+                padding: '0.5rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                outline: 'none',
+                fontSize: '0.9rem',
+                width: '120px',
+                cursor: 'pointer',
+                backgroundColor: 'white'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            />
+            {showToCalendar && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                zIndex: 1000,
+                backgroundColor: 'white',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                padding: '0.5rem'
+              }}>
+                <input
+                  type="date"
+                  onChange={(e) => handleDateSelect(e.target.value, false)}
+                  style={{
+                    border: 'none',
+                    outline: 'none',
+                    padding: '0.5rem'
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    setToDate('')
+                    setShowToCalendar(false)
+                  }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '0.25rem',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    marginTop: '0.25rem'
+                  }}
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button 
@@ -570,7 +698,7 @@ export default function ReportsPage() {
         
         <div style={{ padding: '1.5rem' }}>
           {/* Stats Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Total Orders</div>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{loading ? '...' : data.stats.totalOrders.toLocaleString()}</div>
@@ -582,6 +710,10 @@ export default function ReportsPage() {
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Partners</div>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{loading ? '...' : data.stats.activePartners.toLocaleString()}</div>
+            </div>
+            <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Active Customers</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{loading ? '...' : (data.stats.activeCustomers || 0).toLocaleString()}</div>
             </div>
             <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Average Delivery Time</div>
@@ -725,6 +857,24 @@ export default function ReportsPage() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Close calendars when clicking outside */}
+          {(showFromCalendar || showToCalendar) && (
+            <div 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 999
+              }}
+              onClick={() => {
+                setShowFromCalendar(false)
+                setShowToCalendar(false)
+              }}
+            />
           )}
       </div>
     </ResponsiveLayout>
