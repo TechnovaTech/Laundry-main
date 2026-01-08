@@ -149,11 +149,15 @@ export const generateInvoicePDF = async (order: any) => {
     doc.text(`#${order.orderId || 'RW0R7'}`, 17, 51);
     doc.setTextColor(0, 0, 0);
     
-    // Three column section - only one light border around all
+    // Three column section - border around all with vertical dividers
     let yStart = 65;
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.2);
     doc.rect(15, yStart, pageWidth - 30, 40);
+    
+    // Vertical dividers between sections
+    doc.line(75, yStart, 75, yStart + 40); // Between Issued and Billed to
+    doc.line(145, yStart, 145, yStart + 40); // Between Billed to and From
     
     // Issued section
     setTypography(doc, 'subtitle');
@@ -192,10 +196,14 @@ export const generateInvoicePDF = async (order: any) => {
     doc.text(`Order Id: ${order.orderId || 'RW0R7'}`, 77, yStart + 35);
     
     // From section
+    setTypography(doc, 'subtitle');
+    doc.setFontSize(10);
+    doc.text('From', 147, yStart + 8);
+    
     setTypography(doc, 'body');
     doc.setFontSize(9);
-    doc.text('Email: support@urbansteam.in', 147, yStart + 8);
-    doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 14);
+    doc.text('Email: support@urbansteam.in', 147, yStart + 14);
+    doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 20);
     
     // Service table - remove border, keep background
     yStart = 115;
