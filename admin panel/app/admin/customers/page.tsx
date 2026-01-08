@@ -69,8 +69,8 @@ export default function CustomersPage() {
       if (!customer.createdAt) return false
       
       const customerDate = new Date(customer.createdAt)
-      const from = fromDate ? new Date(fromDate.split('-').reverse().join('-')) : null
-      const to = toDate ? new Date(toDate.split('-').reverse().join('-')) : null
+      const from = fromDate ? new Date(fromDate) : null
+      const to = toDate ? new Date(toDate) : null
       
       if (from && customerDate < from) return false
       if (to && customerDate > to) return false
@@ -178,48 +178,36 @@ export default function CustomersPage() {
             </select>
             <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>From:</span>
             <input
-              type="text"
-              placeholder="DD-MM-YYYY"
+              type="date"
               value={fromDate}
               onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '')
-                let formatted = value
-                if (value.length >= 2) formatted = value.slice(0,2) + '-' + value.slice(2)
-                if (value.length >= 4) formatted = value.slice(0,2) + '-' + value.slice(2,4) + '-' + value.slice(4,8)
-                setFromDate(formatted)
+                setFromDate(e.target.value)
                 setCurrentPage(1)
               }}
-              maxLength={10}
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 outline: 'none',
-                width: '140px'
+                width: '160px'
               }}
               onFocus={(e) => e.target.style.borderColor = '#2563eb'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
             />
             <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>To:</span>
             <input
-              type="text"
-              placeholder="DD-MM-YYYY"
+              type="date"
               value={toDate}
               onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '')
-                let formatted = value
-                if (value.length >= 2) formatted = value.slice(0,2) + '-' + value.slice(2)
-                if (value.length >= 4) formatted = value.slice(0,2) + '-' + value.slice(2,4) + '-' + value.slice(4,8)
-                setToDate(formatted)
+                setToDate(e.target.value)
                 setCurrentPage(1)
               }}
-              maxLength={10}
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 outline: 'none',
-                width: '140px'
+                width: '160px'
               }}
               onFocus={(e) => e.target.style.borderColor = '#2563eb'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
