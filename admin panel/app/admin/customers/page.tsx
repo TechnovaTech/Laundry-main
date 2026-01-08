@@ -28,6 +28,9 @@ export default function CustomersPage() {
   const customersPerPage = 20
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '', type: '' })
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     fetchCustomers()
@@ -55,6 +58,28 @@ export default function CustomersPage() {
     setStats({ totalCustomers: total, activeCustomers: active, highValueCustomers: highValue })
   }
 
+  // Filter customers based on search and date range
+  const filteredCustomers = customers.filter(customer => {
+    const matchesSearch = !searchQuery || 
+      customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.mobile?.includes(searchQuery)
+    
+    const matchesDateRange = () => {
+      if (!fromDate && !toDate) return true
+      if (!customer.createdAt) return false
+      
+      const customerDate = new Date(customer.createdAt)
+      const from = fromDate ? new Date(fromDate.split('-').reverse().join('-')) : null
+      const to = toDate ? new Date(toDate.split('-').reverse().join('-')) : null
+      
+      if (from && customerDate < from) return false
+      if (to && customerDate > to) return false
+      return true
+    }
+    
+    return matchesSearch && matchesDateRange()
+  })
+
   const toggleSelection = (customerId: string) => {
     const newSelected = new Set(selectedCustomers)
     if (newSelected.has(customerId)) {
@@ -75,8 +100,8 @@ export default function CustomersPage() {
 
   const indexOfLastCustomer = currentPage * customersPerPage
   const indexOfFirstCustomer = indexOfLastCustomer - customersPerPage
-  const currentCustomers = customers.slice(indexOfFirstCustomer, indexOfLastCustomer)
-  const totalPages = Math.ceil(customers.length / customersPerPage)
+  const currentCustomers = filteredCustomers.slice(indexOfFirstCustomer, indexOfLastCustomer)
+  const totalPages = Math.ceil(filteredCustomers.length / customersPerPage)
 
   const handleBulkDelete = async () => {
     if (selectedCustomers.size === 0) return
@@ -111,7 +136,30 @@ export default function CustomersPage() {
     <ResponsiveLayout activePage="Customers" title="Customers" searchPlaceholder="Search by Name / Mobile">
         {/* Customers Content */}
         <div style={{ padding: '1.5rem' }}>
-          {/* Filter Section */}
+          {/* Search Bar */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <input
+            type="text"
+            placeholder="Search by name or mobile number..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setCurrentPage(1)
+            }}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              outline: 'none',
+              fontSize: '0.9rem'
+            }}
+            onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+          />
+        </div>
+
+        {/* Filter Section */}
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <select
@@ -131,12 +179,23 @@ export default function CustomersPage() {
             <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>From:</span>
             <input
               type="text"
-              placeholder="YYYY-MM-DD"
+              placeholder="DD-MM-YYYY"
+              value={fromDate}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '')
+                let formatted = value
+                if (value.length >= 2) formatted = value.slice(0,2) + '-' + value.slice(2)
+                if (value.length >= 4) formatted = value.slice(0,2) + '-' + value.slice(2,4) + '-' + value.slice(4,8)
+                setFromDate(formatted)
+                setCurrentPage(1)
+              }}
+              maxLength={10}
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
-                outline: 'none'
+                outline: 'none',
+                width: '140px'
               }}
               onFocus={(e) => e.target.style.borderColor = '#2563eb'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
@@ -144,12 +203,23 @@ export default function CustomersPage() {
             <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>To:</span>
             <input
               type="text"
-              placeholder="YYYY-MM-DD"
+              placeholder="DD-MM-YYYY"
+              value={toDate}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '')
+                let formatted = value
+                if (value.length >= 2) formatted = value.slice(0,2) + '-' + value.slice(2)
+                if (value.length >= 4) formatted = value.slice(0,2) + '-' + value.slice(2,4) + '-' + value.slice(4,8)
+                setToDate(formatted)
+                setCurrentPage(1)
+              }}
+              maxLength={10}
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
-                outline: 'none'
+                outline: 'none',
+                width: '140px'
               }}
               onFocus={(e) => e.target.style.borderColor = '#2563eb'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
@@ -319,6 +389,38 @@ export default function CustomersPage() {
                   </div>
                 </div>
               </div>
+            ) : filteredCustomers.length === 0 ? (
+              <div style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  textAlign: 'left'
+                }}>
+                  <div style={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    backgroundColor: '#f59e0b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '1.5rem',
+                    flexShrink: 0
+                  }}>
+                    🔍
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem' }}>
+                      No customers match your search.
+                    </div>
+                    <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                      Try different search terms or date range.
+                    </div>
+                  </div>
+                </div>
+              </div>
             ) : (
               currentCustomers.map((customer, index) => (
                 <div
@@ -398,7 +500,7 @@ export default function CustomersPage() {
           </div>
 
           {/* Pagination */}
-          {customers.length > 0 && (
+          {filteredCustomers.length > 0 && (
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -406,7 +508,12 @@ export default function CustomersPage() {
               marginTop: '1.5rem'
             }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                Showing {indexOfFirstCustomer + 1}-{Math.min(indexOfLastCustomer, customers.length)} of {customers.length} customers
+                Showing {indexOfFirstCustomer + 1}-{Math.min(indexOfLastCustomer, filteredCustomers.length)} of {filteredCustomers.length} customers
+                {(searchQuery || fromDate || toDate) && (
+                  <span style={{ color: '#2563eb', marginLeft: '0.5rem' }}>
+                    (filtered from {customers.length} total)
+                  </span>
+                )}
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <button 
