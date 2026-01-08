@@ -149,15 +149,29 @@ export const generateInvoicePDF = async (order: any) => {
     doc.text(`#${order.orderId || 'RW0R7'}`, 17, 51);
     doc.setTextColor(0, 0, 0);
     
-    // Three column section - border around all with vertical dividers
+    // Three column section - calculate dynamic height based on content
     let yStart = 65;
+    
+    // Calculate required height for billed to section
+    const address = order.pickupAddress?.street || 'Xiv hall';
+    const cityState = `${order.pickupAddress?.city || 'Rajkot'}, ${order.pickupAddress?.state || 'Gujarat'} - ${order.pickupAddress?.pincode || '360001'}`;
+    
+    // Base height + extra space for long addresses
+    let sectionHeight = 45;
+    if (address.length > 30 || cityState.length > 40) {
+      sectionHeight = 55;
+    }
+    if (address.length > 50 || cityState.length > 60) {
+      sectionHeight = 65;
+    }
+    
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.2);
-    doc.rect(15, yStart, pageWidth - 30, 40);
+    doc.rect(15, yStart, pageWidth - 30, sectionHeight);
     
     // Vertical dividers between sections
-    doc.line(75, yStart, 75, yStart + 40); // Between Issued and Billed to
-    doc.line(145, yStart, 145, yStart + 40); // Between Billed to and From
+    doc.line(75, yStart, 75, yStart + sectionHeight);
+    doc.line(145, yStart, 145, yStart + sectionHeight);
     
     // Issued section
     setTypography(doc, 'subtitle');
@@ -185,15 +199,13 @@ export const generateInvoicePDF = async (order: any) => {
     doc.setFontSize(9);
     doc.text(customerName, 77, yStart + 14);
     
-    const address = order.pickupAddress?.street || 'Xiv hall';
-    const cityState = `${order.pickupAddress?.city || 'Rajkot'}, ${order.pickupAddress?.state || 'Gujarat'} - ${order.pickupAddress?.pincode || '360001'}`;
     doc.text(address, 77, yStart + 19);
-    doc.text(cityState, 77, yStart + 24);
+    doc.text(cityState, 77, yStart + 25);
     
     setTypography(doc, 'body');
     doc.setFontSize(8);
-    doc.text(`Contact Number: ${customerMobile || '8140126027'}`, 77, yStart + 30);
-    doc.text(`Order Id: ${order.orderId || 'RW0R7'}`, 77, yStart + 35);
+    doc.text(`Contact Number: ${customerMobile || '8140126027'}`, 77, yStart + sectionHeight - 15);
+    doc.text(`Order Id: ${order.orderId || 'RW0R7'}`, 77, yStart + sectionHeight - 8);
     
     // From section
     setTypography(doc, 'subtitle');
@@ -203,10 +215,10 @@ export const generateInvoicePDF = async (order: any) => {
     setTypography(doc, 'body');
     doc.setFontSize(9);
     doc.text('Email: support@urbansteam.in', 147, yStart + 14);
-    doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 20);
+    doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 22); // Moved down from 20 to 22
     
-    // Service table - remove border, keep background
-    yStart = 115;
+    // Service table - position after dynamic section
+    yStart = 65 + sectionHeight + 5;
     doc.setFillColor(245, 245, 245);
     doc.rect(15, yStart, pageWidth - 30, 10, 'F');
     
