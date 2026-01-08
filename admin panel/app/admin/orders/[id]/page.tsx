@@ -850,204 +850,251 @@ export default function OrderDetails() {
             <button 
               onClick={async () => {
                 const jsPDF = (await import('jspdf')).default;
+                
+                // Brand typography system
+                const setBrandFont = (doc: any, type: 'primary' | 'secondary', weight: 'light' | 'regular' | 'medium' | 'semibold' | 'bold' | 'extrabold' | 'black' = 'regular') => {
+                  try {
+                    const fontMap = { primary: 'helvetica', secondary: 'helvetica' };
+                    const weightMap = { light: 'normal', regular: 'normal', medium: 'normal', semibold: 'bold', bold: 'bold', extrabold: 'bold', black: 'bold' };
+                    doc.setFont(fontMap[type], weightMap[weight]);
+                  } catch (e) {
+                    doc.setFont('helvetica', 'normal');
+                  }
+                };
+                
+                const setTypography = (doc: any, style: 'h1' | 'h2' | 'h3' | 'h4' | 'subtitle' | 'button' | 'body') => {
+                  switch (style) {
+                    case 'h1': setBrandFont(doc, 'primary', 'bold'); doc.setFontSize(16); break;
+                    case 'h2': setBrandFont(doc, 'primary', 'semibold'); doc.setFontSize(14); break;
+                    case 'h3': setBrandFont(doc, 'primary', 'medium'); doc.setFontSize(14); break;
+                    case 'h4': setBrandFont(doc, 'primary', 'regular'); doc.setFontSize(13); break;
+                    case 'subtitle': setBrandFont(doc, 'secondary', 'bold'); doc.setFontSize(14); break;
+                    case 'button': setBrandFont(doc, 'primary', 'medium'); doc.setFontSize(12); break;
+                    case 'body': setBrandFont(doc, 'secondary', 'regular'); doc.setFontSize(12); break;
+                  }
+                };
+                
                 const doc = new jsPDF('p', 'mm', 'a4');
                 const pageWidth = doc.internal.pageSize.getWidth();
                 const pageHeight = doc.internal.pageSize.getHeight();
                 
-                let hubAddress = {
-                  name: 'Urban Steam',
-                  address: '#7/4B, 1st Cross, 5th Main Road,',
-                  address2: 'Manjunatha Layout, R T Nagar Post, near',
-                  address3: 'Mamtha School, Bengaluru - 560032',
-                  email: 'support@urbansteam.in',
-                  gst: '29ACLFAA519M1ZW'
-                };
+                let customerName = order.customerId?.name || order.customer?.name || 'Customer';
+                let customerMobile = order.customerId?.mobile || order.customer?.mobile || '';
                 
-                if (order.assignedHub) {
-                  try {
-                    const response = await fetch(`/api/hubs/${order.assignedHub}`);
-                    const data = await response.json();
-                    if (data.success && data.data) {
-                      const hub = data.data;
-                      hubAddress = {
-                        name: hub.name || 'Urban Steam',
-                        address: hub.address || hubAddress.address,
-                        address2: hub.address2 || hubAddress.address2,
-                        address3: hub.city ? `${hub.city} - ${hub.pincode}` : hubAddress.address3,
-                        email: hub.email || hubAddress.email,
-                        gst: hub.gstNumber || hubAddress.gst
-                      };
-                    }
-                  } catch (error) {
-                    console.log('Using default hub address');
-                  }
+                doc.setFillColor(255, 255, 255);
+                doc.rect(0, 0, pageWidth, pageHeight, 'F');
+                
+                // Header logos
+                try {
+                  doc.addImage('/assets/ACS LOGO.png', 'PNG', 15, 8, 45, 40);
+                  doc.addImage('/assets/LOGO MARK GRADIENT.png', 'PNG', pageWidth - 50, 8, 35, 32);
+                } catch (imgError) {
+                  setTypography(doc, 'h1');
+                  doc.text('ACS Group', 15, 24);
+                  doc.text('Urban Steam', pageWidth - 55, 24);
                 }
                 
+                // Invoice header
+                setTypography(doc, 'body');
+                doc.setFontSize(8);
+                doc.text('ORIGINAL FOR RECIPIENT', 17, 36);
+                
+                setTypography(doc, 'h1');
+                doc.setFontSize(18);
+                doc.text('TAX INVOICE', 17, 45);
+                
+                setTypography(doc, 'body');
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`#${order.orderId || 'N/A'}`, 17, 51);
+                doc.setTextColor(0, 0, 0);
+                
+                let yStart = 65;
+                const address = order.pickupAddress?.street || 'Customer address';
+                const cityState = `${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'State'} - ${order.pickupAddress?.pincode || '000000'}`;
+                
+                let sectionHeight = 45;
+                if (address.length > 30 || cityState.length > 40) sectionHeight = 55;
+                if (address.length > 50 || cityState.length > 60) sectionHeight = 65;
+                
+                doc.setDrawColor(220, 220, 220);
+                doc.setLineWidth(0.2);
+                doc.rect(15, yStart, pageWidth - 30, sectionHeight);
+                
+                doc.line(75, yStart, 75, yStart + sectionHeight);
+                doc.line(145, yStart, 145, yStart + sectionHeight);
+                
+                // Issued section
+                setTypography(doc, 'subtitle');
+                doc.setFontSize(10);
+                doc.text('Issued', 17, yStart + 8);
+                
+                setTypography(doc, 'body');
+                doc.setFontSize(9);
+                doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, yStart + 14);
+                
+                setTypography(doc, 'subtitle');
+                doc.setFontSize(10);
+                doc.text('Due', 17, yStart + 22);
+                
+                setTypography(doc, 'body');
+                doc.setFontSize(9);
+                doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, yStart + 28);
+                
+                // Billed to section
+                setTypography(doc, 'subtitle');
+                doc.setFontSize(10);
+                doc.text('Billed to', 77, yStart + 8);
+                
+                setTypography(doc, 'body');
+                doc.setFontSize(9);
+                doc.text(customerName, 77, yStart + 14);
+                doc.text(address, 77, yStart + 19);
+                doc.text(cityState, 77, yStart + 25);
+                
+                setTypography(doc, 'body');
+                doc.setFontSize(8);
+                doc.text(`Contact Number: ${customerMobile || 'N/A'}`, 77, yStart + sectionHeight - 15);
+                doc.text(`Order Id: ${order.orderId || 'N/A'}`, 77, yStart + sectionHeight - 8);
+                
+                // From section
+                setTypography(doc, 'subtitle');
+                doc.setFontSize(10);
+                doc.text('From', 147, yStart + 8);
+                
+                setTypography(doc, 'body');
+                doc.setFontSize(9);
+                doc.text('Email: support@urbansteam.in', 147, yStart + 14);
+                doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 22);
+                
+                // Service table
+                yStart = 65 + sectionHeight + 5;
                 doc.setFillColor(245, 245, 245);
-                doc.rect(0, 0, pageWidth, pageHeight, 'F');
-                doc.setFillColor(255, 255, 255);
-                doc.rect(10, 10, pageWidth - 20, pageHeight - 20, 'F');
+                doc.rect(15, yStart, pageWidth - 30, 10, 'F');
                 
-                doc.addImage('/assets/ACS LOGO.png', 'PNG', 15, 15, 35, 15);
-                doc.addImage('/assets/LOGO MARK GRADIENT.png', 'PNG', pageWidth - 55, 15, 40, 15);
-                doc.setTextColor(0, 0, 0);
+                setTypography(doc, 'h3');
+                doc.setFontSize(10);
+                doc.text('Service & Description', 17, yStart + 7);
+                doc.text('Qty', 130, yStart + 7, { align: 'center' });
+                doc.text('Rate', 155, yStart + 7, { align: 'center' });
+                doc.text('Total', pageWidth - 17, yStart + 7, { align: 'right' });
                 
-                doc.setDrawColor(200, 200, 200);
-                doc.setLineWidth(0.3);
-                doc.rect(15, 35, pageWidth - 30, 25);
-                
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text('ORIGINAL FOR RECIPIENT', 17, 41);
-                doc.setFontSize(16);
-                doc.setFont('helvetica', 'bold');
-                doc.text('TAX INVOICE', 17, 51);
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(100, 100, 100);
-                doc.text(`#${order.orderId || 'N/A'}`, 17, 57);
-                doc.setTextColor(0, 0, 0);
-                
-                const sectionY = 65;
-                const sectionHeight = 45;
-                doc.setDrawColor(200, 200, 200);
-                doc.setLineWidth(0.3);
-                doc.rect(15, sectionY, 50, sectionHeight);
-                doc.rect(70, sectionY, 65, sectionHeight);
-                doc.rect(140, sectionY, pageWidth - 155, sectionHeight);
-                
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Issued', 17, sectionY + 7);
-                doc.setFont('helvetica', 'normal');
-                doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, sectionY + 13);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Due', 17, sectionY + 23);
-                doc.setFont('helvetica', 'normal');
-                doc.text(new Date(order.createdAt).toLocaleDateString('en-GB'), 17, sectionY + 29);
-                
-                doc.setFont('helvetica', 'bold');
-                doc.text('Billed to', 72, sectionY + 7);
-                doc.setFont('helvetica', 'normal');
-                doc.text(order.customerId?.name || 'Customer Name', 72, sectionY + 13);
-                doc.setTextColor(100, 100, 100);
-                doc.setFontSize(8);
-                const address = doc.splitTextToSize(order.pickupAddress?.street || 'Customer address', 60);
-                doc.text(address, 72, sectionY + 18);
-                doc.text(`${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'Country'} - ${order.pickupAddress?.pincode || '000000'}`, 72, sectionY + 23);
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(9);
-                doc.text('Contact Number', 72, sectionY + 33);
-                doc.text('Order Id', 72, sectionY + 38);
-                
-                doc.setFont('helvetica', 'bold');
-                doc.text('From', 142, sectionY + 7);
-                doc.setFont('helvetica', 'normal');
-                doc.text(hubAddress.name, 142, sectionY + 13);
-                doc.setTextColor(100, 100, 100);
-                doc.setFontSize(9);
-                doc.text(`Email Id :${hubAddress.email}`, 142, sectionY + 20);
-                doc.text(`GST No: ${hubAddress.gst}`, 142, sectionY + 25);
-                doc.setTextColor(0, 0, 0);
-                
-                let yPos = 115;
-                doc.setDrawColor(200, 200, 200);
-                doc.setLineWidth(0.3);
-                doc.setFillColor(240, 240, 240);
-                doc.rect(15, yPos, pageWidth - 30, 8, 'FD');
-                yPos += 6;
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Service', 17, yPos);
-                doc.text('Qty', 130, yPos);
-                doc.text('Rate', 155, yPos);
-                doc.text('Total', 180, yPos);
-                
-                yPos += 8;
-                doc.setFont('helvetica', 'normal');
+                yStart += 15;
                 let subtotal = 0;
+                const maxYPosition = pageHeight - 80;
                 
                 if (order.items && order.items.length > 0) {
                   order.items.forEach((item: any) => {
+                    if (yStart > maxYPosition) {
+                      doc.addPage();
+                      yStart = 20;
+                      
+                      doc.setFillColor(245, 245, 245);
+                      doc.rect(15, yStart, pageWidth - 30, 10, 'F');
+                      
+                      setTypography(doc, 'h3');
+                      doc.setFontSize(10);
+                      doc.text('Service & Description', 17, yStart + 7);
+                      doc.text('Qty', 130, yStart + 7, { align: 'center' });
+                      doc.text('Rate', 155, yStart + 7, { align: 'center' });
+                      doc.text('Total', pageWidth - 17, yStart + 7, { align: 'right' });
+                      yStart += 15;
+                    }
+                    
                     const itemTotal = (item.quantity || 0) * (item.price || 0);
                     subtotal += itemTotal;
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(item.name || 'Service name', 17, yPos);
-                    doc.setFont('helvetica', 'normal');
-                    doc.setTextColor(100, 100, 100);
-                    doc.setFontSize(8);
-                    doc.text(item.description || 'Description', 17, yPos + 4);
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(9);
-                    doc.text(String(item.quantity || 0), 130, yPos);
-                    doc.text(`Rs${(item.price || 0).toFixed(2)}`, 155, yPos);
-                    doc.text(`Rs${itemTotal.toFixed(2)}`, 180, yPos);
-                    yPos += 12;
+                    
+                    setTypography(doc, 'h4');
+                    doc.setFontSize(10);
+                    doc.text(item.name || 'Item', 17, yStart);
+                    
+                    setTypography(doc, 'body');
+                    doc.setFontSize(10);
+                    doc.text(String(item.quantity || 1), 130, yStart, { align: 'center' });
+                    doc.text('- Rs.' + (item.price || 0), 155, yStart, { align: 'center' });
+                    doc.text('- Rs.' + itemTotal, pageWidth - 17, yStart, { align: 'right' });
+                    yStart += 15;
                   });
+                } else {
+                  setTypography(doc, 'h4');
+                  doc.setFontSize(10);
+                  doc.text('Service', 17, yStart);
+                  
+                  setTypography(doc, 'body');
+                  doc.setFontSize(10);
+                  doc.text('1', 130, yStart, { align: 'center' });
+                  doc.text('- Rs.0', 155, yStart, { align: 'center' });
+                  doc.text('- Rs.0', pageWidth - 17, yStart, { align: 'right' });
+                  subtotal = 0;
                 }
                 
-                if (order.cancellationFee && order.cancellationFee > 0) {
-                  doc.setFont('helvetica', 'bold');
-                  doc.setTextColor(220, 38, 38);
-                  doc.text('Cancellation fees Applied', 17, yPos);
-                  doc.setFont('helvetica', 'normal');
-                  doc.setTextColor(100, 100, 100);
-                  doc.setFontSize(8);
-                  doc.text(order.cancellationReason || 'Cancellation charge', 17, yPos + 4);
-                  doc.setTextColor(0, 0, 0);
-                  doc.setFontSize(9);
-                  doc.text(`Rs${order.cancellationFee.toFixed(2)}`, 180, yPos);
-                  subtotal += order.cancellationFee;
-                  yPos += 12;
+                if (yStart > maxYPosition - 60) {
+                  doc.addPage();
+                  yStart = 20;
                 }
                 
-                if (order.deliveryFailureFee && order.deliveryFailureFee > 0) {
-                  doc.setFont('helvetica', 'bold');
-                  doc.setTextColor(220, 38, 38);
-                  doc.text('Delivery Failure Fee Applied', 17, yPos);
-                  doc.setFont('helvetica', 'normal');
-                  doc.setTextColor(100, 100, 100);
-                  doc.setFontSize(8);
-                  doc.text(order.deliveryFailureReason || 'Delivery failure charge', 17, yPos + 4);
-                  doc.setTextColor(0, 0, 0);
-                  doc.setFontSize(9);
-                  doc.text(`Rs${order.deliveryFailureFee.toFixed(2)}`, 180, yPos);
-                  subtotal += order.deliveryFailureFee;
-                  yPos += 12;
+                // Summary section
+                yStart += 5;
+                setTypography(doc, 'h2');
+                doc.setFontSize(12);
+                
+                doc.text('Subtotal', 130, yStart);
+                doc.text('- Rs.' + subtotal, pageWidth - 17, yStart, { align: 'right' });
+                yStart += 8;
+                
+                doc.setDrawColor(220, 220, 220);
+                doc.setLineWidth(0.2);
+                doc.line(130, yStart, pageWidth - 15, yStart);
+                yStart += 8;
+                
+                doc.text('Tax (0%)', 130, yStart);
+                doc.text('- Rs.0.00', pageWidth - 17, yStart, { align: 'right' });
+                yStart += 8;
+                
+                doc.line(130, yStart, pageWidth - 15, yStart);
+                yStart += 8;
+                
+                // Calculate discount
+                const originalAmount = subtotal;
+                const finalAmount = order.totalAmount || subtotal;
+                const discountAmount = originalAmount - finalAmount;
+                const hasDiscount = discountAmount > 0;
+                
+                if (hasDiscount) {
+                  const discountLabel = order.appliedVoucherCode ? `Discount (${order.appliedVoucherCode})` : 'Discount';
+                  doc.text(discountLabel, 130, yStart);
+                  doc.text('- Rs.' + Math.round(discountAmount), pageWidth - 17, yStart, { align: 'right' });
+                  yStart += 8;
+                  
+                  doc.line(130, yStart, pageWidth - 15, yStart);
+                  yStart += 8;
                 }
                 
-                yPos += 15;
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Subtotal', 140, yPos);
-                doc.text(`Rs${subtotal.toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
-                yPos += 7;
-                doc.text('Tax (0%)', 140, yPos);
-                doc.text('Rs0.00', pageWidth - 20, yPos, { align: 'right' });
-                yPos += 7;
-                const discountPercent = order.discount || 0;
-                doc.text('Discount/Coupon code', 140, yPos);
-                doc.text(`${discountPercent}%`, pageWidth - 20, yPos, { align: 'right' });
-                yPos += 7;
-                yPos += 5;
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(10);
-                doc.text('Total', 140, yPos);
-                doc.text(`Rs${(order.totalAmount || subtotal).toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
-                yPos += 10;
-                doc.setFontSize(11);
-                doc.setTextColor(0, 0, 200);
-                doc.text('Amount due', 140, yPos);
-                doc.text(`Rs${(order.totalAmount || subtotal).toFixed(2)}`, pageWidth - 20, yPos, { align: 'right' });
+                const finalTotal = finalAmount;
+                
+                doc.text('Total', 130, yStart);
+                doc.text('- Rs.' + Math.round(finalTotal), pageWidth - 17, yStart, { align: 'right' });
+                yStart += 8;
+                
+                doc.line(130, yStart, pageWidth - 15, yStart);
+                yStart += 8;
+                
+                // Grand Total
+                doc.setTextColor(69, 45, 155);
+                doc.text('Grand Total', 130, yStart);
+                doc.text('- Rs.' + Math.round(order.totalAmount || finalTotal), pageWidth - 17, yStart, { align: 'right' });
                 doc.setTextColor(0, 0, 0);
                 
-                yPos += 20;
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Thank you for choosing Urban Steam', 20, yPos);
-                doc.setFontSize(7);
+                // Footer
+                yStart = pageHeight - 30;
+                setTypography(doc, 'h3');
+                doc.setFontSize(10);
+                doc.text('Thank you for choosing Urban Steam', 15, yStart);
+                
+                setTypography(doc, 'body');
+                doc.setFontSize(8);
                 doc.setTextColor(100, 100, 100);
-                doc.text('Incase of any issues contact support@urbansteam.in within 24 hours of delivery', 20, yPos + 5);
+                doc.text('In case of any issues contact support@urbansteam.in within 24 hours of delivery', 15, yStart + 6);
                 
                 doc.save(`Invoice-${order.orderId || 'order'}.pdf`);
               }}
