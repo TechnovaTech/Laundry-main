@@ -946,7 +946,7 @@ export default function CustomersPage() {
           {/* High Value Results Modal */}
           {showHighValueResults && (
             <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-              <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '800px', width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
+              <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '1000px', width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>High Value Customers</h3>
                   <button 
@@ -978,7 +978,7 @@ export default function CustomersPage() {
                       backgroundColor: '#f8fafc',
                       padding: '1rem',
                       display: 'grid',
-                      gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr',
+                      gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr 2fr',
                       gap: '1rem',
                       fontSize: '0.9rem',
                       fontWeight: '600',
@@ -989,6 +989,7 @@ export default function CustomersPage() {
                       <div>Mobile</div>
                       <div>Monthly Orders</div>
                       <div>Monthly Spend</div>
+                      <div>Actions</div>
                     </div>
                     {highValueCustomers.map((customer, index) => (
                       <div
@@ -996,7 +997,7 @@ export default function CustomersPage() {
                         style={{
                           padding: '1rem',
                           display: 'grid',
-                          gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr',
+                          gridTemplateColumns: '1fr 2fr 2fr 1.5fr 1.5fr 2fr',
                           gap: '1rem',
                           borderBottom: index < highValueCustomers.length - 1 ? '1px solid #f3f4f6' : 'none',
                           fontSize: '0.9rem',
@@ -1008,6 +1009,52 @@ export default function CustomersPage() {
                         <div>{customer.mobile}</div>
                         <div>{(customer as any).monthlyOrders || 0}</div>
                         <div>₹{(customer as any).monthlySpend || 0}</div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button 
+                            onClick={() => {
+                              setShowHighValueResults(false)
+                              window.location.href = `/admin/customers/${customer._id}`
+                            }}
+                            style={{
+                              backgroundColor: '#2563eb',
+                              color: 'white',
+                              border: 'none',
+                              padding: '0.5rem 0.75rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '500',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap'
+                            }}>
+                            View Profile
+                          </button>
+                          <button style={{
+                            backgroundColor: '#dc2626',
+                            color: 'white',
+                            border: 'none',
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: '6px',
+                            fontSize: '0.75rem',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            Block
+                          </button>
+                          <button style={{
+                            backgroundColor: '#2563eb',
+                            color: 'white',
+                            border: 'none',
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: '6px',
+                            fontSize: '0.75rem',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            Adjust Points
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
