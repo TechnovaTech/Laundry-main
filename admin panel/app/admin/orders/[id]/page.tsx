@@ -886,36 +886,39 @@ export default function OrderDetails() {
                 
                 // Header logos
                 try {
-                  doc.addImage('/assets/ACS LOGO.png', 'PNG', 15, 8, 45, 40);
-                  doc.addImage('/assets/LOGO MARK GRADIENT.png', 'PNG', pageWidth - 50, 8, 35, 32);
+                  doc.addImage('/assets/ACS LOGO.png', 'PNG', 15, 15, 30, 20);
+                  doc.addImage('/assets/LOGO MARK GRADIENT.png', 'PNG', pageWidth - 45, 15, 30, 20);
                 } catch (imgError) {
                   setTypography(doc, 'h1');
-                  doc.text('ACS Group', 15, 24);
-                  doc.text('Urban Steam', pageWidth - 55, 24);
+                  doc.setFontSize(12);
+                  doc.text('ACS Group', 15, 20);
+                  doc.text('Urban Steam', pageWidth - 45, 20);
                 }
                 
                 // Invoice header
                 setTypography(doc, 'body');
                 doc.setFontSize(8);
-                doc.text('ORIGINAL FOR RECIPIENT', 17, 36);
+                doc.text('ORIGINAL FOR RECIPIENT', 17, 45);
                 
                 setTypography(doc, 'h1');
                 doc.setFontSize(18);
-                doc.text('TAX INVOICE', 17, 45);
+                doc.text('TAX INVOICE', 17, 55);
                 
                 setTypography(doc, 'body');
                 doc.setFontSize(10);
                 doc.setTextColor(100, 100, 100);
-                doc.text(`#${order.orderId || 'N/A'}`, 17, 51);
+                doc.text(`#${order.orderId || 'N/A'}`, 17, 61);
                 doc.setTextColor(0, 0, 0);
                 
-                let yStart = 65;
+                let yStart = 75;
                 const address = order.pickupAddress?.street || 'Customer address';
                 const cityState = `${order.pickupAddress?.city || 'City'}, ${order.pickupAddress?.state || 'State'} - ${order.pickupAddress?.pincode || '000000'}`;
                 
-                let sectionHeight = 45;
-                if (address.length > 30 || cityState.length > 40) sectionHeight = 55;
-                if (address.length > 50 || cityState.length > 60) sectionHeight = 65;
+                // Calculate section height based on address length
+                const addressLines = doc.splitTextToSize(address, 60);
+                const cityStateLines = doc.splitTextToSize(cityState, 60);
+                const totalAddressLines = addressLines.length + cityStateLines.length;
+                let sectionHeight = Math.max(50, 35 + (totalAddressLines * 5));
                 
                 doc.setDrawColor(220, 220, 220);
                 doc.setLineWidth(0.2);
@@ -949,8 +952,17 @@ export default function OrderDetails() {
                 setTypography(doc, 'body');
                 doc.setFontSize(9);
                 doc.text(customerName, 77, yStart + 14);
-                doc.text(address, 77, yStart + 19);
-                doc.text(cityState, 77, yStart + 25);
+                
+                // Handle multi-line address
+                let addressY = yStart + 19;
+                addressLines.forEach((line: string, index: number) => {
+                  doc.text(line, 77, addressY + (index * 4));
+                });
+                addressY += addressLines.length * 4;
+                
+                cityStateLines.forEach((line: string, index: number) => {
+                  doc.text(line, 77, addressY + (index * 4));
+                });
                 
                 setTypography(doc, 'body');
                 doc.setFontSize(8);
@@ -968,7 +980,7 @@ export default function OrderDetails() {
                 doc.text('GST: 29ACLFAA519M1ZW', 147, yStart + 22);
                 
                 // Service table
-                yStart = 65 + sectionHeight + 5;
+                yStart = 75 + sectionHeight + 5;
                 doc.setFillColor(245, 245, 245);
                 doc.rect(15, yStart, pageWidth - 30, 10, 'F');
                 
@@ -981,7 +993,7 @@ export default function OrderDetails() {
                 
                 yStart += 15;
                 let subtotal = 0;
-                const maxYPosition = pageHeight - 80;
+                const maxYPosition = pageHeight - 100; // Reserve more space for summary
                 
                 if (order.items && order.items.length > 0) {
                   order.items.forEach((item: any) => {
@@ -1026,15 +1038,17 @@ export default function OrderDetails() {
                   doc.text('- Rs.0', 155, yStart, { align: 'center' });
                   doc.text('- Rs.0', pageWidth - 17, yStart, { align: 'right' });
                   subtotal = 0;
+                  yStart += 15;
                 }
                 
-                if (yStart > maxYPosition - 60) {
+                // Check if summary section needs new page (reserve 80mm for summary)
+                if (yStart > pageHeight - 80) {
                   doc.addPage();
                   yStart = 20;
                 }
                 
-                // Summary section
-                yStart += 5;
+                // Summary section starts after items
+                yStart += 10;
                 setTypography(doc, 'h2');
                 doc.setFontSize(12);
                 
