@@ -33,6 +33,10 @@ export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showFromCalendar, setShowFromCalendar] = useState(false)
   const [showToCalendar, setShowToCalendar] = useState(false)
+  const [sortBy, setSortBy] = useState('most_orders')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [spendingFilter, setSpendingFilter] = useState('all')
+  const [orderCountFilter, setOrderCountFilter] = useState('all')
 
   useEffect(() => {
     fetchCustomers()
@@ -79,7 +83,37 @@ export default function CustomersPage() {
       return true
     }
     
-    return matchesSearch && matchesDateRange()
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && customer.isActive) ||
+      (statusFilter === 'inactive' && !customer.isActive)
+    
+    const matchesSpending = () => {
+      const spend = customer.totalSpend || 0
+      if (spendingFilter === 'all') return true
+      if (spendingFilter === 'high' && spend >= 10000) return true
+      if (spendingFilter === 'medium' && spend >= 5000 && spend < 10000) return true
+      if (spendingFilter === 'low' && spend < 5000) return true
+      return false
+    }
+    
+    const matchesOrderCount = () => {
+      const orders = customer.totalOrders || 0
+      if (orderCountFilter === 'all') return true
+      if (orderCountFilter === 'high' && orders >= 10) return true
+      if (orderCountFilter === 'medium' && orders >= 5 && orders < 10) return true
+      if (orderCountFilter === 'low' && orders < 5) return true
+      return false
+    }
+    
+    return matchesSearch && matchesDateRange() && matchesStatus && matchesSpending() && matchesOrderCount()
+  }).sort((a, b) => {
+    if (sortBy === 'most_orders') {
+      return (b.totalOrders || 0) - (a.totalOrders || 0)
+    }
+    if (sortBy === 'most_spend') {
+      return (b.totalSpend || 0) - (a.totalSpend || 0)
+    }
+    return 0
   })
 
   const formatDateToDDMMYYYY = (dateStr: string) => {
@@ -186,6 +220,8 @@ export default function CustomersPage() {
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
               style={{
                 padding: '0.75rem 1rem',
                 border: '1px solid #d1d5db',
@@ -197,7 +233,67 @@ export default function CustomersPage() {
               onFocus={(e) => e.target.style.borderColor = '#2563eb'}
               onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
             >
-              <option>Sort by Most Orders</option>
+              <option value="most_orders">Sort by Most Orders</option>
+              <option value="most_spend">Sort by Most Spend</option>
+            </select>
+            
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{
+                padding: '0.75rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                outline: 'none',
+                backgroundColor: 'white',
+                minWidth: '120px'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            
+            <select
+              value={spendingFilter}
+              onChange={(e) => setSpendingFilter(e.target.value)}
+              style={{
+                padding: '0.75rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                outline: 'none',
+                backgroundColor: 'white',
+                minWidth: '140px'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            >
+              <option value="all">All Spending</option>
+              <option value="high">High (₹10k+)</option>
+              <option value="medium">Medium (₹5k-10k)</option>
+              <option value="low">Low (<₹5k)</option>
+            </select>
+            
+            <select
+              value={orderCountFilter}
+              onChange={(e) => setOrderCountFilter(e.target.value)}
+              style={{
+                padding: '0.75rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                outline: 'none',
+                backgroundColor: 'white',
+                minWidth: '130px'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            >
+              <option value="all">All Orders</option>
+              <option value="high">High (10+)</option>
+              <option value="medium">Medium (5-9)</option>
+              <option value="low">Low (<5)</option>
             </select>
             <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>From:</span>
             <div style={{ position: 'relative' }}>
@@ -614,7 +710,7 @@ export default function CustomersPage() {
             }}>
               <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
                 Showing {indexOfFirstCustomer + 1}-{Math.min(indexOfLastCustomer, filteredCustomers.length)} of {filteredCustomers.length} customers
-                {(searchQuery || fromDate || toDate) && (
+                {(searchQuery || fromDate || toDate || statusFilter !== 'all' || spendingFilter !== 'all' || orderCountFilter !== 'all') && (
                   <span style={{ color: '#2563eb', marginLeft: '0.5rem' }}>
                     (filtered from {customers.length} total)
                   </span>

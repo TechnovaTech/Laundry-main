@@ -16,6 +16,8 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
   const [modal, setModal] = useState({ isOpen: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'confirm', onConfirm: () => {} })
+  const [showFromCalendar, setShowFromCalendar] = useState(false)
+  const [showToCalendar, setShowToCalendar] = useState(false)
 
   const statusFilters = [
     { label: 'All', value: 'all' },
@@ -88,10 +90,13 @@ export default function OrdersPage() {
     // Date range filter
     if (fromDate || toDate) {
       filtered = filtered.filter((order: any) => {
-        const orderDate = new Date(order.createdAt).toISOString().split('T')[0]
-        const matchesFrom = !fromDate || orderDate >= fromDate
-        const matchesTo = !toDate || orderDate <= toDate
-        return matchesFrom && matchesTo
+        const orderDate = new Date(order.createdAt)
+        const from = fromDate ? new Date(fromDate.split('-').reverse().join('-')) : null
+        const to = toDate ? new Date(toDate.split('-').reverse().join('-')) : null
+        
+        if (from && orderDate < from) return false
+        if (to && orderDate > to) return false
+        return true
       })
     }
 
@@ -139,6 +144,26 @@ export default function OrdersPage() {
       partner: order.partnerId?.name || 'Not Assigned',
       time: order.pickupSlot?.timeSlot || 'Not Scheduled',
       date: formatDate(order.createdAt)
+    }
+  }
+
+  const formatDateToDDMMYYYY = (dateStr: string) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}-${month}-${year}`
+  }
+
+  const handleDateSelect = (dateStr: string, isFromDate: boolean) => {
+    const formatted = formatDateToDDMMYYYY(dateStr)
+    if (isFromDate) {
+      setFromDate(formatted)
+      setShowFromCalendar(false)
+    } else {
+      setToDate(formatted)
+      setShowToCalendar(false)
     }
   }
 
@@ -232,39 +257,133 @@ export default function OrdersPage() {
             ))}
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '1rem' }}>
               <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>From:</span>
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                aria-label="Filter orders from date"
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  width: '150px'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="DD-MM-YYYY"
+                  value={fromDate}
+                  onClick={() => setShowFromCalendar(!showFromCalendar)}
+                  readOnly
+                  style={{
+                    padding: '0.75rem 1rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    width: '140px',
+                    cursor: 'pointer',
+                    backgroundColor: 'white'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                />
+                {showFromCalendar && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    zIndex: 1000,
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    padding: '0.5rem'
+                  }}>
+                    <input
+                      type="date"
+                      onChange={(e) => handleDateSelect(e.target.value, true)}
+                      style={{
+                        border: 'none',
+                        outline: 'none',
+                        padding: '0.5rem'
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        setFromDate('')
+                        setShowFromCalendar(false)
+                      }}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '0.25rem',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        marginTop: '0.25rem'
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
               <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>To:</span>
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                aria-label="Filter orders to date"
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  width: '150px'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="DD-MM-YYYY"
+                  value={toDate}
+                  onClick={() => setShowToCalendar(!showToCalendar)}
+                  readOnly
+                  style={{
+                    padding: '0.75rem 1rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    width: '140px',
+                    cursor: 'pointer',
+                    backgroundColor: 'white'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                />
+                {showToCalendar && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    zIndex: 1000,
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    padding: '0.5rem'
+                  }}>
+                    <input
+                      type="date"
+                      onChange={(e) => handleDateSelect(e.target.value, false)}
+                      style={{
+                        border: 'none',
+                        outline: 'none',
+                        padding: '0.5rem'
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        setToDate('')
+                        setShowToCalendar(false)
+                      }}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '0.25rem',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        marginTop: '0.25rem'
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -593,6 +712,24 @@ export default function OrdersPage() {
             type={modal.type}
             confirmText={modal.type === 'confirm' ? 'Yes, Proceed' : 'OK'}
           />
+
+          {/* Close calendars when clicking outside */}
+          {(showFromCalendar || showToCalendar) && (
+            <div 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 999
+              }}
+              onClick={() => {
+                setShowFromCalendar(false)
+                setShowToCalendar(false)
+              }}
+            />
+          )}
       </div>
     </ResponsiveLayout>
   )
