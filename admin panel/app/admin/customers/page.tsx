@@ -31,6 +31,8 @@ export default function CustomersPage() {
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [showFromCalendar, setShowFromCalendar] = useState(false)
+  const [showToCalendar, setShowToCalendar] = useState(false)
 
   useEffect(() => {
     fetchCustomers()
@@ -69,8 +71,8 @@ export default function CustomersPage() {
       if (!customer.createdAt) return false
       
       const customerDate = new Date(customer.createdAt)
-      const from = fromDate ? new Date(fromDate) : null
-      const to = toDate ? new Date(toDate) : null
+      const from = fromDate ? new Date(fromDate.split('-').reverse().join('-')) : null
+      const to = toDate ? new Date(toDate.split('-').reverse().join('-')) : null
       
       if (from && customerDate < from) return false
       if (to && customerDate > to) return false
@@ -79,6 +81,27 @@ export default function CustomersPage() {
     
     return matchesSearch && matchesDateRange()
   })
+
+  const formatDateToDDMMYYYY = (dateStr: string) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}-${month}-${year}`
+  }
+
+  const handleDateSelect = (dateStr: string, isFromDate: boolean) => {
+    const formatted = formatDateToDDMMYYYY(dateStr)
+    if (isFromDate) {
+      setFromDate(formatted)
+      setShowFromCalendar(false)
+    } else {
+      setToDate(formatted)
+      setShowToCalendar(false)
+    }
+    setCurrentPage(1)
+  }
 
   const toggleSelection = (customerId: string) => {
     const newSelected = new Set(selectedCustomers)
@@ -177,41 +200,135 @@ export default function CustomersPage() {
               <option>Sort by Most Orders</option>
             </select>
             <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>From:</span>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value)
-                setCurrentPage(1)
-              }}
-              style={{
-                padding: '0.75rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                outline: 'none',
-                width: '160px'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="DD-MM-YYYY"
+                value={fromDate}
+                onClick={() => setShowFromCalendar(!showFromCalendar)}
+                readOnly
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  width: '140px',
+                  cursor: 'pointer',
+                  backgroundColor: 'white'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+              />
+              {showFromCalendar && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  zIndex: 1000,
+                  backgroundColor: 'white',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                  padding: '0.5rem'
+                }}>
+                  <input
+                    type="date"
+                    onChange={(e) => handleDateSelect(e.target.value, true)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      padding: '0.5rem'
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      setFromDate('')
+                      setShowFromCalendar(false)
+                      setCurrentPage(1)
+                    }}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '0.25rem',
+                      backgroundColor: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      marginTop: '0.25rem'
+                    }}
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
             <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>To:</span>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value)
-                setCurrentPage(1)
-              }}
-              style={{
-                padding: '0.75rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                outline: 'none',
-                width: '160px'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#2563eb'}
-              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="DD-MM-YYYY"
+                value={toDate}
+                onClick={() => setShowToCalendar(!showToCalendar)}
+                readOnly
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  width: '140px',
+                  cursor: 'pointer',
+                  backgroundColor: 'white'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#2563eb'}
+                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+              />
+              {showToCalendar && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  zIndex: 1000,
+                  backgroundColor: 'white',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                  padding: '0.5rem'
+                }}>
+                  <input
+                    type="date"
+                    onChange={(e) => handleDateSelect(e.target.value, false)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      padding: '0.5rem'
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      setToDate('')
+                      setShowToCalendar(false)
+                      setCurrentPage(1)
+                    }}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '0.25rem',
+                      backgroundColor: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      marginTop: '0.25rem'
+                    }}
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
@@ -581,6 +698,24 @@ export default function CustomersPage() {
                 padding: '0 0.25rem'
               }}>×</button>
             </div>
+          )}
+
+          {/* Close calendars when clicking outside */}
+          {(showFromCalendar || showToCalendar) && (
+            <div 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 999
+              }}
+              onClick={() => {
+                setShowFromCalendar(false)
+                setShowToCalendar(false)
+              }}
+            />
           )}
       </div>
     </ResponsiveLayout>
