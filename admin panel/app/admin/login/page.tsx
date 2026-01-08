@@ -62,7 +62,7 @@ export default function AdminLogin() {
           marginBottom: '0.5rem',
           textAlign: 'center'
         }}>
-          Steam & Iron - Admin
+          Urban Steam - Admin Panel
         </h1>
 
         {/* Subtitle */}
