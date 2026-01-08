@@ -46,14 +46,32 @@ export default function AdminLogin() {
         padding: '2rem',
         color: 'white'
       }}>
-        {/* Profile Circle */}
+        {/* Urban Steam Logo */}
         <div style={{
-          width: '80px',
-          height: '80px',
-          backgroundColor: 'white',
+          width: '120px',
+          height: '120px',
+          marginBottom: '2rem',
           borderRadius: '50%',
-          marginBottom: '2rem'
-        }}></div>
+          boxShadow: '0 10px 30px rgba(0,0,0,0.3), 0 0 0 3px rgba(255,255,255,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+          border: '2px solid rgba(255,255,255,0.2)',
+          transform: 'translateZ(0)',
+          transition: 'transform 0.3s ease'
+        }}>
+          <img 
+            src="/assets/APP ICON WHITE WITH GRADIENT BG.png" 
+            alt="Urban Steam Logo" 
+            style={{
+              width: '90px',
+              height: '90px',
+              borderRadius: '50%',
+              objectFit: 'cover'
+            }}
+          />
+        </div>
 
         {/* Title */}
         <h1 style={{
