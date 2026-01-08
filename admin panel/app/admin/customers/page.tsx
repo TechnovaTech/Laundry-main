@@ -273,7 +273,7 @@ export default function CustomersPage() {
               <option value="all">All Spending</option>
               <option value="high">High (₹10k+)</option>
               <option value="medium">Medium (₹5k-10k)</option>
-              <option value="low">Low (<₹5k)</option>
+              <option value="low">Low (&lt;₹5k)</option>
             </select>
             
             <select
@@ -293,7 +293,7 @@ export default function CustomersPage() {
               <option value="all">All Orders</option>
               <option value="high">High (10+)</option>
               <option value="medium">Medium (5-9)</option>
-              <option value="low">Low (<5)</option>
+              <option value="low">Low (&lt;5)</option>
             </select>
             <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>From:</span>
             <div style={{ position: 'relative' }}>
