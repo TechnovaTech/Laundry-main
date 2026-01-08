@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
       paymentStatus: orderData.paymentStatus || 'pending',
       razorpayOrderId: orderData.razorpayOrderId,
       razorpayPaymentId: orderData.razorpayPaymentId,
+      appliedVoucherCode: orderData.appliedVoucherCode,
       specialInstructions: orderData.specialInstructions || '',
       createdAt: new Date(),
       updatedAt: new Date()
@@ -52,8 +53,8 @@ export async function POST(request: NextRequest) {
     
     const savedOrder = await newOrder.save()
     
-    // Mark voucher as used if applied
-    if (orderData.appliedVoucherCode) {
+    // Mark voucher as used ONLY if payment is successful
+    if (orderData.appliedVoucherCode && orderData.paymentStatus === 'paid') {
       await Customer.findByIdAndUpdate(orderData.customerId, {
         $push: {
           usedVouchers: {

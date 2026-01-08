@@ -303,17 +303,25 @@ export const generateInvoicePDF = async (order: any) => {
     doc.line(130, yStart, pageWidth - 15, yStart);
     yStart += 8;
     
-    const discountPercent = order.discount || 25;
-    doc.text('Discount/ Coupon code', 130, yStart);
-    doc.text(discountPercent + '%', pageWidth - 17, yStart, { align: 'right' });
-    yStart += 8;
+    // Calculate actual discount from order data
+    const originalAmount = subtotal;
+    const finalAmount = order.totalAmount || subtotal;
+    const discountAmount = originalAmount - finalAmount;
+    const hasDiscount = discountAmount > 0;
     
-    // Line after discount
-    doc.line(130, yStart, pageWidth - 15, yStart);
-    yStart += 8;
+    // Only show discount if there's an actual discount
+    if (hasDiscount) {
+      const discountLabel = order.appliedVoucherCode ? `Discount (${order.appliedVoucherCode})` : 'Discount';
+      doc.text(discountLabel, 130, yStart);
+      doc.text('-Rs' + Math.round(discountAmount), pageWidth - 17, yStart, { align: 'right' });
+      yStart += 8;
+      
+      // Line after discount
+      doc.line(130, yStart, pageWidth - 15, yStart);
+      yStart += 8;
+    }
     
-    const discountAmount = (subtotal * discountPercent) / 100;
-    const finalTotal = subtotal - discountAmount;
+    const finalTotal = finalAmount;
     
     doc.text('Total', 130, yStart);
     doc.text('Rs' + Math.round(finalTotal), pageWidth - 17, yStart, { align: 'right' });

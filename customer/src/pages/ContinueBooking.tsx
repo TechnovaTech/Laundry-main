@@ -139,13 +139,18 @@ const ContinueBooking = () => {
         return;
       }
       
-      // Check if customer already used this voucher
-      const customerRes = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`);
-      const customerData = await customerRes.json();
+      // Check if customer already used this voucher in a PAID order
+      const ordersRes = await fetch(`${API_URL}/api/orders?customerId=${customerId}`);
+      const ordersData = await ordersRes.json();
       
-      if (customerData.success && customerData.data) {
-        const usedVouchers = customerData.data.usedVouchers || [];
-        const alreadyUsed = usedVouchers.some((v: any) => v.voucherCode === couponCode.trim());
+      if (ordersData.success && ordersData.data) {
+        // Only check vouchers used in successfully paid orders
+        const paidOrders = ordersData.data.filter((order: any) => order.paymentStatus === 'paid');
+        const usedVoucherCodes = paidOrders
+          .map((order: any) => order.appliedVoucherCode)
+          .filter((code: string) => code && code.trim());
+        
+        const alreadyUsed = usedVoucherCodes.includes(couponCode.trim());
         
         if (alreadyUsed) {
           setCouponError("You have already used this coupon");
