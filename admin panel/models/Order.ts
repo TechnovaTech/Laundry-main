@@ -86,6 +86,12 @@ const OrderSchema = new mongoose.Schema({
     updatedBy: String
   }],
   reviewId: { type: mongoose.Schema.Types.ObjectId, ref: 'Review' },
+  adminNotes: [{
+    _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+    note: String,
+    addedBy: String,
+    createdAt: { type: Date, default: Date.now }
+  }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 })

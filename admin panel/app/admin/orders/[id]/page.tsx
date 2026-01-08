@@ -13,6 +13,9 @@ export default function OrderDetails() {
   const [refundCalculation, setRefundCalculation] = useState<any>(null)
   const [calculatingRefund, setCalculatingRefund] = useState(false)
   const [processingRefund, setProcessingRefund] = useState(false)
+  const [newNote, setNewNote] = useState('')
+  const [editingNote, setEditingNote] = useState<string | null>(null)
+  const [editNoteText, setEditNoteText] = useState('')
 
   useEffect(() => {
     fetchOrderDetails()
@@ -20,16 +23,74 @@ export default function OrderDetails() {
 
   const fetchOrderDetails = async () => {
     try {
+      setLoading(true)
       const response = await fetch(`/api/orders/${orderId}`)
       const data = await response.json()
       
       if (data.success) {
         setOrder(data.data)
+      } else {
+        console.error('Failed to fetch order:', data.error)
       }
     } catch (error) {
-      console.error('Failed to fetch order details:', error)
+      console.error('Error fetching order:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const addNote = async () => {
+    if (!newNote.trim()) return
+    
+    try {
+      const response = await fetch(`/api/orders/${order._id}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: newNote.trim() })
+      })
+      
+      if (response.ok) {
+        setNewNote('')
+        fetchOrderDetails()
+      }
+    } catch (error) {
+      console.error('Failed to add note:', error)
+    }
+  }
+  
+  const editNote = async (noteId: string) => {
+    if (!editNoteText.trim()) return
+    
+    try {
+      const response = await fetch(`/api/orders/${order._id}/notes/${noteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: editNoteText.trim() })
+      })
+      
+      if (response.ok) {
+        setEditingNote(null)
+        setEditNoteText('')
+        fetchOrderDetails()
+      }
+    } catch (error) {
+      console.error('Failed to edit note:', error)
+    }
+  }
+  
+  const deleteNote = async (noteId: string) => {
+    if (!confirm('Are you sure you want to delete this note?')) return
+    
+    try {
+      const response = await fetch(`/api/orders/${order._id}/notes/${noteId}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        fetchOrderDetails()
+      }
+    } catch (error) {
+      console.error('Failed to delete note:', error)
     }
   }
 
@@ -536,17 +597,6 @@ export default function OrderDetails() {
               </span>
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <button style={{
-                backgroundColor: 'white',
-                color: '#2563eb',
-                border: '2px solid #2563eb',
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                fontSize: '0.9rem',
-                cursor: 'pointer'
-              }}>
-                Reassign Partner
-              </button>
               {order?.partnerId && (
                 <button 
                   onClick={() => window.location.href = `/admin/delivery-partners/${order.partnerId._id}`}
@@ -815,9 +865,127 @@ export default function OrderDetails() {
             marginBottom: '1.5rem'
           }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 1rem 0' }}>Notes & Issues</h3>
-            <div style={{ marginBottom: '1rem', color: '#6b7280' }}>Note log</div>
+            
+            {/* Existing Notes */}
+            {order?.adminNotes && order.adminNotes.length > 0 && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.75rem', color: '#6b7280' }}>Previous Notes:</h4>
+                {order.adminNotes.map((note: any, index: number) => (
+                  <div key={note._id || index} style={{
+                    backgroundColor: '#f9fafb',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '0.75rem',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {editingNote === note._id ? (
+                      <div>
+                        <textarea
+                          value={editNoteText}
+                          onChange={(e) => setEditNoteText(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            outline: 'none',
+                            resize: 'vertical',
+                            minHeight: '60px',
+                            fontFamily: 'inherit',
+                            marginBottom: '0.5rem'
+                          }}
+                        />
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            onClick={() => editNote(note._id)}
+                            style={{
+                              backgroundColor: '#10b981',
+                              color: 'white',
+                              border: 'none',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '4px',
+                              fontSize: '0.8rem',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingNote(null)
+                              setEditNoteText('')
+                            }}
+                            style={{
+                              backgroundColor: '#6b7280',
+                              color: 'white',
+                              border: 'none',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '4px',
+                              fontSize: '0.8rem',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ fontSize: '0.9rem', color: '#374151', marginBottom: '0.5rem' }}>
+                          {note.note || note.text}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                            {note.createdAt ? new Date(note.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' at ' + new Date(note.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Unknown date'}
+                            {note.addedBy && ` • by ${note.addedBy}`}
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              onClick={() => {
+                                setEditingNote(note._id)
+                                setEditNoteText(note.note || note.text)
+                              }}
+                              style={{
+                                backgroundColor: 'transparent',
+                                color: '#2563eb',
+                                border: 'none',
+                                padding: '0.25rem',
+                                borderRadius: '4px',
+                                fontSize: '0.8rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button
+                              onClick={() => deleteNote(note._id)}
+                              style={{
+                                backgroundColor: 'transparent',
+                                color: '#dc2626',
+                                border: 'none',
+                                padding: '0.25rem',
+                                borderRadius: '4px',
+                                fontSize: '0.8rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Add New Note */}
+            <div style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.9rem' }}>Add a new note:</div>
             <textarea
               placeholder="Add a note..."
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.75rem',
@@ -830,17 +998,21 @@ export default function OrderDetails() {
                 fontFamily: 'inherit'
               }}
             />
-            <button style={{
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              padding: '0.75rem 2rem',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: '500',
-              cursor: 'pointer',
-              width: '100%'
-            }}>
+            <button 
+              onClick={addNote}
+              disabled={!newNote.trim()}
+              style={{
+                backgroundColor: newNote.trim() ? '#2563eb' : '#9ca3af',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 2rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                cursor: newNote.trim() ? 'pointer' : 'not-allowed',
+                width: '100%'
+              }}
+            >
               Add Note
             </button>
           </div>
