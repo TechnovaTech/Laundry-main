@@ -242,16 +242,10 @@ export const generateInvoicePDF = async (order: any) => {
         doc.text(item.name || 'Item', 17, yStart);
         
         setTypography(doc, 'body');
-        doc.setFontSize(9);
-        doc.setTextColor(100, 100, 100);
-        doc.text(item.description || 'Description', 17, yStart + 5);
-        doc.setTextColor(0, 0, 0);
-        
-        setTypography(doc, 'body');
         doc.setFontSize(10);
         doc.text(String(item.quantity || 1), 130, yStart, { align: 'center' });
-        doc.text('Rs' + (item.price || 0), 155, yStart, { align: 'center' });
-        doc.text('Rs' + itemTotal, pageWidth - 17, yStart, { align: 'right' });
+        doc.text('- Rs.' + (item.price || 0), 155, yStart, { align: 'center' });
+        doc.text('- Rs.' + itemTotal, pageWidth - 17, yStart, { align: 'right' });
         yStart += 15;
       });
     } else {
@@ -261,32 +255,26 @@ export const generateInvoicePDF = async (order: any) => {
       doc.text('Curtain', 17, yStart);
       
       setTypography(doc, 'body');
-      doc.setFontSize(9);
-      doc.setTextColor(100, 100, 100);
-      doc.text('Description', 17, yStart + 5);
-      doc.setTextColor(0, 0, 0);
-      
-      setTypography(doc, 'body');
       doc.setFontSize(10);
       doc.text('10', 130, yStart, { align: 'center' });
-      doc.text('Rs75', 155, yStart, { align: 'center' });
-      doc.text('Rs750', pageWidth - 17, yStart, { align: 'right' });
+      doc.text('- Rs.75', 155, yStart, { align: 'center' });
+      doc.text('- Rs.750', pageWidth - 17, yStart, { align: 'right' });
       subtotal = 750;
     }
     
     // Check if summary section needs new page
-    if (yStart > maxYPosition - 100) {
+    if (yStart > maxYPosition - 60) {
       doc.addPage();
       yStart = 20;
     }
     
-    // Summary section with lines - all BOLD and same size
-    yStart += 20;
+    // Summary section starts immediately after items
+    yStart += 5;
     setTypography(doc, 'h2');
     doc.setFontSize(12);
     
     doc.text('Subtotal', 130, yStart);
-    doc.text('Rs' + subtotal, pageWidth - 17, yStart, { align: 'right' });
+    doc.text('- Rs.' + subtotal, pageWidth - 17, yStart, { align: 'right' });
     yStart += 8;
     
     // Line after subtotal
@@ -296,7 +284,7 @@ export const generateInvoicePDF = async (order: any) => {
     yStart += 8;
     
     doc.text('Tax (0%)', 130, yStart);
-    doc.text('Rs0.00', pageWidth - 17, yStart, { align: 'right' });
+    doc.text('- Rs.0.00', pageWidth - 17, yStart, { align: 'right' });
     yStart += 8;
     
     // Line after tax
@@ -313,7 +301,7 @@ export const generateInvoicePDF = async (order: any) => {
     if (hasDiscount) {
       const discountLabel = order.appliedVoucherCode ? `Discount (${order.appliedVoucherCode})` : 'Discount';
       doc.text(discountLabel, 130, yStart);
-      doc.text('-Rs' + Math.round(discountAmount), pageWidth - 17, yStart, { align: 'right' });
+      doc.text('- Rs.' + Math.round(discountAmount), pageWidth - 17, yStart, { align: 'right' });
       yStart += 8;
       
       // Line after discount
@@ -324,7 +312,7 @@ export const generateInvoicePDF = async (order: any) => {
     const finalTotal = finalAmount;
     
     doc.text('Total', 130, yStart);
-    doc.text('Rs' + Math.round(finalTotal), pageWidth - 17, yStart, { align: 'right' });
+    doc.text('- Rs.' + Math.round(finalTotal), pageWidth - 17, yStart, { align: 'right' });
     yStart += 8;
     
     // Line after total
@@ -334,7 +322,7 @@ export const generateInvoicePDF = async (order: any) => {
     // Grand Total in blue color
     doc.setTextColor(69, 45, 155);
     doc.text('Grand Total', 130, yStart);
-    doc.text('Rs' + Math.round(order.totalAmount || finalTotal), pageWidth - 17, yStart, { align: 'right' });
+    doc.text('- Rs.' + Math.round(order.totalAmount || finalTotal), pageWidth - 17, yStart, { align: 'right' });
     doc.setTextColor(0, 0, 0);
     
     // Footer
