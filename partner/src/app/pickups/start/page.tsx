@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
+import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 
 interface Order {
@@ -79,7 +80,7 @@ function StartPickupContent() {
   }
 
   return (
-    <div className="pb-20 min-h-screen overflow-y-auto">
+    <div className="min-h-screen overflow-y-auto">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -90,15 +91,7 @@ function StartPickupContent() {
       </header>
 
       <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-48">
-        <iframe
-          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}, ${order.pickupAddress.state}`)}&zoom=15`}
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
+        <LeafletMap address={order.pickupAddress} />
         <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
           <p className="text-sm font-semibold text-black">Pickup Location</p>
           <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}`)}`} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>
@@ -150,7 +143,7 @@ function StartPickupContent() {
         </div>
       </div>
 
-      <div className="mx-4">
+      <div className="mx-4 pb-20">
         <button
           onClick={async () => {
             const partnerId = localStorage.getItem('partnerId');

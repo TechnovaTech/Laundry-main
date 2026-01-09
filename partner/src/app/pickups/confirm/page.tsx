@@ -131,7 +131,7 @@ function PickupConfirmContent() {
   if (!order) return <div className="p-8 text-center">Order not found</div>;
 
   return (
-    <div className="pb-20 min-h-screen overflow-y-auto">
+    <div className="min-h-screen overflow-y-auto">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <header className="sticky top-0 bg-white shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
@@ -219,7 +219,7 @@ function PickupConfirmContent() {
         />
       </div>
 
-      <div className="mx-4 mt-3">
+      <div className="mx-4 mt-3 pb-20">
         <label className="flex items-center gap-2 text-base text-black">
           <input type="checkbox" className="h-4 w-4" style={{ accentColor: '#452D9B' }} checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
           I have collected all items from customer.

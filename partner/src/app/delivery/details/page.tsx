@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import ConfirmModal from "@/components/ConfirmModal";
 import BottomNav from "@/components/BottomNav";
+import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 
 function DeliveryDetailsContent() {
@@ -59,15 +60,16 @@ function DeliveryDetailsContent() {
 
       {/* Map with overlay */}
       <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-48">
-        <iframe
-          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(`${order.deliveryAddress?.street || order.pickupAddress?.street}, ${order.deliveryAddress?.city || order.pickupAddress?.city}, ${order.deliveryAddress?.state || order.pickupAddress?.state}`)}&zoom=15`}
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
+        {(order.deliveryAddress || order.pickupAddress) ? (
+          <LeafletMap address={order.deliveryAddress || order.pickupAddress} />
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center rounded-xl">
+            <div className="text-center">
+              <span className="text-4xl mb-2 block">📍</span>
+              <p className="text-gray-500 text-sm">No delivery address</p>
+            </div>
+          </div>
+        )}
         <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
           <p className="text-sm font-semibold text-black">Delivery Location</p>
           <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.deliveryAddress?.street || order.pickupAddress?.street}, ${order.deliveryAddress?.city || order.pickupAddress?.city}`)}`} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>

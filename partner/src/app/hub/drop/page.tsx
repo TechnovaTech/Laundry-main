@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import BottomNav from "@/components/BottomNav";
+import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 import { Capacitor } from '@capacitor/core';
 
@@ -230,15 +231,7 @@ export default function DropToHub() {
       {/* Map */}
       {hub && (
         <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-48">
-          <iframe
-            src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(`${hub.address.street}, ${hub.address.city}, ${hub.address.state}`)}&zoom=15`}
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+          <LeafletMap address={hub.address} />
           <div className="absolute left-4 bottom-4 bg-white shadow-sm rounded-xl px-4 py-2">
             <p className="text-sm font-semibold text-black">{hub.name}</p>
             <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hub.address.street}, ${hub.address.city}`)}`} target="_blank" className="text-xs" style={{ color: '#452D9B' }}>Open in Google Maps</a>

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Toast from "@/components/Toast";
 import BottomNav from "@/components/BottomNav";
+import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 
 interface Pickup {
@@ -235,15 +236,16 @@ export default function Pickups() {
 
       {/* Map Banner */}
       <div className="mt-4 mx-4 relative rounded-2xl overflow-hidden h-40 shadow-md">
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1!2d-73.98!3d40.75!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ1JzAwLjAiTiA3M8KwNTgnNDguMCJX!5e0!3m2!1sen!2sus!4v1234567890"
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
+        {pickups.length > 0 && pickups[0]?.pickupAddress ? (
+          <LeafletMap address={pickups[0].pickupAddress} />
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center rounded-2xl">
+            <div className="text-center">
+              <span className="text-4xl mb-2 block">📍</span>
+              <p className="text-gray-500 text-sm">No pickup locations</p>
+            </div>
+          </div>
+        )}
         {/* Floating card */}
         <div className="absolute left-4 top-4 bg-white shadow-lg rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-900">
           <span style={{ color: '#452D9B' }}>{pickups.length}</span> pickups today
