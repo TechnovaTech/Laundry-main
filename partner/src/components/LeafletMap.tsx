@@ -17,10 +17,10 @@ const LeafletMap = ({ address }: LeafletMapProps) => {
     
     // Build complete address string for better accuracy
     const addressParts = [
-      address.street?.trim(),
-      address.city?.trim(), 
-      address.state?.trim(),
-      address.pincode?.trim(),
+      address.street ? String(address.street).trim() : '',
+      address.city ? String(address.city).trim() : '', 
+      address.state ? String(address.state).trim() : '',
+      address.pincode ? String(address.pincode).trim() : '',
       'India'
     ].filter(Boolean); // Remove empty parts
     
