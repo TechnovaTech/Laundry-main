@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronDown, X, AlertCircle, MapPin, Navigation } from "lucide-react";
+import { ChevronDown, X, AlertCircle } from "lucide-react";
 import { API_URL } from '@/config/api';
 import Header from "@/components/Header";
 import LeafletMap from "@/components/LeafletMap";
@@ -24,9 +24,6 @@ const AddAddress = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const [addressSuggestions, setAddressSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     fetchAddresses();
@@ -104,66 +101,6 @@ const AddAddress = () => {
   const handleCityChange = (value) => {
     setAddress({...address, city: value});
     setShowCitySuggestions(false);
-  };
-
-  const getCurrentLocation = async () => {
-    setIsGettingLocation(true);
-    try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000
-        });
-      });
-      
-      const { latitude, longitude } = position.coords;
-      
-      // Reverse geocoding to get address
-      const response = await fetch(
-        `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=YOUR_API_KEY&limit=1`
-      );
-      const data = await response.json();
-      
-      if (data.results && data.results[0]) {
-        const result = data.results[0];
-        const components = result.components;
-        
-        setAddress({
-          ...address,
-          addressLine1: `${components.house_number || ''} ${components.road || ''}`.trim(),
-          city: components.city || components.town || components.village || '',
-          state: components.state || '',
-          pincode: components.postcode || ''
-        });
-      }
-    } catch (error) {
-      setToast({ show: true, message: 'Unable to get location. Please enter manually.', type: 'error' });
-      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
-    } finally {
-      setIsGettingLocation(false);
-    }
-  };
-
-  const handleAddressSearch = async (query) => {
-    if (query.length < 3) {
-      setAddressSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-    
-    try {
-      // Mock suggestions - replace with actual geocoding API
-      const suggestions = [
-        `${query}, Delhi, India`,
-        `${query}, Mumbai, India`,
-        `${query}, Bangalore, India`
-      ];
-      setAddressSuggestions(suggestions);
-      setShowSuggestions(true);
-    } catch (error) {
-      console.error('Error fetching suggestions:', error);
-    }
   };
 
   const handlePincodeChange = async (value) => {
@@ -320,43 +257,14 @@ const AddAddress = () => {
         {/* Add Address Form */}
         {showAddForm && (
         <>
-        {/* GPS Location Button */}
-        <button
-          onClick={getCurrentLocation}
-          disabled={isGettingLocation}
-          className="w-full py-3 sm:py-4 border-2 border-dashed border-blue-300 rounded-2xl text-blue-500 font-semibold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors"
-        >
-          <Navigation className={`w-4 h-4 sm:w-5 sm:h-5 ${isGettingLocation ? 'animate-spin' : ''}`} />
-          {isGettingLocation ? 'Getting Location...' : 'Use Current Location'}
-        </button>
-        
         <div className="relative">
           <input
             type="text"
             placeholder="Address Line 1"
             value={address.addressLine1}
-            onChange={(e) => {
-              setAddress({...address, addressLine1: e.target.value});
-              handleAddressSearch(e.target.value);
-            }}
+            onChange={(e) => setAddress({...address, addressLine1: e.target.value})}
             className="w-full p-3 sm:p-4 border-2 border-blue-500 rounded-full focus:outline-none focus:border-blue-600 text-black placeholder-gray-400 text-sm sm:text-base"
           />
-          {showSuggestions && addressSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl mt-1 shadow-lg z-10 max-h-40 overflow-y-auto">
-              {addressSuggestions.map((suggestion, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    setAddress({...address, addressLine1: suggestion});
-                    setShowSuggestions(false);
-                  }}
-                  className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-100 last:border-b-0"
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         <div className="relative">
