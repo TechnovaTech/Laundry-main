@@ -138,7 +138,7 @@ const Booking = () => {
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     
-    // Extract start and end time from slot (e.g., "4 PM - 6 PM" -> start: 4, end: 6, period: PM)
+    // Extract start and end time from slot (e.g., "1 PM - 2 PM" -> start: 1, end: 2, period: PM)
     const timeMatch = slotTime.match(/(\d+)\s*(AM|PM)?\s*-\s*(\d+)\s*(AM|PM)/i);
     if (!timeMatch) return false;
     
@@ -147,15 +147,7 @@ const Booking = () => {
     const endHour = parseInt(timeMatch[3]);
     const endPeriod = timeMatch[4];
     
-    // Convert start time to 24-hour format
-    let slotStartHour = startHour;
-    if (startPeriod?.toUpperCase() === 'PM' && startHour !== 12) {
-      slotStartHour = startHour + 12;
-    } else if (startPeriod?.toUpperCase() === 'AM' && startHour === 12) {
-      slotStartHour = 0;
-    }
-    
-    // Convert end time to 24-hour format
+    // Convert end time to 24-hour format (this is what matters for slot availability)
     let slotEndHour = endHour;
     if (endPeriod?.toUpperCase() === 'PM' && endHour !== 12) {
       slotEndHour = endHour + 12;
@@ -163,14 +155,8 @@ const Booking = () => {
       slotEndHour = 0; // 12 AM is midnight (0 hours)
     }
     
-    // Handle cross-day slots (e.g., "9 AM -12 AM" means 9 AM to midnight)
-    if (slotStartHour > slotEndHour) {
-      // Slot crosses midnight, check if current time is before end time (next day) or after start time (same day)
-      return false; // Cross-day slots are available until midnight
-    }
-    
-    // For same-day slots, check if current time is past the slot start time
-    return currentHour > slotStartHour || (currentHour === slotStartHour && currentMinute > 0);
+    // Slot is passed only if current time is past the END time of the slot
+    return currentHour > slotEndHour || (currentHour === slotEndHour && currentMinute > 0);
   };
   
   const getAvailableSlots = (slots: TimeSlot[]) => {
