@@ -36,6 +36,7 @@ interface Partner {
   isVerified: boolean
   isActive: boolean
   rating: number
+  totalPickups: number
   totalDeliveries: number
   totalEarnings: number
   createdAt: string
@@ -149,18 +150,14 @@ export default function PartnerProfilePage() {
           marginBottom: '1.5rem'
         }}>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#2563eb' }}>Statistics</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ca8a04' }}>{partner.totalDeliveries}</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ca8a04' }}>{partner.totalPickups || 0}</div>
               <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>Total Pickups</div>
             </div>
             <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb' }}>{partner.totalDeliveries}</div>
               <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>Total Deliveries</div>
-            </div>
-            <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#16a34a' }}>₹{partner.totalEarnings.toLocaleString()}</div>
-              <div style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>Total Earnings</div>
             </div>
           </div>
         </div>

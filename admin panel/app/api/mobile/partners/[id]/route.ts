@@ -12,7 +12,29 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ success: false, error: 'Partner not found' }, { status: 404 })
     }
     
-    return NextResponse.json({ success: true, data: partner })
+    // Calculate real pickup and delivery statistics
+    const Order = (await import('@/models/Order')).default
+    
+    // Count total pickups (orders that reached 'picked_up' status or beyond)
+    const totalPickups = await Order.countDocuments({
+      partnerId: id,
+      status: { $in: ['picked_up', 'delivered_to_hub', 'processing', 'ironing', 'process_completed', 'ready', 'out_for_delivery', 'delivered'] }
+    })
+    
+    // Count total deliveries (orders that reached 'delivered' status)
+    const totalDeliveries = await Order.countDocuments({
+      partnerId: id,
+      status: 'delivered'
+    })
+    
+    // Add calculated statistics to partner data
+    const partnerWithStats = {
+      ...partner,
+      totalPickups,
+      totalDeliveries
+    }
+    
+    return NextResponse.json({ success: true, data: partnerWithStats })
   } catch (error) {
     console.error('Error fetching partner:', error)
     return NextResponse.json({ success: false, error: 'Failed to fetch partner' }, { status: 500 })

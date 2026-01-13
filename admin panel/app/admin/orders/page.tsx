@@ -67,8 +67,12 @@ export default function OrdersPage() {
       console.log('Orders fetched:', data.data?.length || 0)
       
       if (data.success) {
-        setOrders(data.data)
-        setFilteredOrders(data.data)
+        // Sort orders by creation date (most recent first)
+        const sortedOrders = data.data.sort((a: any, b: any) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        setOrders(sortedOrders)
+        setFilteredOrders(sortedOrders)
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error)
@@ -110,6 +114,11 @@ export default function OrdersPage() {
         return customerName.includes(query) || customerMobile.includes(query) || orderId.includes(query)
       })
     }
+
+    // Keep most recent orders at top after filtering
+    filtered.sort((a: any, b: any) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
 
     setFilteredOrders(filtered)
   }
