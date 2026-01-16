@@ -199,8 +199,20 @@ export const generateInvoicePDF = async (order: any) => {
     doc.setFontSize(9);
     doc.text(customerName, 77, yStart + 14);
     
-    doc.text(address, 77, yStart + 19);
-    doc.text(cityState, 77, yStart + 25);
+    // Wrap address text to prevent overflow
+    const maxWidth = 60; // Maximum width for address text
+    const addressLines = doc.splitTextToSize(address, maxWidth);
+    let addressY = yStart + 19;
+    addressLines.forEach((line: string) => {
+      doc.text(line, 77, addressY);
+      addressY += 5;
+    });
+    
+    const cityStateLines = doc.splitTextToSize(cityState, maxWidth);
+    cityStateLines.forEach((line: string) => {
+      doc.text(line, 77, addressY);
+      addressY += 5;
+    });
     
     setTypography(doc, 'body');
     doc.setFontSize(8);
