@@ -97,7 +97,16 @@ class NotificationService {
     try {
       const stored = localStorage.getItem('customer_notifications');
       if (stored) {
-        this.notifications = JSON.parse(stored);
+        const allNotifications = JSON.parse(stored);
+        const clearedIds = this.getClearedNotificationIds();
+        const deletedIds = this.getDeletedNotificationIds();
+        
+        // Filter out cleared and deleted notifications
+        this.notifications = allNotifications.filter((notif: OrderNotification) => {
+          const clearedKey = `${notif.orderId}_${notif.orderStatus}`;
+          return !clearedIds.includes(clearedKey) && !deletedIds.includes(notif.id);
+        });
+        
         this.notifyListeners();
       }
     } catch (error) {
@@ -116,7 +125,7 @@ class NotificationService {
 
   // Add a new notification
   private addNotification(notification: OrderNotification) {
-    // Check if notification already exists to prevent duplicates
+    // Check if notification already exists
     const exists = this.notifications.find(n => 
       n.orderId === notification.orderId && 
       n.orderStatus === notification.orderStatus
@@ -124,28 +133,28 @@ class NotificationService {
     
     if (exists) return;
 
-    // Check if this notification was permanently cleared
+    // Check if cleared
     const clearedIds = this.getClearedNotificationIds();
     const clearedKey = `${notification.orderId}_${notification.orderStatus}`;
     if (clearedIds.includes(clearedKey)) return;
 
     this.notifications.unshift(notification);
     
-    // Keep only last 100 notifications
     if (this.notifications.length > 100) {
       this.notifications = this.notifications.slice(0, 100);
     }
 
     this.saveNotifications();
     this.notifyListeners();
+    
+    // Send to mobile drawer immediately
+    this.sendMobilePushNotification(notification);
   }
 
   // Create order status notification
   createOrderStatusNotification(orderId: string, status: string) {
     const template = statusNotifications[status as keyof typeof statusNotifications];
-    if (!template) {
-      return;
-    }
+    if (!template) return;
 
     const notificationId = `order_${orderId}_${status}_${Date.now()}`;
 
@@ -160,11 +169,8 @@ class NotificationService {
       read: false
     };
 
-    // Add to local storage and notify listeners
+    // Add to notifications (will auto-send to mobile drawer)
     this.addNotification(notification);
-    
-    // Send mobile push notification
-    this.sendMobilePushNotification(notification);
     
     // Send browser notification
     this.showBrowserNotification(notification);
@@ -222,23 +228,37 @@ class NotificationService {
 
   // Mark all notifications as read
   markAllAsRead() {
+    // Mark all as read
     this.notifications = this.notifications.map(notif => ({ ...notif, read: true }));
+    
+    // Also save them as cleared to prevent re-showing
+    this.notifications.forEach(notif => {
+      if (notif.orderId && notif.orderStatus) {
+        this.saveClearedNotificationId(`${notif.orderId}_${notif.orderStatus}`);
+      }
+      this.saveDeletedNotificationId(notif.id);
+    });
+    
     this.saveNotifications();
     this.notifyListeners();
   }
 
   // Clear all notifications permanently
   clearAllNotifications() {
-    // Save cleared notification keys to prevent showing again
+    // Save ALL notification keys to prevent showing again
     this.notifications.forEach(notif => {
+      // Save the notification ID itself
+      this.saveDeletedNotificationId(notif.id);
+      
+      // If it's an order notification, also save the order+status combo
       if (notif.orderId && notif.orderStatus) {
         this.saveClearedNotificationId(`${notif.orderId}_${notif.orderStatus}`);
-        // Also clear from mobile system drawer
+        // Clear from mobile system drawer
         this.clearMobileNotification(notif.orderId, notif.orderStatus);
       }
     });
     
-    // Clear all notifications
+    // Clear all notifications from app
     this.notifications = [];
     this.saveNotifications();
     this.notifyListeners();
@@ -284,16 +304,18 @@ class NotificationService {
     // Find the notification to get its details
     const notification = this.notifications.find(n => n.id === id);
     
-    // Remove from current notifications
-    this.notifications = this.notifications.filter(notif => notif.id !== id);
-    
     // Save to deleted list so it won't show again
     this.saveDeletedNotificationId(id);
     
-    // If it's an order notification, also clear it from mobile system drawer
+    // If it's an order notification, also save the order+status combo
     if (notification?.orderId && notification?.orderStatus) {
+      this.saveClearedNotificationId(`${notification.orderId}_${notification.orderStatus}`);
+      // Clear from mobile system drawer
       this.clearMobileNotification(notification.orderId, notification.orderStatus);
     }
+    
+    // Remove from current notifications
+    this.notifications = this.notifications.filter(notif => notif.id !== id);
     
     this.saveNotifications();
     this.notifyListeners();
@@ -315,19 +337,18 @@ class NotificationService {
       if (window.Capacitor?.isNativePlatform()) {
         const { LocalNotifications } = await import('@capacitor/local-notifications');
         
-        const permission = await LocalNotifications.requestPermissions();
+        const permission = await LocalNotifications.checkPermissions();
         
         if (permission.display === 'granted') {
-          // Check if this notification was already dismissed/deleted
           const deletedIds = this.getDeletedNotificationIds();
           const clearedIds = this.getClearedNotificationIds();
           const notificationKey = `${notification.orderId}_${notification.orderStatus}`;
           
           if (deletedIds.includes(notification.id) || clearedIds.includes(notificationKey)) {
-            return; // Don't send if user already dismissed it
+            return;
           }
           
-          const notificationId = Math.floor(Math.random() * 100000);
+          const notificationId = Math.floor(Math.random() * 2147483647);
           
           await LocalNotifications.schedule({
             notifications: [{
@@ -335,17 +356,22 @@ class NotificationService {
               title: notification.title,
               body: notification.message,
               summaryText: 'Urban Steam',
-              schedule: { at: new Date(Date.now() + 100) },
+              schedule: { at: new Date(Date.now() + 1000) },
               sound: 'default',
-              smallIcon: 'ic_stat_icon_config_sample',
               iconColor: '#452D9B',
               channelId: 'order-updates',
               extra: {
                 orderId: notification.orderId,
-                notificationId: notification.id
-              }
+                notificationId: notification.id,
+                orderStatus: notification.orderStatus
+              },
+              actionTypeId: 'ORDER_ACTION',
+              ongoing: false,
+              autoCancel: true
             }]
           });
+          
+          console.log('Mobile notification sent:', notificationId);
         }
       }
     } catch (error) {

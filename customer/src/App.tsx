@@ -127,45 +127,41 @@ const App = () => {
     const initializeApp = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
-          // Configure StatusBar properly
+          // Configure StatusBar
           await StatusBar.setStyle({ style: Style.Light });
           await StatusBar.setOverlaysWebView({ overlay: false });
           await StatusBar.setBackgroundColor({ color: '#452D9B' });
           
-          // Initialize notification channels and background tasks
+          // Request ONLY notification permission on app start
           const { LocalNotifications } = await import('@capacitor/local-notifications');
+          await LocalNotifications.requestPermissions();
+          
+          // Initialize notification channel
           await LocalNotifications.createChannel({
             id: 'order-updates',
             name: 'Order Updates',
             description: 'Notifications for order status updates',
             sound: 'default',
-            importance: 4,
+            importance: 5,
             visibility: 1,
             lights: true,
             lightColor: '#452D9B',
             vibration: true
           });
           
-          // Clear old notifications from system drawer on app start
+          // Clear old notifications
           await LocalNotifications.removeAllDeliveredNotifications();
           
-          // Listen for notification actions
+          // Listen for notification taps
           await LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-            console.log('Notification action performed:', notification);
-            // Handle notification tap - navigate to order details if needed
             if (notification.notification.extra?.orderId) {
-              // You can dispatch a custom event here to navigate
               window.dispatchEvent(new CustomEvent('notificationTap', {
                 detail: { orderId: notification.notification.extra.orderId }
               }));
             }
           });
           
-          // Request notification permission immediately
-          const permission = await LocalNotifications.requestPermissions();
-          console.log('Notification permission:', permission.display);
-          
-          // Add viewport meta tag for better mobile handling
+          // Set viewport
           const viewport = document.querySelector('meta[name="viewport"]');
           if (viewport) {
             viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
@@ -177,7 +173,7 @@ const App = () => {
           }, 1000);
           
         } catch (error) {
-          console.error('Capacitor initialization error:', error);
+          console.error('Initialization error:', error);
         }
       }
     };

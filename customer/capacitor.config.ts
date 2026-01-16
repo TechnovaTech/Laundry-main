@@ -53,20 +53,25 @@ const config: CapacitorConfig = {
       accessoryBarVisible: false
     },
     LocalNotifications: {
-      smallIcon: 'ic_stat_icon_config_sample',
       iconColor: '#452D9B',
       sound: 'default',
       channelId: 'order-updates',
       channelName: 'Order Updates',
       channelDescription: 'Notifications for order status updates',
-      channelImportance: 4,
-      visibility: 1
+      channelImportance: 5,
+      visibility: 1,
+      lights: true,
+      lightColor: '#452D9B',
+      vibration: true
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],
       serverClientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
       androidClientId: '514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com'
+    },
+    BackgroundTask: {
+      enabled: true
     }
   }
 };
