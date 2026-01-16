@@ -31,7 +31,7 @@ const statusNotifications = {
   },
   'processing': {
     title: '🧺 Order Processing Started',
-    message: 'Your laundry is now being processed at our facility.'
+    message: 'Your order is now being processed at our facility.'
   },
   'ironing': {
     title: '👔 Ironing in Progress',
@@ -39,7 +39,7 @@ const statusNotifications = {
   },
   'process_completed': {
     title: '✨ Processing Complete',
-    message: 'Your laundry has been processed and is ready for delivery.'
+    message: 'Your order has been processed and is ready for delivery.'
   },
   'ready': {
     title: '✅ Order Ready',

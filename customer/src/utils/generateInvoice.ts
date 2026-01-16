@@ -329,10 +329,12 @@ export const generateInvoicePDF = async (order: any) => {
     const discountAmount = originalAmount - finalAmount;
     const hasDiscount = discountAmount > 0;
     
+    // Calculate discount percentage
+    const discountPercentage = hasDiscount ? Math.round((discountAmount / originalAmount) * 100) : 0;
+    
     // Only show discount if there's an actual discount
     if (hasDiscount) {
-      const discountLabel = order.appliedVoucherCode ? `Discount (${order.appliedVoucherCode})` : 'Discount';
-      doc.text(discountLabel, 130, yStart);
+      doc.text(`Discount - ${discountPercentage}%`, 130, yStart);
       doc.text('- Rs.' + Math.round(discountAmount), pageWidth - 17, yStart, { align: 'right' });
       yStart += 8;
       

@@ -280,7 +280,7 @@ const ContinueBooking = () => {
             <p>Delivery Address: {customerInfo?.address?.[0] ? `${customerInfo.address[0].street}, ${customerInfo.address[0].city}, ${customerInfo.address[0].state} - ${customerInfo.address[0].pincode}` : 'No address found'}</p>
             <p>Contact Number: {customerInfo?.mobile || 'Not provided'}</p>
             <p>Email: {customerInfo?.email || 'Not provided'}</p>
-            <p>Payment Method: {customerInfo?.paymentMethods?.[0]?.type || 'Cash on Delivery'}</p>
+            <p>Payment Method: {customerInfo?.paymentMethods?.[0]?.type || 'Please add payment method on profile'}</p>
           </div>
         </div>
 
