@@ -65,18 +65,30 @@ input:focus, textarea:focus, select:focus {
   overflow-y: auto !important;
 }
 
-  /* System navigation button handling - Smart detection */
+  /* System navigation button handling - Enhanced for 3-button navigation with dynamic detection */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .system-nav-safe {
-    /* Use CSS custom properties for dynamic values */
-    padding-bottom: var(--dynamic-bottom-padding, 24px) !important;
+    /* Enhanced padding using dynamic detection */
+    padding-bottom: max(env(safe-area-inset-bottom), var(--dynamic-bottom-padding, 100px)) !important;
   }
 }
 
-/* Android system navigation button support - responsive */
+/* Android system navigation button support - Enhanced with dynamic detection */
 @media screen and (max-width: 768px) {
   .system-nav-safe {
-    padding-bottom: var(--dynamic-bottom-padding, 24px) !important;
+    /* Enhanced padding using dynamic detection */
+    padding-bottom: max(env(safe-area-inset-bottom), var(--dynamic-bottom-padding, 100px)) !important;
+  }
+  
+  /* Specific class for pages with buttons/forms at bottom */
+  .page-bottom-content {
+    padding-bottom: max(env(safe-area-inset-bottom), var(--dynamic-bottom-padding, 100px)) !important;
+  }
+  
+  /* Additional spacing for detected 3-button navigation */
+  [data-has-three-button-nav="1"] .system-nav-safe,
+  [data-has-three-button-nav="1"] .page-bottom-content {
+    padding-bottom: max(env(safe-area-inset-bottom), 120px) !important;
   }
 }
 
@@ -360,20 +372,32 @@ All colors MUST be HSL.
     padding-bottom: 0;
   }
   
-  /* Page containers - NO safe area padding with keyboard support */
+  /* Page containers - Enhanced padding for 3-button navigation */
   .page-container {
     min-height: calc(100vh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom));
     min-height: calc(100dvh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom));
+    /* Enhanced padding for 3-button navigation */
+    padding-bottom: max(env(safe-area-inset-bottom), 100px);
     position: relative;
     overflow-x: hidden;
   }
   
-  /* Page with bottom nav - Universal approach */
+  /* Special class for pages with fixed bottom elements */
+  .page-with-fixed-bottom {
+    min-height: calc(100vh - var(--safe-area-inset-top));
+    min-height: calc(100dvh - var(--safe-area-inset-top));
+    /* Extra space for fixed bottom + 3-button navigation */
+    padding-bottom: max(env(safe-area-inset-bottom), 120px);
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  /* Page with bottom nav - Universal approach with extra padding for 3-button navigation */
   .page-with-bottom-nav {
     min-height: calc(100vh - var(--safe-area-inset-top));
     min-height: calc(100dvh - var(--safe-area-inset-top));
-    /* Universal padding for bottom nav + system navigation */
-    padding-bottom: calc(5rem + max(env(safe-area-inset-bottom), 12px));
+    /* Extra padding: bottom nav (5rem) + system buttons (80px) + safe area */
+    padding-bottom: calc(5rem + 80px + max(env(safe-area-inset-bottom), 0px));
     position: relative;
     overflow-x: hidden;
   }

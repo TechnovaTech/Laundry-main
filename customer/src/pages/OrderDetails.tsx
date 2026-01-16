@@ -154,7 +154,7 @@ const OrderDetails = () => {
         onBack={() => navigate(-1)}
       />
 
-      <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 page-bottom-content">
         {loading ? (
           <div className="text-center py-8 text-gray-500">
             Loading order details...

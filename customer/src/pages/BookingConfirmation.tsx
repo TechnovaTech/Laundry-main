@@ -46,7 +46,7 @@ const BookingConfirmation = () => {
         <h1 className="text-lg sm:text-xl font-bold ml-3 sm:ml-4">Order Confirmed</h1>
       </header>
 
-      <div className="px-4 sm:px-6 py-8 sm:py-12 flex flex-col items-center">
+      <div className="px-4 sm:px-6 py-8 sm:py-12 flex flex-col items-center page-bottom-content">
         <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full flex items-center justify-center mb-4 sm:mb-6 shadow-xl" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
           <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 text-white" strokeWidth={3} />
         </div>

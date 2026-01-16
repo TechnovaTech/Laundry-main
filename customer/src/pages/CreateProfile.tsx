@@ -228,7 +228,7 @@ const CreateProfile = () => {
         <h1 className="text-lg sm:text-xl font-bold text-black">Create Profile</h1>
       </header>
 
-      <div className="px-4 sm:px-6 py-4 sm:py-6">
+      <div className="px-4 sm:px-6 py-4 sm:py-6 page-bottom-content">
         <div className="flex flex-col items-center mb-4 sm:mb-6">
           <div className="relative">
             <div 

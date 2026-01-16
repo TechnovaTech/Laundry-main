@@ -198,7 +198,7 @@ const ContinueBooking = () => {
         backTo="/home"
       />
 
-      <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 page-bottom-content">
         <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-lg">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">

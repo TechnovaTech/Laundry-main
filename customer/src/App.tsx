@@ -14,6 +14,7 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import SafeAreaWrapper from './components/SafeAreaWrapper';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useOrderStatusMonitor } from './hooks/useOrderStatusMonitor';
+import { navigationDetector } from './utils/navigationDetection';
 import Welcome from "./pages/Welcome";
 import CheckAvailability from "./pages/CheckAvailability";
 import Congrats from "./pages/Congrats";
@@ -125,6 +126,9 @@ const AppContent = () => {
 const App = () => {
   useEffect(() => {
     const initializeApp = async () => {
+      // Initialize navigation detection first
+      navigationDetector.init();
+      
       if (Capacitor.isNativePlatform()) {
         try {
           // Configure StatusBar

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { getOptimalBottomPadding } from '../utils/navigationDetection';
 
 interface SafeAreaInsets {
   top: number;
@@ -25,18 +24,15 @@ export const useSafeArea = () => {
         const top = parseInt(computedStyle.getPropertyValue('--safe-area-inset-top').replace('px', '')) || 0;
         const left = parseInt(computedStyle.getPropertyValue('--safe-area-inset-left').replace('px', '')) || 0;
         const right = parseInt(computedStyle.getPropertyValue('--safe-area-inset-right').replace('px', '')) || 0;
-
-        // Use sophisticated detection for bottom padding
-        const optimalBottomPadding = getOptimalBottomPadding();
+        const bottom = parseInt(computedStyle.getPropertyValue('--safe-area-inset-bottom').replace('px', '')) || 0;
 
         setSafeAreaInsets({
           top,
-          bottom: optimalBottomPadding,
+          bottom: Math.max(bottom, 100),
           left,
           right
         });
       } else {
-        // For web, minimal padding
         setSafeAreaInsets({
           top: 0,
           bottom: 8,
@@ -46,12 +42,10 @@ export const useSafeArea = () => {
       }
     };
 
-    // Update on load and resize
     updateSafeArea();
     window.addEventListener('resize', updateSafeArea);
     window.addEventListener('orientationchange', updateSafeArea);
 
-    // Multiple updates to catch late-loading safe area values
     const timeouts = [100, 500, 1000, 2000].map(delay => 
       setTimeout(updateSafeArea, delay)
     );

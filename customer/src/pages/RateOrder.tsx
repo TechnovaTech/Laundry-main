@@ -155,14 +155,9 @@ const RateOrder = () => {
                   className={`w-8 h-8 sm:w-10 sm:h-10 ${
                     star <= rating
                       ? "text-white"
-                      : "text-gray-300"
+                      : "text-gray-300 hover:text-gray-400"
                   }`}
                   style={star <= rating ? { fill: '#452D9B', stroke: '#452D9B' } : {}}
-                  className={`w-8 h-8 sm:w-10 sm:h-10 ${
-                    star <= rating
-                      ? ""
-                      : "hover:text-gray-400"
-                  }`}
                 />
               </button>
             ))}

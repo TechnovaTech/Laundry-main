@@ -219,7 +219,7 @@ const AddAddress = () => {
         backTo="/profile"
       />
 
-      <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-3 sm:space-y-4 pb-24">
+      <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-3 sm:space-y-4 page-with-fixed-bottom">
         {/* Saved Addresses */}
         {savedAddresses.length > 0 && (
           <div className="space-y-3">
@@ -367,7 +367,7 @@ const AddAddress = () => {
       </div>
 
       {showAddForm && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 sm:p-6 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 sm:p-6 shadow-lg system-nav-safe">
           <div className="flex gap-3">
             <button
               onClick={() => {
