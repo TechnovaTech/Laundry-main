@@ -78,7 +78,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     console.log('===========================')
     
     // Handle cancellation fee logic
-    if (updateData.status === 'cancelled' && currentOrder) {
+    if (updateData.status === 'cancelled' && currentOrder && currentOrder.status !== 'cancelled') {
       let cancellationFee = 0
       
       console.log('\n=== CANCELLATION FEE CALCULATION ===')
@@ -173,7 +173,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
     
     // Handle delivery failure fee logic
-    if (updateData.status === 'delivery_failed' && currentOrder) {
+    // Only apply if status is changing TO delivery_failed from something else
+    // This prevents double charging if the order is updated while already in delivery_failed state
+    if (updateData.status === 'delivery_failed' && currentOrder && currentOrder.status !== 'delivery_failed') {
       // Calculate previous delivery failures
       const previousFailures = currentOrder.statusHistory?.filter(
         (h: any) => h.status === 'delivery_failed'
