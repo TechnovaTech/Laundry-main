@@ -11,18 +11,19 @@ const Prices = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<{[key: string]: number}>({});
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
   useEffect(() => {
     fetchItems();
+    fetchCategories();
     
     // Handle hardware back button
     const handleBackButton = () => {
-      if (selectedCategory !== 'All') {
-        setSelectedCategory('All');
+      if (selectedCategory !== null) {
+        setSelectedCategory(null);
       } else {
         navigate('/home');
       }
@@ -36,15 +37,24 @@ const Prices = () => {
     };
   }, [navigate, selectedCategory]);
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/pricing/categories`);
+      const data = await response.json();
+      if (data.success) {
+        setCategories(data.data.map((cat: any) => cat.name));
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
   const fetchItems = async () => {
     try {
       const response = await fetch(`${API_URL}/api/pricing`);
       const data = await response.json();
       if (data.success) {
         setItems(data.data);
-        // Extract unique categories from items
-        const uniqueCategories = [...new Set(data.data.map((item: any) => item.category))];
-        setCategories(uniqueCategories);
         
         // Initialize quantities
         const initialQuantities: {[key: string]: number} = {};
@@ -127,8 +137,6 @@ const Prices = () => {
     return acc;
   }, {});
 
-
-
   return (
     <div className="min-h-screen bg-gray-50 page-with-bottom-nav">
       <Header 
@@ -140,8 +148,22 @@ const Prices = () => {
       />
 
       <div className="px-4 sm:px-6 py-4 sm:py-6">
-        {selectedCategory === 'All' && (
+        {selectedCategory === null && (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            {/* All Items Card */}
+            <button 
+              onClick={() => setSelectedCategory('All')}
+              className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-left"
+            >
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 sm:mb-3 shadow-md" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>
+                <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <h3 className="font-bold text-sm sm:text-lg mb-1 text-black">All Items</h3>
+              <p className="text-xs sm:text-sm text-gray-500">
+                {items.length} items
+              </p>
+            </button>
+
             {categories.map((cat) => {
               const Icon = cat.toLowerCase().includes('household') || cat.toLowerCase().includes('home') ? Bed : Shirt;
               return (
@@ -169,11 +191,11 @@ const Prices = () => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 flex flex-col items-center shadow-lg">
             <p className="text-center text-sm text-gray-600">No pricing items available yet.</p>
           </div>
-        ) : selectedCategory !== 'All' ? (
+        ) : selectedCategory !== null ? (
           <div>
             <div className="mb-4">
               <button 
-                onClick={() => setSelectedCategory('All')}
+                onClick={() => setSelectedCategory(null)}
                 className="text-blue-500 text-sm font-medium hover:underline"
               >
                 ← Back to all categories
@@ -181,7 +203,7 @@ const Prices = () => {
             </div>
             <div>
               <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                {selectedCategory}
+                {selectedCategory === 'All' ? 'All Items' : selectedCategory}
               </h2>
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
                 {filteredItems.map((item: any, index: number) => (
