@@ -72,6 +72,10 @@ class NotificationService {
   private notifications: OrderNotification[] = [];
   private listeners: ((notifications: OrderNotification[]) => void)[] = [];
 
+  private constructor() {
+    this.loadNotifications();
+  }
+
   static getInstance(): NotificationService {
     if (!NotificationService.instance) {
       NotificationService.instance = new NotificationService();
@@ -331,6 +335,29 @@ class NotificationService {
     return this.notifications.filter(notif => !notif.read).length;
   }
 
+  // Get pushed notification keys
+  private getPushedNotificationKeys(): string[] {
+    try {
+      const pushed = localStorage.getItem('pushed_notifications');
+      return pushed ? JSON.parse(pushed) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // Save pushed notification key
+  private savePushedNotificationKey(key: string) {
+    try {
+      const pushedKeys = this.getPushedNotificationKeys();
+      if (!pushedKeys.includes(key)) {
+        pushedKeys.push(key);
+        localStorage.setItem('pushed_notifications', JSON.stringify(pushedKeys));
+      }
+    } catch (error) {
+      console.error('Failed to save pushed notification key:', error);
+    }
+  }
+
   // Send mobile push notification using Capacitor
   private async sendMobilePushNotification(notification: OrderNotification) {
     try {
@@ -341,11 +368,23 @@ class NotificationService {
         
         if (permission.display === 'granted') {
           const deletedIds = this.getDeletedNotificationIds();
-          const clearedIds = this.getClearedNotificationIds();
-          const notificationKey = `${notification.orderId}_${notification.orderStatus}`;
           
-          if (deletedIds.includes(notification.id) || clearedIds.includes(notificationKey)) {
+          if (deletedIds.includes(notification.id)) {
             return;
+          }
+
+          // Only check for duplicates if it's an order status notification
+          if (notification.orderId && notification.orderStatus) {
+            const clearedIds = this.getClearedNotificationIds();
+            const pushedKeys = this.getPushedNotificationKeys();
+            const notificationKey = `${notification.orderId}_${notification.orderStatus}`;
+            
+            if (clearedIds.includes(notificationKey) || pushedKeys.includes(notificationKey)) {
+              return;
+            }
+            
+            // Mark as pushed to prevent future duplicates
+            this.savePushedNotificationKey(notificationKey);
           }
           
           const notificationId = Math.floor(Math.random() * 2147483647);
@@ -358,6 +397,7 @@ class NotificationService {
               summaryText: 'Urban Steam',
               schedule: { at: new Date(Date.now() + 1000) },
               sound: 'default',
+              smallIcon: 'ic_launcher',
               largeIcon: 'ic_launcher',
               iconColor: '#452D9B',
               channelId: 'order-updates',
