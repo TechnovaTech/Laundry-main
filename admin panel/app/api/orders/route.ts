@@ -28,11 +28,19 @@ export async function POST(request: NextRequest) {
       }
     }
     
+    // Get customer's current due amount
+    let previousDuePaid = 0
+    const customerForDue = await Customer.findById(orderData.customerId)
+    if (customerForDue && customerForDue.dueAmount > 0) {
+      previousDuePaid = customerForDue.dueAmount
+    }
+
     const newOrder = new Order({
       orderId,
       customerId: orderData.customerId,
       items: orderData.items,
       totalAmount: orderData.totalAmount,
+      previousDuePaid: previousDuePaid,
       status: 'pending',
       hub: assignedHub,
       pickupAddress: orderData.pickupAddress,

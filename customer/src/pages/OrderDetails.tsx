@@ -220,6 +220,23 @@ const OrderDetails = () => {
           })}
         </div>
 
+        {order?.previousDuePaid > 0 && (
+          <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #dbeafe, #bfdbfe)', borderColor: '#3b82f6' }}>
+            <div className="flex items-start gap-2">
+              <span className="text-2xl">💰</span>
+              <div className="flex-1">
+                <p className="text-sm sm:text-base font-bold text-blue-800 mb-1">Previous Due Paid</p>
+                <p className="text-xs sm:text-sm text-blue-700 font-semibold mb-1">
+                  ₹{order.previousDuePaid} included in total
+                </p>
+                <p className="text-xs sm:text-sm text-blue-600">
+                  Cleared from previous pending amount
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {order?.deliveryFailureFee > 0 && (
           <Card className="p-3 sm:p-4 rounded-2xl border-2 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fef3c7, #fde68a)', borderColor: '#f59e0b' }}>
             <div className="flex items-start gap-2">

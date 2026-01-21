@@ -325,13 +325,26 @@ export const generateInvoicePDF = async (order: any) => {
     
     // Calculate actual discount from order data
     const originalAmount = subtotal;
+    const previousDue = order.previousDuePaid || 0;
     const finalAmount = order.totalAmount || subtotal;
-    const discountAmount = originalAmount - finalAmount;
+    // discount = (Items Total + Previous Due) - Final Total
+    const discountAmount = (originalAmount + previousDue) - finalAmount;
     const hasDiscount = discountAmount > 0;
     
     // Calculate discount percentage
     const discountPercentage = hasDiscount ? Math.round((discountAmount / originalAmount) * 100) : 0;
     
+    // Show Previous Due if exists
+    if (previousDue > 0) {
+      doc.text('Previous Due', 130, yStart);
+      doc.text('+ Rs.' + Math.round(previousDue), pageWidth - 17, yStart, { align: 'right' });
+      yStart += 8;
+      
+      // Line after previous due
+      doc.line(130, yStart, pageWidth - 15, yStart);
+      yStart += 8;
+    }
+
     // Only show discount if there's an actual discount
     if (hasDiscount) {
       doc.text(`Discount - ${discountPercentage}%`, 130, yStart);

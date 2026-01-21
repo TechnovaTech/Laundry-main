@@ -45,6 +45,7 @@ const OrderSchema = new mongoose.Schema({
   razorpayOrderId: String,
   razorpayPaymentId: String,
   appliedVoucherCode: String,
+  previousDuePaid: { type: Number, default: 0 },
   cancellationFee: { type: Number, default: 0 },
   cancellationReason: String,
   cancelledAt: Date,
