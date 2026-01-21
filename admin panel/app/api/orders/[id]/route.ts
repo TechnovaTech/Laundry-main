@@ -180,20 +180,20 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       ).length || 0
 
       // Fetch charges configuration
-      const orderCharges = await OrderCharges.findOne()
-      let baseDeliveryFee = 150 // Default fallback
-
-      const reason = updateData.deliveryFailureReason || ''
-      
-      if (orderCharges) {
-        if (reason.includes('Unavailable')) {
-          baseDeliveryFee = orderCharges.customerUnavailable
-        } else if (reason.includes('Address')) {
-          baseDeliveryFee = orderCharges.incorrectAddress
-        } else if (reason.includes('Refusal')) {
-          baseDeliveryFee = orderCharges.refusalToAccept
-        }
-      }
+       const orderCharges = await OrderCharges.findOne()
+       let baseDeliveryFee = 0 // Default to 0 (User requested no 150 fallback)
+ 
+       const reason = updateData.deliveryFailureReason || ''
+       
+       if (orderCharges) {
+         if (reason.includes('Unavailable')) {
+           baseDeliveryFee = orderCharges.customerUnavailable
+         } else if (reason.includes('Address')) {
+           baseDeliveryFee = orderCharges.incorrectAddress
+         } else if (reason.includes('Refusal')) {
+           baseDeliveryFee = orderCharges.refusalToAccept
+         }
+       }
 
       let deliveryFee = baseDeliveryFee
       
