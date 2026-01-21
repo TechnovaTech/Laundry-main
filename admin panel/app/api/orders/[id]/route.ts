@@ -174,73 +174,113 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     
     // Handle delivery failure fee logic
     if (updateData.status === 'delivery_failed' && currentOrder) {
-      const deliveryFee = updateData.deliveryFailureFee || 150
+      // Calculate previous delivery failures
+      const previousFailures = currentOrder.statusHistory?.filter(
+        (h: any) => h.status === 'delivery_failed'
+      ).length || 0
+
+      // Fetch charges configuration
+      const orderCharges = await OrderCharges.findOne()
+      let baseDeliveryFee = 150 // Default fallback
+
+      const reason = updateData.deliveryFailureReason || ''
+      
+      if (orderCharges) {
+        if (reason.includes('Unavailable')) {
+          baseDeliveryFee = orderCharges.customerUnavailable
+        } else if (reason.includes('Address')) {
+          baseDeliveryFee = orderCharges.incorrectAddress
+        } else if (reason.includes('Refusal')) {
+          baseDeliveryFee = orderCharges.refusalToAccept
+        }
+      }
+
+      let deliveryFee = baseDeliveryFee
       
       console.log('=== DELIVERY FAILURE FEE CALCULATION ===')
       console.log('Order ID:', currentOrder.orderId)
-      console.log('Delivery failure fee:', deliveryFee)
+      console.log('Previous failures:', previousFailures)
+      console.log('Failure reason:', reason)
+      console.log('Base fee from settings:', baseDeliveryFee)
+      
+      // First failure is free, subsequent failures are charged
+       if (previousFailures === 0) {
+         console.log('First delivery failure - No charge applied')
+         deliveryFee = 0
+       } else {
+         console.log(`Delivery failure attempt #${previousFailures + 1} - Applying charge`)
+       }
+ 
+       // Update the data object so the DB reflects the actual fee charged
+       updateData.deliveryFailureFee = deliveryFee
+
+       console.log('Final Delivery failure fee:', deliveryFee)
       console.log('Failure reason:', updateData.deliveryFailureReason)
       
       updateData.deliveryFailedAt = new Date()
       
-      // Deduct from wallet or create due
-      const customer = await Customer.findById(currentOrder.customerId)
-      if (customer) {
-        // Ensure dueAmount field exists
-        if (customer.dueAmount === undefined || customer.dueAmount === null) {
-          customer.dueAmount = 0
+      // Deduct from wallet or create due ONLY if fee > 0
+      if (deliveryFee > 0) {
+        const customer = await Customer.findById(currentOrder.customerId)
+        if (customer) {
+          // Ensure dueAmount field exists
+          if (customer.dueAmount === undefined || customer.dueAmount === null) {
+            customer.dueAmount = 0
+          }
+          
+          console.log('Customer wallet balance:', customer.walletBalance)
+          console.log('Customer due amount before:', customer.dueAmount)
+          
+          const previousBalance = customer.walletBalance
+          
+          if (customer.walletBalance >= deliveryFee) {
+            // Deduct from wallet
+            customer.walletBalance -= deliveryFee
+            await customer.save()
+            console.log('Deducted', deliveryFee, 'from wallet')
+            
+            // Create wallet transaction history
+            await WalletTransaction.create({
+              customerId: customer._id,
+              type: 'balance',
+              action: 'decrease',
+              amount: deliveryFee,
+              reason: `Delivery failure fee for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason}`,
+              previousValue: previousBalance,
+              newValue: customer.walletBalance,
+              adjustedBy: 'System'
+            })
+          } else {
+            // Create due amount
+            const remainingDue = deliveryFee - customer.walletBalance
+            const deductedFromWallet = customer.walletBalance
+            const newDueAmount = (customer.dueAmount || 0) + remainingDue
+            
+            customer.walletBalance = 0
+            customer.dueAmount = newDueAmount
+            await customer.save()
+            
+            console.log('Deducted', deductedFromWallet, 'from wallet')
+            console.log('Added', remainingDue, 'to due amount')
+            console.log('New due amount:', newDueAmount)
+            
+            // Create wallet transaction history
+            await WalletTransaction.create({
+              customerId: customer._id,
+              type: 'balance',
+              action: 'decrease',
+              amount: deliveryFee,
+              reason: deductedFromWallet > 0
+                ? `Delivery failure fee (partial) for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - ₹${deductedFromWallet} from wallet, ₹${remainingDue} added to due`
+                : `Delivery failure fee for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - Full amount ₹${deliveryFee} added to due (insufficient wallet balance)`,
+              previousValue: previousBalance,
+              newValue: 0,
+              adjustedBy: 'System'
+            })
+          }
         }
-        
-        console.log('Customer wallet balance:', customer.walletBalance)
-        console.log('Customer due amount before:', customer.dueAmount)
-        
-        const previousBalance = customer.walletBalance
-        
-        if (customer.walletBalance >= deliveryFee) {
-          // Deduct from wallet
-          customer.walletBalance -= deliveryFee
-          await customer.save()
-          console.log('Deducted', deliveryFee, 'from wallet')
-          
-          // Create wallet transaction history
-          await WalletTransaction.create({
-            customerId: customer._id,
-            type: 'balance',
-            action: 'decrease',
-            amount: deliveryFee,
-            reason: `Delivery failure fee for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason}`,
-            previousValue: previousBalance,
-            newValue: customer.walletBalance,
-            adjustedBy: 'System'
-          })
-        } else {
-          // Create due amount
-          const remainingDue = deliveryFee - customer.walletBalance
-          const deductedFromWallet = customer.walletBalance
-          const newDueAmount = (customer.dueAmount || 0) + remainingDue
-          
-          customer.walletBalance = 0
-          customer.dueAmount = newDueAmount
-          await customer.save()
-          
-          console.log('Deducted', deductedFromWallet, 'from wallet')
-          console.log('Added', remainingDue, 'to due amount')
-          console.log('New due amount:', newDueAmount)
-          
-          // Create wallet transaction history
-          await WalletTransaction.create({
-            customerId: customer._id,
-            type: 'balance',
-            action: 'decrease',
-            amount: deliveryFee,
-            reason: deductedFromWallet > 0
-              ? `Delivery failure fee (partial) for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - ₹${deductedFromWallet} from wallet, ₹${remainingDue} added to due`
-              : `Delivery failure fee for Order #${currentOrder.orderId} - ${updateData.deliveryFailureReason} - Full amount ₹${deliveryFee} added to due (insufficient wallet balance)`,
-            previousValue: previousBalance,
-            newValue: 0,
-            adjustedBy: 'System'
-          })
-        }
+      } else {
+        console.log('Skipping wallet deduction as fee is 0')
       }
       console.log('=== END DELIVERY FAILURE FEE CALCULATION ===')
     }
