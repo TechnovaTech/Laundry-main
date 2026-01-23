@@ -107,7 +107,7 @@ export default function StartPickup() {
       {/* Map with overlay */}
       <div className="mt-3 mx-4 relative rounded-xl overflow-hidden h-48">
         <iframe
-          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}, ${order.pickupAddress.state}`)}&zoom=15`}
+          src={`https://maps.google.com/maps?q=${encodeURIComponent(`${order.pickupAddress.street}, ${order.pickupAddress.city}, ${order.pickupAddress.state}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
           width="100%"
           height="100%"
           style={{ border: 0 }}

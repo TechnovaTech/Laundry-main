@@ -13,8 +13,6 @@ const LeafletMap = ({ address }: LeafletMapProps) => {
   const [mapUrl, setMapUrl] = useState('');
 
   useEffect(() => {
-    const apiKey = 'AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8';
-    
     // Build complete address string for better accuracy
     const addressParts = [
       address.street ? String(address.street).trim() : '',
@@ -27,7 +25,7 @@ const LeafletMap = ({ address }: LeafletMapProps) => {
     const fullAddress = addressParts.join(', ');
     const encodedQuery = encodeURIComponent(fullAddress);
     
-    setMapUrl(`https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodedQuery}&zoom=16&maptype=roadmap`);
+    setMapUrl(`https://maps.google.com/maps?q=${encodedQuery}&t=&z=13&ie=UTF8&iwloc=&output=embed`);
   }, [address]);
 
   if (!mapUrl) {
