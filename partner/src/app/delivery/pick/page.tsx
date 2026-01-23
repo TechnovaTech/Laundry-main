@@ -258,6 +258,13 @@ export default function PickForDelivery() {
                       <p className="text-sm font-semibold text-black">Order ID: #{order.orderId}</p>
                       {order.redeliveryScheduled && <span style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem', borderRadius: '4px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: '600' }}>REDELIVERY</span>}
                     </div>
+                    {order.deliverySlot && (
+                      <div className="mt-2 mb-1 p-2 bg-blue-50 rounded border border-blue-100">
+                        <p className="text-xs font-bold text-blue-800">
+                          📅 Delivery: {new Date(order.deliverySlot.date).toLocaleDateString()} | {order.deliverySlot.timeSlot}
+                        </p>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-600 mt-2">Customer: <span className="text-black">{order.customerId?.name || 'N/A'}</span></p>
                     <p className="text-xs text-gray-600 mt-1">Items: <span className="text-black">{order.items?.map((item: any) => item.quantity + ' ' + item.name).join(', ')}</span></p>
                     <p className="text-xs text-gray-600 mt-1">Address: <span className="text-black">{order.deliveryAddress?.street || order.pickupAddress?.street}, {order.deliveryAddress?.city || order.pickupAddress?.city}</span></p>

@@ -53,6 +53,7 @@ const config: CapacitorConfig = {
       accessoryBarVisible: false
     },
     LocalNotifications: {
+      smallIcon: 'ic_notification',
       iconColor: '#452D9B',
       sound: 'default',
       channelId: 'order-updates',

@@ -393,8 +393,8 @@ class NotificationService {
               summaryText: 'Urban Steam',
               schedule: { at: new Date(Date.now() + 1000) },
               sound: 'default',
-              smallIcon: 'ic_launcher',
-              largeIcon: 'ic_launcher',
+              smallIcon: 'ic_notification',
+              largeIcon: 'ic_notification',
               iconColor: '#452D9B',
               channelId: 'order-updates',
               extra: {
