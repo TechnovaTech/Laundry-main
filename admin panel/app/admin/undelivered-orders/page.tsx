@@ -349,9 +349,32 @@ export default function UndeliveredOrdersPage() {
                         SETUP REDELIVERY
                       </button>
                     </div>
-                  ) : /* Redelivery approved - show SUSPEND */
+                  ) : /* Redelivery approved - show SETUP REDELIVERY AND SUSPEND */
                   dbOrder.redeliveryReturnApproved === true && dbOrder.status === 'delivered_to_hub' ? (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => {
+                          setSelectedOrder(dbOrder);
+                          setRedeliveryData({
+                            newAddress: dbOrder.deliveryAddress ? `${dbOrder.deliveryAddress.street}, ${dbOrder.deliveryAddress.city}` : '',
+                            newTimeSlot: '',
+                            redeliveryDate: ''
+                          });
+                          setShowRedeliveryModal(true);
+                        }}
+                        style={{
+                          backgroundColor: '#2563eb',
+                          color: 'white',
+                          border: 'none',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '6px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        SETUP REDELIVERY
+                      </button>
                       <button
                         onClick={() => {
                           setModal({
@@ -644,7 +667,12 @@ export default function UndeliveredOrdersPage() {
                     const updateData: any = {
                       status: 'process_completed',
                       processCompletedAt: new Date().toISOString(),
-                      redeliveryScheduled: true
+                      redeliveryScheduled: true,
+                      // Reset return flags to allow future failures to be processed
+                      redeliveryReturnApproved: false,
+                      redeliveryReturnRequested: false,
+                      returnToHubApproved: false,
+                      returnToHubRequested: false
                     };
 
                     if (redeliveryData.newAddress && selectedOrder.deliveryFailureReason?.includes('Address')) {

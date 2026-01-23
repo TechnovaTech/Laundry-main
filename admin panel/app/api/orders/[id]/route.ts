@@ -213,15 +213,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
          console.log(`Delivery failure attempt #${previousFailures + 1} - Applying charge`)
        }
  
-       // Update the data object so the DB reflects the actual fee charged
-       updateData.deliveryFailureFee = deliveryFee
+       // Accumulate the fee instead of overwriting
+       // If previousFailures > 0, we add the new fee to the existing total
+       const currentTotalFee = currentOrder.deliveryFailureFee || 0
+       updateData.deliveryFailureFee = currentTotalFee + deliveryFee
 
-       console.log('Final Delivery failure fee:', deliveryFee)
+       console.log('Fee for this attempt:', deliveryFee)
+       console.log('Previous Total Fee:', currentTotalFee)
+       console.log('New Total Fee:', updateData.deliveryFailureFee)
       console.log('Failure reason:', updateData.deliveryFailureReason)
       
       updateData.deliveryFailedAt = new Date()
       
-      // Deduct from wallet or create due ONLY if fee > 0
+      // Deduct from wallet or create due ONLY if fee > 0 (the incremental fee)
       if (deliveryFee > 0) {
         const customer = await Customer.findById(currentOrder.customerId)
         if (customer) {
