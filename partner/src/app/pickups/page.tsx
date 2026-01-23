@@ -9,6 +9,32 @@ import BottomNav from "@/components/BottomNav";
 import LeafletMap from "@/components/LeafletMap";
 import { API_URL } from '@/config/api';
 
+const formatDisplayDate = (dateString: string | undefined | null) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const today = new Date();
+  
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  
+  if (d.getTime() === t.getTime()) {
+    return 'Today';
+  }
+  
+  return `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
+};
+
+const isPickupStartable = (dateString: string | undefined | null) => {
+  if (!dateString) return true;
+  const date = new Date(dateString);
+  const today = new Date();
+  
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  
+  return d.getTime() <= t.getTime();
+};
+
 interface Pickup {
   _id: string;
   orderId: string;
@@ -282,7 +308,7 @@ export default function Pickups() {
                     📍 {p.pickupAddress?.street}, {p.pickupAddress?.city}
                   </p>
                   <p className="text-xs mt-1.5 font-medium" style={{ color: '#452D9B' }}>
-                    🕐 {p.pickupSlot?.timeSlot || 'Time not set'}
+                    📅 {formatDisplayDate(p.pickupSlot?.date)} | 🕐 {p.pickupSlot?.timeSlot || 'Time not set'}
                   </p>
                 </div>
                 <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">#{p.orderId}</span>
@@ -292,6 +318,7 @@ export default function Pickups() {
                   <span>📞</span>
                   Call
                 </a>
+                {isPickupStartable(p.pickupSlot?.date) && (
                 <button
                   onClick={async () => {
                     if (startingPickup) return;
@@ -347,6 +374,7 @@ export default function Pickups() {
                     'Start Pickup'
                   )}
                 </button>
+                )}
               </div>
             </div>
           ))
