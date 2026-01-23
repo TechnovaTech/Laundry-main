@@ -360,7 +360,12 @@ class NotificationService {
       if (window.Capacitor?.isNativePlatform()) {
         const { LocalNotifications } = await import('@capacitor/local-notifications');
         
-        const permission = await LocalNotifications.checkPermissions();
+        let permission = await LocalNotifications.checkPermissions();
+        
+        // Request permission if not granted
+        if (permission.display !== 'granted') {
+            permission = await LocalNotifications.requestPermissions();
+        }
         
         if (permission.display === 'granted') {
           const deletedIds = this.getDeletedNotificationIds();
@@ -383,6 +388,19 @@ class NotificationService {
             this.savePushedNotificationKey(notificationKey);
           }
           
+          // Ensure channel exists before scheduling
+          await LocalNotifications.createChannel({
+            id: 'order-updates',
+            name: 'Order Updates',
+            description: 'Notifications for order status updates',
+            sound: 'default',
+            importance: 5,
+            visibility: 1,
+            lights: true,
+            lightColor: '#452D9B',
+            vibration: true
+          });
+          
           const notificationId = Math.floor(Math.random() * 2147483647);
           
           await LocalNotifications.schedule({
@@ -391,7 +409,7 @@ class NotificationService {
               title: notification.title,
               body: notification.message,
               summaryText: 'Urban Steam',
-              schedule: { at: new Date(Date.now() + 1000) },
+              schedule: { at: new Date(Date.now() + 100) }, // Reduced delay
               sound: 'default',
               smallIcon: 'ic_notification',
               largeIcon: 'ic_notification',
