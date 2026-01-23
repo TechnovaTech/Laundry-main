@@ -41,10 +41,6 @@ const statusNotifications = {
     title: '✨ Processing Complete',
     message: 'Your order has been processed and is ready for delivery.'
   },
-  'ready': {
-    title: '✅ Order Ready',
-    message: 'Your order is ready and will be out for delivery soon.'
-  },
   'out_for_delivery': {
     title: '🚚 Out for Delivery',
     message: 'Great news! Your order is out for delivery and will reach you soon.'

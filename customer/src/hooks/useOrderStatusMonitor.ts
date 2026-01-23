@@ -18,7 +18,6 @@ const NOTIFICATION_STATUSES = [
   'processing',
   'ironing',
   'process_completed',
-  'ready',
   'out_for_delivery',
   'delivered',
   'cancelled',
