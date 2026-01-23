@@ -15,6 +15,7 @@ const Prices = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<{[key: string]: number}>({});
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   useEffect(() => {
     fetchItems();
@@ -143,7 +144,9 @@ const Prices = () => {
         title="Categories" 
         variant="gradient"
         rightAction={
-          <Info className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          <button onClick={() => setShowInfoModal(true)}>
+            <Info className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </button>
         }
       />
 
@@ -275,6 +278,58 @@ const Prices = () => {
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
           <div className={`${toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3`}>
             <span className="font-semibold">{toast.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Info Modal */}
+      {showInfoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm mx-4 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button 
+              onClick={() => setShowInfoModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <Info className="w-6 h-6" />
+            </button>
+            
+            <h3 className="text-xl font-bold mb-6 text-center" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              How to Order
+            </h3>
+            
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>1</div>
+                <div>
+                  <p className="font-semibold text-gray-800">Choose Items</p>
+                  <p className="text-sm text-gray-600">Use the <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded text-xs font-bold">+</span> sign to add quantity for each item you want to clean.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>2</div>
+                <div>
+                  <p className="font-semibold text-gray-800">Add to Cart</p>
+                  <p className="text-sm text-gray-600">Click the "Add to Cart" button at the bottom once you've selected your items.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>3</div>
+                <div>
+                  <p className="font-semibold text-gray-800">Select Slot & Confirm</p>
+                  <p className="text-sm text-gray-600">Choose a convenient pickup time slot, confirm your ride, and add any special instructions.</p>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setShowInfoModal(false)}
+              className="w-full mt-8 py-3 rounded-2xl font-semibold text-white shadow-lg"
+              style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+            >
+              Got it!
+            </button>
           </div>
         </div>
       )}

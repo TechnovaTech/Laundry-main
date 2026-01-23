@@ -416,7 +416,7 @@ const Home = () => {
 
         {/* Book Order Button */}
         <Button
-          onClick={() => navigate("/booking")}
+          onClick={() => navigate("/prices")}
           className="w-full h-12 sm:h-14 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl text-sm sm:text-base font-semibold mb-4 sm:mb-6 shadow-lg"
         >
           <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
