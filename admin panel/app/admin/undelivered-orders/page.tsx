@@ -583,65 +583,59 @@ export default function UndeliveredOrdersPage() {
                 <p style={{ color: '#dc2626' }}>{selectedOrder.deliveryFailureReason}</p>
               </div>
 
-              {selectedOrder.deliveryFailureReason?.includes('Address') && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.5rem' }}>Update Delivery Address:</label>
-                  <input
-                    type="text"
-                    value={redeliveryData.newAddress}
-                    onChange={(e) => setRedeliveryData({...redeliveryData, newAddress: e.target.value})}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '0.9rem'
-                    }}
-                    placeholder="Enter new delivery address"
-                  />
-                </div>
-              )}
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.5rem' }}>Update Delivery Address:</label>
+                <input
+                  type="text"
+                  value={redeliveryData.newAddress}
+                  onChange={(e) => setRedeliveryData({...redeliveryData, newAddress: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '0.9rem'
+                  }}
+                  placeholder="Street, City (Leave empty to keep current)"
+                />
+              </div>
 
-              {selectedOrder.deliveryFailureReason?.includes('Unavailable') && (
-                <>
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.5rem' }}>Redelivery Date:</label>
-                    <input
-                      type="date"
-                      value={redeliveryData.redeliveryDate}
-                      onChange={(e) => setRedeliveryData({...redeliveryData, redeliveryDate: e.target.value})}
-                      min={new Date().toISOString().split('T')[0]}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '0.9rem'
-                      }}
-                    />
-                  </div>
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.5rem' }}>Time Slot:</label>
-                    <select
-                      value={redeliveryData.newTimeSlot}
-                      onChange={(e) => setRedeliveryData({...redeliveryData, newTimeSlot: e.target.value})}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      <option value="">Select time slot</option>
-                      <option value="9:00 AM - 12:00 PM">9:00 AM - 12:00 PM</option>
-                      <option value="12:00 PM - 3:00 PM">12:00 PM - 3:00 PM</option>
-                      <option value="3:00 PM - 6:00 PM">3:00 PM - 6:00 PM</option>
-                      <option value="6:00 PM - 9:00 PM">6:00 PM - 9:00 PM</option>
-                    </select>
-                  </div>
-                </>
-              )}
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.5rem' }}>Redelivery Date:</label>
+                <input
+                  type="date"
+                  value={redeliveryData.redeliveryDate}
+                  onChange={(e) => setRedeliveryData({...redeliveryData, redeliveryDate: e.target.value})}
+                  min={new Date().toISOString().split('T')[0]}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '0.9rem'
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ fontWeight: '600', display: 'block', marginBottom: '0.5rem' }}>Time Slot:</label>
+                <select
+                  value={redeliveryData.newTimeSlot}
+                  onChange={(e) => setRedeliveryData({...redeliveryData, newTimeSlot: e.target.value})}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  <option value="">Select time slot</option>
+                  <option value="9:00 AM - 12:00 PM">9:00 AM - 12:00 PM</option>
+                  <option value="12:00 PM - 3:00 PM">12:00 PM - 3:00 PM</option>
+                  <option value="3:00 PM - 6:00 PM">3:00 PM - 6:00 PM</option>
+                  <option value="6:00 PM - 9:00 PM">6:00 PM - 9:00 PM</option>
+                </select>
+              </div>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                 <button
@@ -675,7 +669,7 @@ export default function UndeliveredOrdersPage() {
                       returnToHubRequested: false
                     };
 
-                    if (redeliveryData.newAddress && selectedOrder.deliveryFailureReason?.includes('Address')) {
+                    if (redeliveryData.newAddress) {
                       const [street, ...rest] = redeliveryData.newAddress.split(',');
                       updateData.deliveryAddress = {
                         ...selectedOrder.deliveryAddress,
