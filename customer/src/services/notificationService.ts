@@ -464,8 +464,8 @@ class NotificationService {
               summaryText: 'Urban Steam',
               schedule: { at: new Date(Date.now() + 100) }, // Reduced delay
               sound: 'default',
-              smallIcon: 'ic_notification_fixed',
-              largeIcon: 'ic_notification_fixed',
+              smallIcon: 'ic_notification_custom',
+              largeIcon: 'ic_notification_custom',
               iconColor: '#452D9B',
               channelId: 'order-updates',
               extra: {
