@@ -160,7 +160,38 @@ const AddAddress = () => {
             isDefault: address.isPrimary
           };
           
-          const updatedAddresses = [...savedAddresses, newAddress];
+          let updatedAddresses = [...savedAddresses];
+          let found = false;
+
+          if (isEditMode && editAddress) {
+            // Try matching by _id first (most reliable)
+            if (editAddress._id) {
+              const index = updatedAddresses.findIndex(addr => addr._id === editAddress._id);
+              if (index !== -1) {
+                updatedAddresses[index] = { ...newAddress, _id: editAddress._id };
+                found = true;
+              }
+            }
+            
+            // If not found by _id, try by index (fallback)
+            if (!found && editAddress.id) {
+              const index = editAddress.id - 1;
+              if (index >= 0 && index < updatedAddresses.length) {
+                // If the existing address at this index has an _id, preserve it if possible, 
+                // but if we matched by index only, we might not know the _id.
+                // However, updatedAddresses[index] comes from savedAddresses, so it has _id.
+                updatedAddresses[index] = { ...newAddress, _id: updatedAddresses[index]._id };
+                found = true;
+              }
+            }
+            
+            // If still not found, append (creates new)
+            if (!found) {
+               updatedAddresses.push(newAddress);
+            }
+          } else {
+            updatedAddresses.push(newAddress);
+          }
           
           const saveResponse = await fetch(`${API_URL}/api/mobile/profile?customerId=${customerId}`, {
             method: 'PUT',

@@ -167,6 +167,7 @@ const Profile = () => {
         if (customer.address && customer.address.length > 0) {
           dbAddresses = customer.address.map((addr, index) => ({
             id: index + 1,
+            _id: addr._id,
             title: addr.street || "Address",
             subtitle: `${addr.city || ''}, ${addr.state || ''} - ${addr.pincode || ''}`.replace(/^, |, $/, ''),
             isDefault: addr.isDefault || false
