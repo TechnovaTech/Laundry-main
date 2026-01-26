@@ -29,6 +29,7 @@ const ContinueBooking = () => {
   const [pastOrders, setPastOrders] = useState<any[]>([]);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showPaymentWarning, setShowPaymentWarning] = useState(false);
+  const [showAddressWarning, setShowAddressWarning] = useState(false);
   const [paymentWarningMessage, setPaymentWarningMessage] = useState('');
   const [realItemData, setRealItemData] = useState<any[]>([]);
   const [loading, setLoading] = useState(isFromCart);
@@ -369,6 +370,16 @@ const ContinueBooking = () => {
                 return;
               }
               
+              // Validate address
+              const hasAddress = orderData.address || (customerInfo?.address && customerInfo.address.length > 0);
+              console.log('Address validation check:', { hasAddress, orderDataAddress: orderData.address, customerInfoAddress: customerInfo?.address });
+              
+              if (!hasAddress) {
+                console.log('Setting showAddressWarning to true');
+                setShowAddressWarning(true);
+                return;
+              }
+
               // Validate payment method
               if (!customerInfo?.paymentMethods || customerInfo.paymentMethods.length === 0) {
                 setPaymentWarningMessage('Please add a payment method before placing order. Go to Profile → Payment Methods to add one.');
@@ -610,6 +621,41 @@ const ContinueBooking = () => {
                   style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
                 >
                   Go to Profile
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Address Warning Modal */}
+      {showAddressWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'linear-gradient(to right, #f59e0b, #ef4444)' }}>
+                <span className="text-3xl">📍</span>
+              </div>
+              <h2 className="text-xl font-bold mb-3 text-gray-900">Address Required</h2>
+              <p className="text-gray-600 mb-6 text-sm leading-relaxed">Please add a delivery address before placing order.</p>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowAddressWarning(false)}
+                  variant="outline"
+                  className="flex-1 h-12 rounded-xl border-2"
+                  style={{ borderColor: '#452D9B', color: '#452D9B' }}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowAddressWarning(false);
+                    navigate('/add-address');
+                  }}
+                  className="flex-1 h-12 rounded-xl text-white"
+                  style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
+                >
+                  Add Address
                 </Button>
               </div>
             </div>

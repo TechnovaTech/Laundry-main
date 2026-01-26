@@ -265,10 +265,10 @@ const Cart = () => {
             <h2 className="text-xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
             <p className="text-gray-500 text-center mb-6">Add items from our services to get started</p>
             <Button
-              onClick={() => navigate('/booking')}
+              onClick={() => navigate('/prices')}
               className="bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-2xl px-8 py-3 font-semibold"
             >
-              Start Shopping
+              Book Now
             </Button>
           </div>
         ) : (

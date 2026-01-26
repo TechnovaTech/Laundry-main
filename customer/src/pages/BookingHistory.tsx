@@ -153,13 +153,7 @@ const BookingHistory = () => {
                 >
                   View Order
                 </button>
-                <button
-                  onClick={() => navigate("/booking")}
-                  className="font-semibold text-xs sm:text-sm"
-                  style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
-                >
-                  Reorder
-                </button>
+
                 <button
                   onClick={() => navigate(`/rate-order/${order.id}`)}
                   className="font-semibold text-xs sm:text-sm"
@@ -183,7 +177,7 @@ const BookingHistory = () => {
             Tap 'Book Now' to place your first order.
           </p>
           <Button
-            onClick={() => navigate("/booking")}
+            onClick={() => navigate("/prices")}
             className="h-10 sm:h-12 rounded-2xl px-6 sm:px-8 font-semibold text-sm sm:text-base text-white shadow-lg"
             style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
           >
