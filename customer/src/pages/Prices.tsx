@@ -38,6 +38,18 @@ const Prices = () => {
     };
   }, [navigate, selectedCategory]);
 
+  useEffect(() => {
+    // Show "How to Order" modal automatically on first visit
+    const hasSeenTutorial = sessionStorage.getItem('hasSeenPricesTutorial');
+    if (!hasSeenTutorial) {
+      const timer = setTimeout(() => {
+        setShowInfoModal(true);
+        sessionStorage.setItem('hasSeenPricesTutorial', 'true');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const fetchCategories = async () => {
     try {
       const response = await fetch(`${API_URL}/api/pricing/categories`);
@@ -302,7 +314,7 @@ const Prices = () => {
                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>1</div>
                 <div>
                   <p className="font-semibold text-gray-800">Choose Items</p>
-                  <p className="text-sm text-gray-600">Use the <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded text-xs font-bold">+</span> sign to add quantity for each item you want to clean.</p>
+                  <p className="text-sm text-gray-600">Use the <span className="inline-flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded text-xs font-bold">+</span> sign to add quantity for each item you want to iron.</p>
                 </div>
               </div>
 

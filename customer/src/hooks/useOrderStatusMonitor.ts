@@ -67,9 +67,14 @@ export const useOrderStatusMonitor = () => {
 
     // Initial check
     checkOrderStatuses();
+    // Also check server notifications immediately
+    notificationService.fetchServerNotifications();
 
-    // Set up polling every 5 seconds
-    const interval = setInterval(checkOrderStatuses, 5000);
+    // Set up polling every 2 seconds for faster updates
+    const interval = setInterval(() => {
+      checkOrderStatuses();
+      notificationService.fetchServerNotifications();
+    }, 2000);
 
     return () => {
       clearInterval(interval);

@@ -70,6 +70,39 @@ class NotificationService {
 
   private constructor() {
     this.loadNotifications();
+    this.init();
+  }
+
+  // Initialize notifications (permissions & channel)
+  async init() {
+    try {
+      if (window.Capacitor?.isNativePlatform()) {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        
+        // Create channel immediately
+        await LocalNotifications.createChannel({
+          id: 'order-updates',
+          name: 'Order Updates',
+          description: 'Notifications for order status updates',
+          sound: 'default',
+          importance: 5,
+          visibility: 1,
+          lights: true,
+          lightColor: '#452D9B',
+          vibration: true
+        });
+
+        // Request permissions immediately
+        await LocalNotifications.requestPermissions();
+      } else if ('Notification' in window) {
+        // Request browser permission
+        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+          await Notification.requestPermission();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize notifications:', error);
+    }
   }
 
   static getInstance(): NotificationService {
@@ -149,6 +182,21 @@ class NotificationService {
     
     // Send to mobile drawer immediately
     this.sendMobilePushNotification(notification);
+
+    // Show in-app toast for "Live" feel
+    toast(notification.title, {
+      description: notification.message,
+      duration: 4000,
+      action: notification.orderId ? {
+        label: "View",
+        onClick: () => {
+           const event = new CustomEvent('notificationClick', {
+            detail: { orderId: notification.orderId }
+          });
+          window.dispatchEvent(event);
+        }
+      } : undefined,
+    });
   }
 
   // Create order status notification
@@ -368,25 +416,30 @@ class NotificationService {
         }
         
         if (permission.display === 'granted') {
+          const pushedKeys = this.getPushedNotificationKeys();
           const deletedIds = this.getDeletedNotificationIds();
           
-          if (deletedIds.includes(notification.id)) {
-            return;
-          }
+          // 1. Check if deleted
+          if (deletedIds.includes(notification.id)) return;
+          
+          // 2. Check if already pushed (by ID) - Global Check
+          if (pushedKeys.includes(notification.id)) return;
 
-          // Only check for duplicates if it's an order status notification
+          // 3. Check Order Status Logic
           if (notification.orderId && notification.orderStatus) {
             const clearedIds = this.getClearedNotificationIds();
-            const pushedKeys = this.getPushedNotificationKeys();
             const notificationKey = `${notification.orderId}_${notification.orderStatus}`;
             
             if (clearedIds.includes(notificationKey) || pushedKeys.includes(notificationKey)) {
               return;
             }
             
-            // Mark as pushed to prevent future duplicates
+            // Mark logic key as pushed
             this.savePushedNotificationKey(notificationKey);
           }
+          
+          // Mark ID as pushed
+          this.savePushedNotificationKey(notification.id);
           
           // Ensure channel exists before scheduling
           await LocalNotifications.createChannel({
@@ -411,8 +464,8 @@ class NotificationService {
               summaryText: 'Urban Steam',
               schedule: { at: new Date(Date.now() + 100) }, // Reduced delay
               sound: 'default',
-              smallIcon: 'ic_notification',
-              largeIcon: 'ic_notification',
+              smallIcon: 'ic_notification_fixed',
+              largeIcon: 'ic_notification_fixed',
               iconColor: '#452D9B',
               channelId: 'order-updates',
               extra: {
@@ -507,10 +560,23 @@ class NotificationService {
       if (data.success && data.data) {
         // Get list of deleted notification IDs for this user
         const deletedIds = this.getDeletedNotificationIds();
+        // Get list of cleared notification keys (orderId_status)
+        const clearedIds = this.getClearedNotificationIds();
         
-        // Filter out deleted notifications
+        // Filter out deleted and cleared notifications
         const serverNotifications = data.data
-          .filter((notif: any) => !deletedIds.includes(notif.id))
+          .filter((notif: any) => {
+            // 1. Check if globally deleted
+            if (deletedIds.includes(notif.id)) return false;
+            
+            // 2. Check if cleared (for order notifications)
+            if (notif.orderId && notif.orderStatus) {
+              const key = `${notif.orderId}_${notif.orderStatus}`;
+              if (clearedIds.includes(key)) return false;
+            }
+            
+            return true;
+          })
           .map((notif: any) => ({
             id: notif.id,
             title: notif.title,
@@ -526,6 +592,8 @@ class NotificationService {
         serverNotifications.forEach((serverNotif: OrderNotification) => {
           if (!this.notifications.find(local => local.id === serverNotif.id)) {
             this.notifications.unshift(serverNotif);
+            // Trigger push for new server notifications
+            this.sendMobilePushNotification(serverNotif);
           }
         });
 
