@@ -492,7 +492,7 @@ const Home = () => {
                     className="h-9 sm:h-10 bg-gradient-to-r from-[#452D9B] to-[#07C8D0] hover:from-[#3a2682] hover:to-[#06b3bb] text-white rounded-xl text-xs sm:text-sm font-semibold flex-shrink-0 shadow-md px-4"
                   >
                     <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                    Reorder
+                    View Order
                   </Button>
                 </div>
               ))
