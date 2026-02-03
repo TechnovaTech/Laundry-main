@@ -19,7 +19,7 @@ const NotAvailable = () => {
         </h1>
         
         <p className="mb-8 sm:mb-12 text-sm sm:text-base text-muted-foreground px-2 sm:px-4">
-          We are expanding fast! Enter your details and we'll notify you when we arrive.
+          We are expanding fast! We'll notify you when we arrive.
         </p>
         
         <div className="w-full space-y-4 sm:space-y-6">
