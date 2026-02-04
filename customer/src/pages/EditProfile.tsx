@@ -63,14 +63,10 @@ const EditProfile = () => {
           setShowImageOptions(false);
           return;
         }
-      } else {
-        // For gallery access, check permissions but don't block if denied
-        try {
-          await CapCamera.checkPermissions();
-        } catch (error) {
-          console.log('Permission check failed, proceeding anyway');
-        }
       }
+      // For gallery (CameraSource.Photos), we rely on the plugin's automatic behavior.
+      // On Android 13+, it uses the Photo Picker (no permissions needed).
+      // On older Android, it handles the legacy picker permissions automatically.
       
       const image = await CapCamera.getPhoto({
         quality: 80,
