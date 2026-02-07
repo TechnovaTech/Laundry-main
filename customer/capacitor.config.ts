@@ -69,7 +69,8 @@ const config: CapacitorConfig = {
       scopes: ['profile', 'email'],
       serverClientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
-      androidClientId: '514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com'
+      androidClientId: '514222866895-0i6cvatbmt7qnqhepqd3j0uv1er5hnb4.apps.googleusercontent.com',
+      iosClientId: '514222866895-k3hh69u3gir8ujv2bimut749b9g5tvsf.apps.googleusercontent.com'
     },
     BackgroundTask: {
       enabled: true
