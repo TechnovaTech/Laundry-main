@@ -130,6 +130,37 @@ export default function KYCVerification() {
     }
   }, [partner?.kycStatus, router]);
 
+  // Poll every 5 seconds while on the waiting screen
+  useEffect(() => {
+    if (!isSubmitted) return;
+
+    const partnerId = localStorage.getItem("partnerId");
+    if (!partnerId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/mobile/partners/${partnerId}`);
+        const data = await response.json();
+        if (data.success && data.data) {
+          const status = data.data.kycStatus;
+          if (status === 'approved') {
+            clearInterval(interval);
+            router.push('/pickups');
+          } else if (status === 'rejected') {
+            clearInterval(interval);
+            // Refresh partner state so kyc-details shows rejection
+            setPartner(data.data);
+            router.push('/profile/kyc-details');
+          }
+        }
+      } catch (error) {
+        // silent — keep polling
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isSubmitted, router]);
+
   // Show waiting page if KYC is submitted
   if (isSubmitted) {
     return (
@@ -142,16 +173,9 @@ export default function KYCVerification() {
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">KYC Under Review</h2>
           <p className="text-gray-600 mb-6">Your KYC documents have been submitted successfully. Our admin team will review and approve within 24-48 hours.</p>
-          <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: '#f0ebf8' }}>
+          <div className="rounded-lg p-4" style={{ backgroundColor: '#f0ebf8' }}>
             <p className="text-sm font-medium" style={{ color: '#452D9B' }}>Status: {partner?.kycStatus?.toUpperCase() || 'PENDING'}</p>
           </div>
-          <button 
-            onClick={() => router.push('/')}
-            className="w-full text-white rounded-xl py-3 font-semibold"
-            style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}
-          >
-            Go to Dashboard
-          </button>
         </div>
       </div>
     );

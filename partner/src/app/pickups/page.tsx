@@ -139,7 +139,7 @@ export default function Pickups() {
         const kycStatus = data.data.kycStatus;
         
         if (kycStatus === 'rejected') {
-          router.push('/profile/kyc');
+          router.push('/profile/kyc-details');
           return;
         }
         
