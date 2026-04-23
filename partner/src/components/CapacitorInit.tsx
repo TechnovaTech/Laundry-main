@@ -37,7 +37,7 @@ export default function CapacitorInit() {
         try {
           const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
           await GoogleAuth.initialize({
-            clientId: '514222866895-13bj0clqdvkihfpockb9bmkn9ufbvinf.apps.googleusercontent.com',
+            clientId: '514222866895-c11vn2eb5u15hi6d5ib0eb4d10cdo3oq.apps.googleusercontent.com',
             scopes: ['profile', 'email'],
             grantOfflineAccess: true
           });
