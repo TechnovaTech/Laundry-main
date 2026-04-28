@@ -33,6 +33,21 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      
+      # Force GoogleSignIn to use version with Privacy Manifests
+      if target.name == 'GoogleSignIn'
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      end
+    end
+    
+    # Ensure Privacy Manifests are included in resource bundles
+    if ['GoogleSignIn', 'GTMAppAuth', 'GTMSessionFetcher'].include?(target.name)
+      privacy_file = "#{target.name}/PrivacyInfo.xcprivacy"
+      if File.exist?("Pods/#{privacy_file}")
+        target.resources_build_phase.add_file_reference(
+          installer.pods_project.new_file(privacy_file)
+        )
+      end
     end
   end
 end

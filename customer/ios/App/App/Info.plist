@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>Urban Steam</string>
+	<string>Urban Steam</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -19,9 +19,17 @@
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<string>2</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Urban Steam needs access to your camera to take profile pictures and order-related photos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Urban Steam needs your location to find nearby laundry services and set your pickup address.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Urban Steam needs access to your photo library to upload profile pictures and order-related photos.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -45,13 +53,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Urban Steam needs access to your photo library to upload profile pictures and order-related photos.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Urban Steam needs access to your camera to take profile pictures and order-related photos.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Urban Steam needs your location to find nearby laundry services and set your pickup address.</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 </dict>
 </plist>
