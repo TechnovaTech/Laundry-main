@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import loginPersonImg from "@/assets/LOGIN.png";
 import { GoogleLogin } from '@react-oauth/google';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { SignInWithApple } from '@capacitor-community/apple-sign-in';
 import { Capacitor } from '@capacitor/core';
 import { API_URL } from '@/config/api';
 
@@ -75,6 +76,53 @@ const Login = () => {
       }
     } catch (error: any) {
       alert('Google Sign-In error: ' + (error.message || 'Something went wrong'));
+    }
+  };
+
+  const handleAppleSignIn = async (): Promise<void> => {
+    try {
+      const result = await SignInWithApple.authorize({
+        clientId: 'com.acsgroup.urbansteam.customer',
+        redirectURI: 'https://urbansteam.in',
+        scopes: 'name email',
+        state: '',
+        nonce: '',
+      });
+
+      const identityToken = result?.response?.identityToken;
+
+      if (!identityToken) {
+        alert('Authentication failed. Please try again.');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/auth/apple-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identityToken, role: 'customer' }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem('customerId', data.data.customerId);
+        localStorage.setItem('authToken', data.token);
+        navigate(data.data.isNewUser ? '/create-profile' : '/home');
+      } else {
+        alert(data.error || 'Apple Sign-In failed');
+      }
+    } catch (error: any) {
+      // Silently handle user cancellation — no alert
+      const message: string = error?.message || '';
+      const code = error?.code;
+      if (
+        code === 1001 ||
+        message.toLowerCase().includes('cancel') ||
+        message.toLowerCase().includes('dismiss')
+      ) {
+        return;
+      }
+      alert('Apple Sign-In error: ' + (message || 'Something went wrong'));
     }
   };
 
@@ -183,6 +231,20 @@ const Login = () => {
                 width="100%"
               />
             </div>
+          )}
+
+          {/* Sign in with Apple — iOS native only */}
+          {Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios' && (
+            <Button
+              onClick={handleAppleSignIn}
+              className="w-full bg-black hover:bg-gray-900 text-white rounded-2xl py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-lg flex items-center justify-center gap-2"
+            >
+              {/* Apple logo SVG */}
+              <svg className="w-5 h-5" viewBox="0 0 814 1000" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 70.1 0 128.4 46.4 172.5 46.4 42.8 0 109.6-49 192.5-49 30.8 0 134.2 2.6 198.4 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/>
+              </svg>
+              Sign in with Apple
+            </Button>
           )}
         </div>
       </div>
