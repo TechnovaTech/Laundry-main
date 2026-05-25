@@ -793,7 +793,15 @@ const Profile = () => {
         </div>
 
         <button
-          onClick={() => navigate("/")}
+          onClick={() => {
+            localStorage.removeItem('customerId');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userMobile');
+            localStorage.removeItem('customerMobile');
+            localStorage.removeItem('hasSeenTopupModal');
+            navigate("/welcome", { replace: true });
+          }}
           className="w-full h-10 sm:h-12 rounded-2xl bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-semibold flex items-center justify-center gap-2 transition-all text-sm sm:text-base shadow-lg"
         >
           <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />

@@ -16,6 +16,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { useOrderStatusMonitor } from './hooks/useOrderStatusMonitor';
 import { navigationDetector } from './utils/navigationDetection';
 import { API_URL } from './config/api';
+import VideoSplash from "./pages/VideoSplash";
 import Welcome from "./pages/Welcome";
 import CheckAvailability from "./pages/CheckAvailability";
 import Congrats from "./pages/Congrats";
@@ -115,7 +116,7 @@ const AppContent = () => {
     const customerId = localStorage.getItem('customerId');
     const authToken = localStorage.getItem('authToken');
 
-    if (customerId && authToken && location.pathname === '/') {
+    if (customerId && authToken && (location.pathname === '/' || location.pathname === '/welcome')) {
       navigate('/home', { replace: true });
     }
   }, []);
@@ -161,7 +162,8 @@ const AppContent = () => {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Welcome />} />
+        <Route path="/" element={<VideoSplash />} />
+        <Route path="/welcome" element={<Welcome />} />
         <Route path="/check-availability" element={<CheckAvailability />} />
         <Route path="/congrats" element={<Congrats />} />
         <Route path="/not-available" element={<NotAvailable />} />
@@ -245,10 +247,8 @@ const App = () => {
             viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
           }
           
-          // Hide splash screen
-          setTimeout(async () => {
-            await SplashScreen.hide();
-          }, 1000);
+          // Hide splash screen immediately — video handles it
+          await SplashScreen.hide();
           
         } catch (error) {
           console.error('Initialization error:', error);

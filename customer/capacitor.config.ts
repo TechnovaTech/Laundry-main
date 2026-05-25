@@ -42,8 +42,8 @@ const config: CapacitorConfig = {
       offset: true
     },
     SplashScreen: {
-      launchShowDuration: 2000,
-      backgroundColor: '#ffffff',
+      launchShowDuration: 0,
+      backgroundColor: '#000000',
       showSpinner: false
     },
     Keyboard: {

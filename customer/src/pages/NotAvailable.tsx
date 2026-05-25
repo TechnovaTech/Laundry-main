@@ -32,7 +32,7 @@ const NotAvailable = () => {
           </Button>
           
           <button 
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/welcome")}
             className="text-sm sm:text-base text-muted-foreground hover:text-foreground transition-colors"
           >
             Back to Home
