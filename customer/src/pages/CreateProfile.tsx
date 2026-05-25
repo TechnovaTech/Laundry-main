@@ -50,8 +50,8 @@ const CreateProfile = () => {
         if (data.success && data.data) {
           const customer = data.data
           setFormData({
-            fullName: customer.name || '',
-            email: customer.email || '',
+            fullName: '',
+            email: '',
             phone: customer.mobile?.startsWith('google_') ? '' : customer.mobile || '',
             referralCode: ''
           })

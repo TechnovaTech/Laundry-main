@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (!customer) {
       customer = await Customer.create({
         mobile,
-        name: 'User',
+        name: '',
         isActive: true
       })
       console.log('New customer created:', customer._id)

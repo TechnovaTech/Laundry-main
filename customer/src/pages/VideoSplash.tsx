@@ -19,15 +19,10 @@ const VideoSplash = () => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
     video.play().catch(() => goNext());
-
     video.addEventListener("ended", goNext);
     video.addEventListener("error", goNext);
-
-    // Fallback — max 10 seconds
     const timeout = setTimeout(goNext, 10000);
-
     return () => {
       video.removeEventListener("ended", goNext);
       video.removeEventListener("error", goNext);
@@ -36,25 +31,24 @@ const VideoSplash = () => {
   }, []);
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "#000",
-        zIndex: 9999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-      onClick={goNext}
-    >
+    <div onClick={goNext} style={{ position: "fixed", inset: 0, zIndex: 9999 }}>
+      <style>{`
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-enclosure,
+        video::-webkit-media-controls-panel,
+        video::-webkit-media-controls-play-button,
+        video::-webkit-media-controls-start-playback-button,
+        video::-webkit-media-controls-overlay-play-button { display:none!important; opacity:0!important; }
+      `}</style>
       <video
         ref={videoRef}
         src={splashVideo}
         autoPlay
         muted
         playsInline
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        preload="auto"
+        disablePictureInPicture
+        style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", pointerEvents:"none" }}
       />
     </div>
   );
