@@ -247,8 +247,7 @@ const App = () => {
             viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
           }
           
-          // Hide splash screen immediately — video handles it
-          await SplashScreen.hide();
+          // Splash screen is hidden by VideoSplash when video is ready
           
         } catch (error) {
           console.error('Initialization error:', error);

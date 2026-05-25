@@ -5,10 +5,11 @@
       "Bash(git push *)",
       "Bash(git ls-remote *)",
       "Bash(npx cap *)",
-      "Bash(.\\\\gradlew.bat assembleRelease)"
+      "Bash(.\\\\gradlew.bat assembleRelease)",
+      "Bash(ffmpeg -i splash.mp4 -vcodec libx264 -crf 28 -preset fast -vf scale=720:-2 -an output.mp4)",
+      "PowerShell(winget install ffmpeg)",
+      "PowerShell(choco install ffmpeg -y)",
+      "Bash(./gradlew assembleRelease)"
     ]
   }
 }
-
-
-
