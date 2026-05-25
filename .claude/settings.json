@@ -9,7 +9,8 @@
       "Bash(ffmpeg -i splash.mp4 -vcodec libx264 -crf 28 -preset fast -vf scale=720:-2 -an output.mp4)",
       "PowerShell(winget install ffmpeg)",
       "PowerShell(choco install ffmpeg -y)",
-      "Bash(./gradlew assembleRelease)"
+      "Bash(./gradlew assembleRelease)",
+      "Bash(npm install *)"
     ]
   }
 }
