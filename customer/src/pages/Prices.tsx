@@ -302,8 +302,8 @@ const Prices = () => {
               <div className="flex gap-4">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ background: 'linear-gradient(to right, #452D9B, #07C8D0)' }}>2</div>
                 <div>
-                  <p className="font-semibold text-gray-800">Add to Cart</p>
-                  <p className="text-sm text-gray-600">Click the "Add to Cart" button at the bottom once you've selected your items.</p>
+                  <p className="font-semibold text-gray-800">Items Auto-Added</p>
+                  <p className="text-sm text-gray-600">Items are automatically saved to your cart as you add quantities. No extra button needed.</p>
                 </div>
               </div>
 
